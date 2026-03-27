@@ -7,6 +7,8 @@ Mitglieder: Saliha, Dominik, Johanna (Springer)
 
 - Heatmap Visualisierung
 - Dendrogram Visualisierung
+- mit Beschriftungen
+- Farbpaletten
 
 ## Anmerkungen
 - Clusterverfahren spielen für dieses Team keine Rolle
