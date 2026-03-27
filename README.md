@@ -28,3 +28,31 @@ GitHub und RStudio beinhaltet: https://happygitwithr.com
 - Vortrag (10 Minuten pro Gruppe)
 
 *Empfehlung*: funktionierender Prototyp, der vier Wochen vor Abgabe fertig ist
+
+## Ordmerstruktur
+```
+bimi-projekt/
+│
+├── app/                      # GUI Team (das ist die Shiny App)
+│   ├── ui.R
+│   └── server.R              
+│
+├── R/                        # geteilte Logik
+│   ├── clustering/           # Cluster Team
+│       ├── single_linkage.R 
+│       └── etc...     
+│   ├── visualization/        # Design Team
+│       ├── heatmap.R 
+│       └── etc...  
+│   └── utils/                # für kleine Hilfsfunktionen, die von beiden Teams geteilt werden
+│
+├── tests/                    # Order für Tests
+│
+├── docs/                     # Dokumentation
+│   ├── workflow.md           # beinhaltet einen Workflow für das Arbeiten mit Git
+│   └── name_directory.md     # Verzeichnis der Funktionen und Variablen        
+|
+├── README.md
+└── .gitignore               
+```
+
