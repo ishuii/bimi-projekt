@@ -15,7 +15,7 @@ In der Bash:
 git pull origin dev
 ```
 
-In RStudio über den entsprechenden Button (rechts oben auf Git &rarr; Pull wählen)
+In RStudio über den entsprechenden Button (rechts oben auf Git &rarr; Pull wählen). Wichtig: Hierzu muss der Branch "dev" ausgewählt werden!
 
 ### Neuen Branch erschaffen
 Es ist äußerst wichtig, NICHT einfach so auf main hochzuladen, da es sonst zu gravierenden merge-Fehlern kommen kann. Stattdessen arbeitet jeder zunächst auf seinem eigenen Branch.
