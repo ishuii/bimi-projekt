@@ -1,5 +1,10 @@
 ## Workflow-Schritte
 
+**Wichtige Anmerkungen*
+- wir pushen unseren Code nicht auf Main, sondern in den Branch "dev"
+- jede Bearbeitung findet zudem auf einem "frischen" Branch statt, der mit "feature/..." beginnt
+- die Befehle in der Bash können in RStudio im Terminal verwendet werden (unten neben Console; falls nicht da, dann im Feld rechts unten Files - More - Open New Terminal here)
+
 Voraussetzungen: das Repo wurde bereits geklont und läuft lokal, z.B. über RStudio oder VS Code
 
 ### Pull
@@ -20,8 +25,8 @@ In der Bash:
 git checkout -b feature/my-feature
 ```
 
-In RStudio: \ 
-\
+In RStudio: im Git Fenster oben rechts auf "New Branch" klicken (daneben sollte "dev" stehen, nicht "main"!). Bei Branch Name wird "feature/my-feature" (mit entsprechendem Namen) geschrieben. Dann auf Create klicken. 
+
 Erklärung: "feature" ist damit ein paralleler Branch zu main. Hier darf man auch was "kaputt machen", ohne dass es den Code der anderen beeinträchtigt (das main Projekt bleibt sicher). Statt "my-feature" sollten eindeutige Namen gewählt werden, z.B. `feature/single-linkage` oder `feature/ui-layout`
 
 Jeder Branch folgt dem Zyklus: erschaffen &rarr; arbeiten &rarr; push &rarr; Pull request &rarr; merge &rarr; extra Branch wird gelöscht
@@ -46,7 +51,32 @@ In der Bash:
 ```
 git push origin feature/my-feature
 ```
+In R-Studio: über den Button "Push"
 
 ### Pull Request erschaffen
+
+Dieser Schritt erfolgt auf GitHub. Hier sollte ein Banner angezeigt werden: "Compare & Pull Request" &rarr; darauf klicken.
+Falls es nicht angezeigt wird, suchen im Pull Request Tab &rarr; dann auf "New Pull Request"
+
+Dort einstellen:
+
+```
+base: dev
+compare: feature/my-feature
+```
+
+Es sollte ein Titel eingegeben werden (kurz und prägnant, wie die Commit message) und eine Beschreibung dessen, was gemacht worden ist (auch hier so lang wie nötig, so kurz wie möglich halten).
+
+Dann klicken auf "Create Pull Request".
+
+### Review, Merge und Löschen des Branches
+
+Der Code kann dann gereviewt werden &rarr; "Merge Pull Request" klicken und bestätigen.
+
+Im Anschluss muss der feature/my-feature Branch wieder gelöscht werden. GitHub wird diese Option anzeigen, man muss sie nur bestätigen.
+
+### Zurück zu RStudio
+
+Um final alles zu syncen, sollte nun in den Branch "dev" gewechselt werden und dann erneut ein Pull durchgeführt werden. 
 
 
