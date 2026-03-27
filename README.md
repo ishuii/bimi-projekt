@@ -6,13 +6,13 @@ Hier noch eine Seite, die eine hilfreiche Anleitung für die gemeinsame Nutzung 
 GitHub und RStudio beinhaltet: https://happygitwithr.com
 
 ## Projektumfang
-- GUI
+- GUI (Adrika, Johanna)
   - Auswahl: Parameter, Datensätze (Messungen, Patienten), Farbpaletten
-  - Einlesen von Datensätzen, Sichern von Einstellungen, Grafikexport (PDF)
-- Grafikpanel (mit eigener Heatmap, keine fertige nutzen)
+  - Einlesen von Datensätzen (Andreas), Sichern von Einstellungen, Grafikexport (PDF)
+- Grafikpanel (mit eigener Heatmap, keine fertige nutzen) (Saliha, Domi, Johanna)
   - Darstellung: Heatmap, Dendrogramme, Beschriftungen (Patienten-ID, Messungen), Farbpaletten
   - Eisen-Paper mit Hinweisen zur klassischen Darstellung
-- Clusteralgorithmen
+- Clusteralgorithmen (Wiki, Alisa, Rosina)
   - soll verschiedene Arten von Clusterung zulassen
   - agglomerative Algorithmen: Single-Linkage, Average-Linkage, Complete-Linkage, (agglomerativer Basisalgorithmus)
   - Lance-Paper
