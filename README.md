@@ -6,9 +6,9 @@ Hier noch eine Seite, die eine hilfreiche Anleitung für die gemeinsame Nutzung 
 GitHub und RStudio beinhaltet: https://happygitwithr.com
 
 ## Projektumfang
-- GUI (Adrika, Johanna)
+- GUI (Adrika, Andreas, Johanna)
   - Auswahl: Parameter, Datensätze (Messungen, Patienten), Farbpaletten
-  - Einlesen von Datensätzen (Andreas), Sichern von Einstellungen, Grafikexport (PDF)
+  - Einlesen von Datensätzen, Sichern von Einstellungen, Grafikexport (PDF)
 - Grafikpanel (mit eigener Heatmap, keine fertige nutzen) (Saliha, Domi, Johanna)
   - Darstellung: Heatmap, Dendrogramme, Beschriftungen (Patienten-ID, Messungen), Farbpaletten
   - Eisen-Paper mit Hinweisen zur klassischen Darstellung
@@ -46,7 +46,7 @@ bimi-projekt/
 │       └── etc...  
 │   └── utils/                # für kleine Hilfsfunktionen, die von beiden Teams geteilt werden
 │
-├── tests/                    # Order für Tests
+├── tests/                    # Ordner für Tests
 │
 ├── docs/                     # Dokumentation
 │   ├── workflow.md           # beinhaltet einen Workflow für das Arbeiten mit Git
