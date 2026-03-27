@@ -17,7 +17,7 @@ GitHub und RStudio beinhaltet: https://happygitwithr.com
   - agglomerative Algorithmen: Single-Linkage, Average-Linkage, Complete-Linkage, (agglomerativer Basisalgorithmus)
   - Lance-Paper
   
-## Sonstige Aufgaben
+### Sonstige Aufgaben
 - Testen (mind. 4 Wochen)
 - Dokumentation (auch im Code)
 - Bericht (20 Seiten)
