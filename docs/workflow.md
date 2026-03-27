@@ -80,4 +80,5 @@ Im Anschluss muss der feature/my-feature Branch wieder gelöscht werden. GitHub 
 
 Um final alles zu syncen, sollte nun in den Branch "dev" gewechselt werden und dann erneut ein Pull durchgeführt werden. 
 
-
+## Merge to Main
+Der Merge von dev zu main erfolgt nur ab und zu, da main die stabile Code-Version enthält. Das heißt z.B. wenn wir einen Meilenstein erledigen, wie etwa einen Algorithmus für fertig erklären. Das ist dann auch die Version, die wir Herr Lausser präsentieren. 
