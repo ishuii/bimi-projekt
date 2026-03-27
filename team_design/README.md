@@ -11,5 +11,5 @@ Mitglieder: Saliha, Dominik, Johanna (Springer)
 - Farbpaletten
 
 ## Anmerkungen
-- Clusterverfahren spielen für dieses Team keine Rolle
+- genaue Clusterimplementierung spielt für dieses Team keine Rolle
 - ABER: Input/Output-Format sollte sobald wie möglich festgelegt werden
