@@ -29,7 +29,7 @@ GitHub und RStudio beinhaltet: https://happygitwithr.com
 
 *Empfehlung*: funktionierender Prototyp, der vier Wochen vor Abgabe fertig ist
 
-## Ordmerstruktur
+## Ordnerstruktur
 ```
 bimi-projekt/
 │
