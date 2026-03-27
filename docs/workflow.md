@@ -2,6 +2,7 @@
 
 **Wichtige Anmerkungen*
 - wir pushen unseren Code nicht auf Main, sondern in den Branch "dev"
+  - "dev" ist mittlerweile der default-Branch, also sollte es keine Probleme damit geben
 - jede Bearbeitung findet zudem auf einem "frischen" Branch statt, der mit "feature/..." beginnt
 - die Befehle in der Bash können in RStudio im Terminal verwendet werden (unten neben Console; falls nicht da, dann im Feld rechts unten Files - More - Open New Terminal here)
 
