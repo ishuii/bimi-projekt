@@ -5,6 +5,7 @@
   - "dev" ist mittlerweile der default-Branch, also sollte es keine Probleme damit geben
 - jede Bearbeitung findet zudem auf einem "frischen" Branch statt, der mit "feature/..." beginnt
 - die Befehle in der Bash können in RStudio im Terminal verwendet werden (unten neben Console; falls nicht da, dann im Feld rechts unten Files - More - Open New Terminal here)
+- meine Empfehlung: Bash ist sauberer zu nutzen :) 
 
 Voraussetzungen: das Repo wurde bereits geklont und läuft lokal, z.B. über RStudio oder VS Code
 
@@ -27,6 +28,8 @@ git checkout -b feature/my-feature
 ```
 
 In RStudio: im Git Fenster oben rechts auf "New Branch" klicken (daneben sollte "dev" stehen, nicht "main"!). Bei Branch Name wird "feature/my-feature" (mit entsprechendem Namen) geschrieben. Dann auf Create klicken. 
+
+ACHTUNG: Es wird in dem Moment nicht viel passieren - in der Bash zum Beispiel erscheint einfach die Nachricht, dass nun in einem neuen Branch gearbeitet wird. Das ist gut so, da man sich jetzt quasi in einer Kopie von dev befindet. Hier kann man wie gewohnt Dateien in all den Repo-Ordner bearbeiten oder neue hinzufügen.
 
 Erklärung: "feature" ist damit ein paralleler Branch zu main. Hier darf man auch was "kaputt machen", ohne dass es den Code der anderen beeinträchtigt (das main Projekt bleibt sicher). Statt "my-feature" sollten eindeutige Namen gewählt werden, z.B. `feature/single-linkage` oder `feature/ui-layout`
 
