@@ -43,6 +43,12 @@ In der Bash:
 git add .
 git commit -m "Commit message"
 ```
+
+*Anmerkung*: statt dem . nach "git add" sollten im besten Fall folgende Varianten gewählt werden:
+```
+git add single_injection_function.R ui_layout.R        # einzelne Dateien aufzählen, Trennung durch Leerzeichen
+git add clustering/                                    # ganzen Ordner hochladen, also alle Dateien aus clustering/...
+```
  
 In RStudio: Im Fenster Git zunächst bei den bearbeiteten Dateien "Staged" ankreuzen. Dann auf Commit drücken. Es öffnet sich ein Fenster, dass die Veränderungen anzeigt und das Eingeben einer Commit message ermöglicht. Nach Ausfüllen wieder Commit drücken.
 
