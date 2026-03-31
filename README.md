@@ -35,7 +35,8 @@ bimi-projekt/
 │
 ├── app/                      # GUI Team (das ist die Shiny App)
 │   ├── ui.R
-│   └── server.R              
+│   ├── server.R
+│   └── app.R              
 │
 ├── R/                        # geteilte Logik
 │   ├── clustering/           # Cluster Team
