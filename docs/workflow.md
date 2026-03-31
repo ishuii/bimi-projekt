@@ -36,7 +36,7 @@ Erklärung: "feature" ist damit ein paralleler Branch zu main. Hier darf man auc
 Jeder Branch folgt dem Zyklus: erschaffen &rarr; arbeiten &rarr; push &rarr; Pull request &rarr; merge &rarr; extra Branch wird gelöscht
 
 ### Arbeiten und commit
-Nachdem im neuen Branch gearbeitet wurde, müssen die neuen Dateien sowie Veränderungen in bereits bestehenden Dateien commited werden. 
+Nachdem im neuen Branch gearbeitet wurde, müssen die neuen Dateien sowie Veränderungen in bereits bestehenden Dateien commited werden. Davor müsste ihr natürlich die entsprechenden Dateien auch speichern! (Nicht so wie Rosina)
 
 In der Bash:
 ```
