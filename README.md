@@ -50,6 +50,8 @@ bimi-projekt/
 │
 ├── tests/                    # Ordner für Tests
 │
+├── data/                    # Ordner für Datensätze
+│
 ├── docs/                     # Dokumentation
 │   ├── workflow.md           # beinhaltet einen Workflow für das Arbeiten mit Git
 │   └── name_directory.md     # Verzeichnis der Funktionen und Variablen        
