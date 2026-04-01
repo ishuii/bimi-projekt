@@ -8,7 +8,7 @@ GitHub und RStudio beinhaltet: https://happygitwithr.com
 ## Projektumfang
 - GUI (Adrika, Andreas, Johanna)
   - Auswahl: Parameter, Datensätze (Messungen, Patienten), Farbpaletten
-  - Einlesen von Datensätzen, Sichern von Einstellungen, Grafikexport (PDF)
+  - Einlesen von Datensätzen, Sichern von Einstellungen, Grafikexport (PDF), Dropdown für Merkmalsselektion
 - Grafikpanel (mit eigener Heatmap, keine fertige nutzen) (Saliha, Domi, Johanna)
   - Darstellung: Heatmap, Dendrogramme, Beschriftungen (Patienten-ID, Messungen), Farbpaletten
   - Eisen-Paper mit Hinweisen zur klassischen Darstellung
@@ -16,6 +16,7 @@ GitHub und RStudio beinhaltet: https://happygitwithr.com
   - soll verschiedene Arten von Clusterung zulassen
   - agglomerative Algorithmen: Single-Linkage, Average-Linkage, Complete-Linkage, (agglomerativer Basisalgorithmus)
   - Lance-Paper
+  - Funktion zum Einlesen der Daten + die Erkennung der Merkmalgruppen
   
 ### Sonstige Aufgaben
 - Testen (mind. 4 Wochen)
