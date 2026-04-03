@@ -2,8 +2,17 @@
 library(shiny)
 # User Interface -------------
 
-ui <- navbarPage(
-  title = "Laussers Lieblings Logic",
-  theme = bslib::bs_theme(version = 4, bootswach= "minty")
+ui <- fluidPage(
+  title = "Bimi Projekt",
+  sliderInput("x", "Zahl", 1, 100, 50),
+  sidebarLayout(
+    mainPanel(
+      textOutput("Bespieltext"),
+      textOutput("Spalten")
+    ),
+    
+    fileInput("Datei_csv", "Datei hochladen", accept = c(".csv"))
+    
+  )
   
 )
