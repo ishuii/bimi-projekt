@@ -17,8 +17,10 @@ server<- function(input, output) {
   #CSV DATENVERARBEITUNG
   
   output$Spalten <- renderText({
-    paste(colnames(daten()), collapse =", ")
+    paste0("Der Datensatz hat ",nrow(daten())-1, " Messwerte", "\n",
+   "Der Datensatz hat ",ncol(daten()), " Samples")
     })
+  
 }
 
   

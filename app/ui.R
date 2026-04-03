@@ -3,12 +3,11 @@ library(shiny)
 # User Interface -------------
 
 ui <- fluidPage(
-  title = "Bimi Projekt",
-  sliderInput("x", "Zahl", 1, 100, 50),
+  titlePanel = "Bimi Projekt",
   sidebarLayout(
     mainPanel(
       textOutput("Bespieltext"),
-      textOutput("Spalten")
+      verbatimTextOutput("Spalten")
     ),
     
     fileInput("Datei_csv", "Datei hochladen", accept = c(".csv"))
