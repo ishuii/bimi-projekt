@@ -28,6 +28,8 @@ GitHub und RStudio beinhaltet: https://happygitwithr.com
   - Vorgehen erläutern
 - Vortrag (10 Minuten pro Gruppe)
 
+##Test Domi
+
 *Empfehlung*: funktionierender Prototyp, der vier Wochen vor Abgabe fertig ist
 
 ## Ordnerstruktur
@@ -57,6 +59,6 @@ bimi-projekt/
 │   └── name_directory.md     # Verzeichnis der Funktionen und Variablen        
 |
 ├── README.md
-└── .gitignore               
+└── .gitignore   
 ```
 
