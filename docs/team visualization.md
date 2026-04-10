@@ -10,7 +10,7 @@
 ### Benötigte Datenformate:
 - Wir benötigen
     - **Datenmatrix** ODER **Dataframe** -> Heatmap
-    - **Baumstruktur bzw. Mergestruktur des Baumes** -> Dendrogram
+    - **Baumstruktur bzw. Mergestruktur des Baumes** -> Dendrogramm
         - merge matrix + heigt vector + leaf order 
     - Beispiel: cluster_result <- list(
                     merge = merge_matrix,
