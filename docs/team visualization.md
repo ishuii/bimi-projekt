@@ -38,5 +38,4 @@
 
 2. Könnt ihr euer Ergebnis optional als hclust-ähnliche Struktur liefern?
 3. Ist die Matrix schon sortiert oder nicht 
-4. Was würde für das GUI Team mehr Sinn ergeben? Eine finale Visualisierungsfunktion oder drei einzelne kleine Funktionen?
   
