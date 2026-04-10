@@ -9,19 +9,20 @@
   
 ### Benötigte Datenformate:
 - Wir benötigen
-    - **Datenmatrix** ODER **Dataframe** -> Heatmap
-    - **Baumstruktur bzw. Mergestruktur des Baumes** -> Dendrogramm
-        - merge matrix + heigt vector + leaf order 
+    - **Datenmatrix** ODER **Dataframe** -> Heatmap (wird von Herr Lausser ja schon bereit gestellt)
+    - **Baumstruktur bzw. Mergestruktur des Baumes** -> Dendrogramm  (Clusterstruktur)
+        - merge matrix + heigt vector + leaf order + (optional: labels)
+        - für jeden Algorithmus benötigen wir eine Chlusterstruktur im selben Format
     - Beispiel: cluster_result <- list(
                     merge = merge_matrix,
                     height = height_vector,
-                    order = leaf_order)
+                    order = leaf_order)    -> **Cluster-Objekt**
 
 ### Heatmap:
 - normalerweise: heatmap(data, col=cluster_colors)
 - Input:
     - Datenmatrix (numerische Werte, Zeilen=Objekte, Spalten=Features)  ODER Dataframe, welches zu einer MAtrix konvertiert werden kann
-    - Reiehnfolge der Zeilen aus dem Clustering
+    - Reihenfolge der Zeilen aus dem Clustering
     - Farbpalette
 - muss nach Clusterreihenfolge sortiert werden -> Dendrogramm stimmt sonst nicht überein
   
