@@ -32,7 +32,7 @@
  
 ## Wichtige Fragen an das restliche Team:
 1. Welche Datenstruktur liefert der Algorithmus?
-   1) merge matrix, height vector und leaf order
+   1) merge matrix, height vector und leaf order 
    2) eine Baumstruktur (Nodes mit left/right children und height)?
 
 2. Könnt ihr euer Ergebnis optional als hclust-ähnliche Struktur liefern?
