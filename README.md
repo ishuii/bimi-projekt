@@ -57,6 +57,6 @@ bimi-projekt/
 │   └── name_directory.md     # Verzeichnis der Funktionen und Variablen        
 |
 ├── README.md
-└── .gitignore               
+└── .gitignore   
 ```
 
