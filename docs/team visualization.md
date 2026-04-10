@@ -30,7 +30,12 @@
     - im Falle einer Funktion: Nutzung des Clusterings -> Sortierung der Heatmap -> Zeichnen des Dendrogramms -> durch Layout kombinieren
     - im Falle einzelner: Heatmap, Dandrogramm, Panel
  
-## Wichtige Fragen an Algorithmus Team:
-1. Welche Struktur liefert der Algorithmus? Merge, Height, Order oder Baumstruktur?
-2. Was würde für das GUI Team mehr Sinn ergeben? Eine finale Visualisierungsfunktion oder drei einzelne kleine Funktionen?
+## Wichtige Fragen an das restliche Team:
+1. Welche Datenstruktur liefert der Algorithmus?
+   1) merge matrix, height vector und leaf order
+   2) eine Baumstruktur (Nodes mit left/right children und height)?
+
+2. Könnt ihr euer Ergebnis optional als hclust-ähnliche Struktur liefern?
+3. Ist die Matrix schon sortiert oder nicht 
+4. Was würde für das GUI Team mehr Sinn ergeben? Eine finale Visualisierungsfunktion oder drei einzelne kleine Funktionen?
   
