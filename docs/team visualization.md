@@ -37,5 +37,7 @@
    2) eine Baumstruktur (Nodes mit left/right children und height)?
 
 2. Könnt ihr euer Ergebnis optional als hclust-ähnliche Struktur liefern?
-3. Ist die Matrix schon sortiert oder nicht 
+3. Ist die Matrix schon sortiert oder nicht
+
+4. war tolll
   
