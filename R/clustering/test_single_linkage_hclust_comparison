@@ -8,7 +8,7 @@ library(cluster)
 # here we do this step directly just for the first implementation
 
 # first column is treated as row names
-df <- read.csv("C://Users//rosin//Downloads//TCGA_kidney_unnormalized_TOP10.csv", row.names = 1)
+df <- read.csv("C://Users//Downloads//TCGA_kidney_unnormalized_TOP10.csv", row.names = 1)
 
 df <- df[, 1:20]  # only first 20 cols OPTIONAL
 
