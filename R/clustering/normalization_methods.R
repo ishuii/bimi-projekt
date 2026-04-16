@@ -5,7 +5,7 @@
 #preparation
 
 prepare_data <- function(df) {
-  # Labels = letzte Zeile
+  # Labels = last row
   labels <- as.numeric(df[nrow(df), ])
   
   # remove labels on lowest row
