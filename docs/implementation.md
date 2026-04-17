@@ -3,7 +3,7 @@
 - wir nutzen Snake-Style, d.h. single_linkage (Trennung mit Unterstrichen) und nicht z.B. singleLinkage
 - Code-Dokumentation sollte auf Englisch geschrieben sein
 
-## Benötigte Parameter für die Implementierung der Visualisierungs Funktionen
+## Benötigte Parameter für die Implementierung der Visualisierungs-Funktionen
 -  Merge-Matrix / Merge-Liste
   - normalerweise arbeitet R auf einer Merge-Matrix mit folgendem Layout:
     [1]  -1  -2    -> Originalelement 1 und 2 werden gemerged => Cluster 1
