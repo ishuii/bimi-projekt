@@ -10,7 +10,7 @@ labels <- df[c(11),]
 df <- df[-c(11),]
 
 df_log <- log2(df + 1)
-df_normalized <- t(scale(t(df_log)))
+df_normalized <- t(scale(t(df_log))) 
 
 # we benchmark with a smaller distance matrix
 microbenchmark(
@@ -18,6 +18,8 @@ microbenchmark(
   stats = stats::dist(df_normalized, method = "euclidean"),
   cpp = dist_cpp(df_normalized, method = "euclidean")
 )
+
+# dist_cpp(df_normalized, "minkowski", 0)
 
 # results
 # Unit: microseconds
