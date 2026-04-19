@@ -6,9 +6,9 @@ cppFunction('
   
   // [[Rcpp::export]]
   NumericMatrix dist_cpp(NumericMatrix mat, std::string method, int p = 2) {
-    int nc = mat.nrow();
-    int nr = mat.ncol();
-    NumericMatrix dmat(nc, nc);
+    int nr = mat.nrow();
+    int nc = mat.ncol();
+    NumericMatrix dmat(nr, nr);
     
     int method_id;
     
@@ -21,11 +21,11 @@ cppFunction('
       else method_id = 2;
     }
       
-    for (int i = 0; i < nc; i++) {
-        for (int j = i; j < nc; j++) {
+    for (int i = 0; i < nr; i++) {
+        for (int j = i; j < nr; j++) {
             double d = 0.0;
               
-            for (int k = 0; k < nr; k++) {
+            for (int k = 0; k < nc; k++) {
                 double diff = mat(i,k) - mat(j,k);
 
                 if (method_id == 0) {
