@@ -5,27 +5,42 @@ cppFunction('
   using namespace Rcpp;
   
   // [[Rcpp::export]]
-  NumericMatrix dist_cpp(NumericMatrix mat, std::string method) {
-    int n = mat.nrow();
-    int p = mat.ncol();
-    NumericMatrix dmat(n, n);
+  NumericMatrix dist_cpp(NumericMatrix mat, std::string method, int p = 2) {
+    int nc = mat.nrow();
+    int nr = mat.ncol();
+    NumericMatrix dmat(nc, nc);
+    
+    int method_id;
+    
+    if (method == "euclidean") method_id = 0;
+    else if (method == "manhattan") method_id = 1;
+    else if (method == "minkowski") {
+      if (p <= 0) stop("p muss größer als 0 sein.");
+      else if (p == 1) method_id = 1;
+      else if (p == 2) method_id = 0;
+      else method_id = 2;
+    }
       
-    for (int i = 0; i < n; i++) {
-        for (int j = i; j < n; j++) {
+    for (int i = 0; i < nc; i++) {
+        for (int j = i; j < nc; j++) {
             double d = 0.0;
               
-            for (int k = 0; k < p; k++) {
+            for (int k = 0; k < nr; k++) {
                 double diff = mat(i,k) - mat(j,k);
-                  
-                if (method == "euclidean") {
+
+                if (method_id == 0) {
                   d += diff*diff;
-                } else if (method == "manhattan") {
+                } else if (method_id == 1) {
                   d += std::abs(diff); 
+                } else if (method_id == 2) {
+                  d += std::pow(std::abs(diff), p);
                 }
             }
             
-            if (method == "euclidean") {
+            if (method_id == 0) {
               d = std::sqrt(d);
+            } else if (method_id == 2) {
+              d = std::pow(d, 1.0/p);
             }
             
             dmat(i,j) = d;
@@ -34,6 +49,17 @@ cppFunction('
     }
     return dmat;
   }')
+
+# TODO 
+# add canberra
+# add pearson
+# add angular
+# include GUI selection: do we calculate over patients or genes?
+
+# clustering ... (1) genes --> rows, ... (2) patients --> transpose
+# information whether (1) or (2) will come from team GUI (selection by operator)
+
+#-------------------------------------------------------------------------------
 
 # old version, just here for testing
 basic_dist <- function(df, method = "euclidean") {
