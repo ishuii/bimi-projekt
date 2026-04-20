@@ -37,20 +37,20 @@ normalize_log_zscore <- function(df) {
 
 ################################################################################
 # (2) CPM+log+z-score 
-
-normalize_cpm_log_zscore <- function(df) {
-  col_sums <- colSums(df)
-  
+# doesn't work for gene/row only normalization
+#normalize_cpm_log_zscore <- function(df) {
+#  col_sums <- colSums(df)
+#  
   # stop to prevent division by 0
-  if (any(col_sums == 0)) {
-    stop("Some columns have sum = 0 (cannot compute CPM)")
-  }
+#  if (any(col_sums == 0)) {
+#    stop("Some columns have sum = 0 (cannot compute CPM)")
+#  }
   
-  df_cpm <- t(t(df) / col_sums) * 1e6
-  df_log <- log2(df_cpm + 1)
-  df_norm <- t(scale(t(df_log)))
-  return(df_norm)
-}
+#  df_cpm <- t(t(df) / col_sums) * 1e6
+#  df_log <- log2(df_cpm + 1)
+#  df_norm <- t(scale(t(df_log)))
+#  return(df_norm)
+#}
 
 # what it does:
 # corrects sequencing depth (CPM = counts per million)
@@ -62,6 +62,7 @@ normalize_cpm_log_zscore <- function(df) {
 ################################################################################
 
 # (3) just Log (if absolut differences are important)
+# works on each element of the dataset
 normalize_log_only <- function(df) {
   return(log2(df + 1))
 }
@@ -74,7 +75,8 @@ normalize_log_only <- function(df) {
 # (4) correlation based method (very good for clustering)
 get_correlation_distance <- function(df) {
   df_log <- log2(df + 1)
-  dist_mat <- as.dist(1 - cor(df_log))
+  cor_mat <- cor(t(df_log))     #transpose the dataset so it works for rows instead of cols
+  dist_mat <- as.dist(1 - cor_mat)
   return(dist_mat)
 }
 
