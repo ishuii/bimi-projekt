@@ -56,7 +56,7 @@ cppFunction('
   }')
 
 # TODO 
-# add pearson
+# add pearson - lalalal
 # add angular
 # include GUI selection: do we calculate over patients or genes?
 
