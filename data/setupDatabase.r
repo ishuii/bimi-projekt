@@ -1,7 +1,7 @@
 
 #Install Packages if not installed, otherwise just load them 
 if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-library("org.Hs.eg.db")
+
 
 library(RSQLite)
 library(DBI)
@@ -54,52 +54,48 @@ dbExecute(con, "
 #---------------------
 #Pathway
 #---------------------
-
 #Read CSV Data from REST API "https://rest.kegg.jp/list/pathway/hsa"
 #Header = False, otherwise the first Dataset will be displayed as column name
-pathway_names <- read.csv("pathway_names.csv", header = FALSE)
+
+pathway_names <- read.csv2("data/pathway_names.csv", header = FALSE)
 colnames(pathway_names) <- c("Pathway_ID", "Name")
 
-#Spalten anpassen, Info Homo Sapiens entfernen 
+#Remove information Homo Sapiens, as we only use Human Genes 
 pathway_names$Name <- gsub(" - Homo sapiens \\(human\\)", "", pathway_names$Name)
 
 
-#man kann es so erstellen aber ERM Modell schwierig 
-dbWriteTable(con, "Pathway", pathway_names, append = TRUE)
-
-
-
 #---------------------
-#Pathway und Gene
+#Pathway and Gene
 #---------------------
-
-
-#Loading CSV Data with 
-gene_pathways <- read.csv2("Gene_Pathway.csv", header= FALSE)
+#Loading CSV Data from "https://rest.kegg.jp/link/pathway/hsa"
+gene_pathways <- read.csv2("data/Gene_Pathway.csv", header= FALSE)
 colnames(gene_pathways) <- c("Entrez_ID", "Pathway_ID")
 
-#path und hsa entfernen aus den Spalten 
+# remove hsa: and path: in columns 
 gene_pathways$Entrez_ID <- gsub("hsa:", "", gene_pathways$Entrez_ID)
 gene_pathways$Pathway_ID <- gsub("path:", "", gene_pathways$Pathway_ID)
-
-dbWriteTable(con,"Lookup_Gene_Pathway", gene_pathways,append = TRUE)
-
-
 
 
 
 #--------------
 #Gene
 #--------------
-#Gene, die in den Pathways vorkommen, nicht doppelt 
-gene_IDs <- unique(gene_pathways$Entrez_ID)
+#get all the unique genes which are present in the pathways
+gene_id <- unique(gene_pathways$Entrez_ID)
 
-gen_ID_Name_Symbol <- AnnotationDbi::select(org.Hs.eg.db, 
-                                   keys = gene_IDs, 
+gen_id_name_symbol <- AnnotationDbi::select(org.Hs.eg.db, 
+                                   keys = gene_id, 
                                    columns = c("GENENAME","SYMBOL"), 
                                    keytype = "ENTREZID")
 
-gen_ID_Name_Symbol$ENTREZID <- as.integer(gen_ID_Name_Symbol$ENTREZID)
-colnames(gen_ID_Name_Symbol) <- c("Entrez_ID", "Genname", "Symbol")
+#Change datatype from character to integer
+gen_id_name_symbol$ENTREZID <- as.integer(gen_id_name_symbol$ENTREZID)
+colnames(gen_id_name_symbol) <- c("Entrez_ID", "Genname", "Symbol")
 
-dbWriteTable(con,"gene", gen_ID_Name_Symbol,append = TRUE)
+#Insert data into database
+dbWriteTable(con,"Lookup_Gene_Pathway", gene_pathways,append = TRUE)
+dbWriteTable(con,"Gene", gen_id_name_symbol,append = TRUE)
+dbWriteTable(con, "Pathway", pathway_names, append = TRUE)
+
+
+#eventuell case insensitive???
