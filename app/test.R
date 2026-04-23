@@ -2,6 +2,7 @@
 library(shiny)
 library(dipsaus)
 library(shinydashboard)
+library(jsonlite)
 
 
 
@@ -139,6 +140,21 @@ main <- dashboardPage(skin = "red",
                   )
                 ),
                 
+                fluidRow(
+                  box(
+                    title = "Preset speichern/laden",
+                    width = 12,
+                    status = "warning",
+                    solidHeader = TRUE,
+                    
+                    textInput("preset_name", "Name des Presets"),
+                    actionButton("save_preset", "Preset speichern"),
+                    br(), br(),
+                    selectInput("preset_datei", "Preset auswählen", choices = NULL),
+                    actionButton("load_preset", "Preset laden")
+                  )
+                ),
+                
                 actionButton('run', 'Run Cluster Analyse'),
                 
                 ),
@@ -156,7 +172,7 @@ server <- function(input, output, session) {
   output$Beispieltext <- renderText({
     paste("Deine Datei:", input$x)
   })
-  
+  preset_values <- reactiveVal(list()) #Create reactive variable list
   
   # CSV IMPORT BACKEND
   daten <- reactive({      # for dynamic processing
@@ -171,6 +187,35 @@ server <- function(input, output, session) {
            "Der Datensatz hat ",ncol(daten()), " Samples")
   })
   
+  observeEvent(input$anzahlcluster, {   # Save User Choice Cluster
+    tmp <- preset_values()
+    tmp$anzahlcluster <- input$anzahlcluster
+    preset_values(tmp)
+  })  
+    
+  observeEvent(input$clusterverfahren, { #Save User Choice Clusterfunction
+    tmp <- preset_values()
+    tmp$clusterverfahren <- input$clusterverfahren
+    preset_values(tmp)
+  })  
+    
+  observeEvent(input$distanzmatrix, { #Save User Choice distance
+    tmp <- preset_values()
+    tmp$distanzmatrix <- input$distanzmatrix
+    preset_values(tmp)
+    
+  })
+  
+  observeEvent(input$normalisierung, { #Save User Choice Normalisierung
+    tmp <- preset_values()
+    tmp$normalisierung <- input$normalisierung
+    preset_values(tmp)
+  })
+  observeEvent(input$farbpaletten, { #Save User Choice Color
+    tmp <- preset_values()
+    tmp$farbpaletten <- input$farbpaletten
+    preset_values(tmp)
+  }) 
   observeEvent(input$nextpage, {
     updateTabItems(session, "tabs", selected = "datei_hochladen")
   })
@@ -182,6 +227,20 @@ server <- function(input, output, session) {
   
   observeEvent(input$run, {
     updateTabItems(session, "tabs", selected = "heatmap")
+  })
+  
+  observeEvent(input$save_preset, { #Save Preset in Json
+    if (!dir.exists("presets")) {
+      dir.create("presets")
+    }
+    pfad <- file.path("presets", paste0(input$preset_name, ".json"))
+    jsonlite::write_json(
+      preset_values(),
+      path = pfad,
+      auto_unbox = TRUE,
+      pretty = TRUE
+    )
+    showNotification(paste("Preset gespeichert unter:", pfad), type = "message")
   })
   
 }
