@@ -7,10 +7,10 @@ Dies ist v.a. relevant f체r das Outputformat der Clusteranalyse und den Input f�
 Berechnet eine Distanzmatrix aus einem Datensatz. Code in C++ implementiert 체ber die Library Rcpp. 
 ```
 dist(df, method, p)
-# df: der Datensatz
-# method ist die Methode f체r die Berechnung von Distanzen, 체bergeben als String: "euclidean", "manhattan", "minkowski"
+# df: der Datensatz, als numerische Matrix
+# method ist die Methode f체r die Berechnung von Distanzen, 체bergeben als String
+# Optionen f체r method: "euclidean", "manhattan", "minkowski", "canberra", "pearson", "angular"
 # p: int Parameter f체r Minkowski. Default-Wert ist 2 (entspricht der euklidischen Distanz). F체r p = 1 wird Manhattan berechnet.
-# es kommen noch: "canberra", "pearson", "angular"
 
 # Beispielanwendung:
 dist_mat <- dist_cpp(t(df_normalized), method = "euclidean")
