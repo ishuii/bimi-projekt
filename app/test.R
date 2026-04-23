@@ -5,9 +5,10 @@ library(shinydashboard)
 library(jsonlite)
 
 
+
 if(interactive()){
   
-main <- dashboardPage(skin = "yellow",
+main <- dashboardPage(skin = "red",
     dashboardHeader(title = "ClusterIt"),
     
     dashboardSidebar(
@@ -110,7 +111,7 @@ main <- dashboardPage(skin = "yellow",
                     
                     
                     selectInput(inputId = "distanzmatrix", label = "Distanz Matrix auswählen", 
-                                choices = c("Euklidische distanz", "b", "c"))
+                                choices = c("Euklidische distanz", "Manhattan distanz"))
                     
                   ),
                   
@@ -164,6 +165,7 @@ main <- dashboardPage(skin = "yellow",
       )
     )
  )
+
   
 
 server <- function(input, output, session) {
@@ -247,6 +249,3 @@ shinyApp(main, server)
 }
   
 
-
-
-?valueBox

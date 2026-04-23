@@ -37,3 +37,20 @@
 
 -  **Height-Vektor**
     - Distanzen des Merges werden in diesen Vektor geschrieben
+ 
+## Distanzfunktionen - Abfrage in GUI
+Es stehen sechs Distanzfunktionen zur Auswahl: "minkowski", "euclidean", "manhattan", "canberra", "pearson" und "angular".
+
+#### Besonderheiten bei "minkowski"
+- die Minkowski-Distanz erfodert die Eingabe eines Parameters p
+- p muss ein Integer > 0 sein
+- d.h. Werte 0 oder kleiner, sowie nicht-Integer (z.B. 1.5) dürfen nicht eingegeben werden
+- Sonderfall p = 1
+  - hat der Nutzer 1 eingegeben, entspricht die Minkowski-Distanz der Manhattan-Distanz
+  - der Nutzer sollte darüber informiert werden (z.B. ein Info-Feld)
+- Sonderfall p = 2
+  - hat der Nutzer 2 eingegebem, entspricht die Minkowski-Distanz der euklidischen Distanz
+  - der Nutzer sollte darüber informiert werden (z.B. ein Info-Feld)
+- Sonderfall p ~ Unendlich, bzw. o ist sehr groß
+  - ist p extrem groß, spricht man von der Chebyshev-Distanz
+  - bislang noch nicht getestet, aber die Auswahl sollte dem Nutzer ermöglicht werden
