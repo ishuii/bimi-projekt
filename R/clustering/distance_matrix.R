@@ -14,11 +14,14 @@ cppFunction('
     
     if (method == "euclidean") method_id = 0;
     else if (method == "manhattan") method_id = 1;
+    else if (method == "canberra") method_id = 2;
+    else if (method == "pearson") method_id = 3;
+    else if (method == "angular") method_id = 4;
     else if (method == "minkowski") {
       if (p <= 0) stop("p muss größer als 0 sein.");
       else if (p == 1) method_id = 1;
       else if (p == 2) method_id = 0;
-      else method_id = 2;
+      else method_id = 5;
     }
       
     for (int i = 0; i < nr; i++) {
@@ -33,13 +36,15 @@ cppFunction('
                 } else if (method_id == 1) {
                   d += std::abs(diff); 
                 } else if (method_id == 2) {
+                  d += std::abs(diff) / (std::abs(mat(i,k)) + std::abs(mat(j,k)));
+                } else if (method_id == 5) {
                   d += std::pow(std::abs(diff), p);
                 }
             }
             
             if (method_id == 0) {
               d = std::sqrt(d);
-            } else if (method_id == 2) {
+            } else if (method_id == 5) {
               d = std::pow(d, 1.0/p);
             }
             

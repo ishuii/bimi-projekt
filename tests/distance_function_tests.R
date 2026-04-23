@@ -12,6 +12,8 @@ df <- df[-c(11),]
 df_log <- log2(df + 1)
 df_normalized <- t(scale(t(df_log))) 
 
+# canberra_test <- dist_cpp(df_normalized, method = "canberra")
+
 # we benchmark with a smaller distance matrix
 microbenchmark(
   base = basic_dist(df_normalized, method = "euclidean"), 
