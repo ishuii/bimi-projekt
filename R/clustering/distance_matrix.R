@@ -56,7 +56,6 @@ cppFunction('
   }')
 
 # TODO 
-# add canberra
 # add pearson
 # add angular
 # include GUI selection: do we calculate over patients or genes?
