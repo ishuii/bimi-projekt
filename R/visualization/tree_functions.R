@@ -93,11 +93,11 @@ expr_matrix <- matrix(
 hc <- hclust(dist(expr_matrix))
 mergematrix <- hc$merge
 
-# Dein Code
+# Tree + Order Vektor
 tree         <- build_tree(mergematrix)
 order_vector <- collect_labels(tree)
 
-# Labels in richtiger Reihenfolge
+# Sort Labels
 ordered_labels <- labels[order_vector]
 
 print(order_vector)
