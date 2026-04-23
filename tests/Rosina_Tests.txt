@@ -1,0 +1,8 @@
+Hier teste ich mit git.
+
+test test 2
+
+Datensatz voraussetzungen
+- CSV einlesen
+- bestimmte othologie auswählen (KEGG oder GO)
+
