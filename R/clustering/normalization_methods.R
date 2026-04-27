@@ -41,11 +41,11 @@ normalize_log_zscore <- function(df) {
 #normalize_cpm_log_zscore <- function(df) {
 #  col_sums <- colSums(df)
 #  
-  # stop to prevent division by 0
+# stop to prevent division by 0
 #  if (any(col_sums == 0)) {
 #    stop("Some columns have sum = 0 (cannot compute CPM)")
 #  }
-  
+
 #  df_cpm <- t(t(df) / col_sums) * 1e6
 #  df_log <- log2(df_cpm + 1)
 #  df_norm <- t(scale(t(df_log)))
@@ -82,3 +82,20 @@ get_correlation_distance <- function(df) {
 
 # what it does:  measures similarities of patterns
 # very good for: Gene-expression-clustering, often better than euclidian
+
+################################################################################
+
+
+# logarithmn with mad(median absolut deviation)
+normalize_log_mad <- function(df) {
+  df_log <- log2(df + 1)
+  df_norm <- t(apply(df_log, 1, function(x) {
+    (x - median(x)) / (mad(x) + 1e-8)
+  }))
+  return(df_norm)
+}
+
+# Each gene (row) is centered on its median and normalized by a robust measure of spread (MAD)
+
+
+
