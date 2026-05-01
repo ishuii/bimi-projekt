@@ -1,3 +1,21 @@
+
+
+#Benannte Liste 
+#Index vor wo was steht 
+#- Gene Vektor 
+#- Metadaten, liste von Vektoren, Labels 
+#- Datensatz gefiltert
+
+
+#Auswahl ob Genname oder Entrez ID
+#Funktion schreiben für Genname in Entrez ID 
+
+#alles in eine Hauptfunktion auslagern!!!! die Aufrufe der Funktionen sollen da rein 
+#Meta_ Daten alles andere als die Labels 
+#Nur Datensatz mit Entrez ID !!festlegen
+#doppelte Werte behandlen 
+
+
 library(RSQLite)
 library(DBI)
 
@@ -18,6 +36,11 @@ preprocess_dataset <- function(data) {
 
   data_withoutlabels <- data[-data_labels_index, ]
 
+  meta_age <- sample(18:100, ncol(data), replace = TRUE)
+  meta_age[1]<- "Meta_Samples"
+  meta_gender <- sample(c("M", "F", "D"), ncol(data), replace = TRUE)
+  meta_gender[1]<- "Meta_Gender"
+  data_labels <- rbind(data_labels, meta_age, meta_gender)
 
   #rename first column as Entrez_ID 
   #== corresponds to the name of the column in the database
@@ -87,22 +110,21 @@ get_genes_for_pathways <- function(vector_userchoices,con){
 
 resultvec <- c()
 
-for (i in 1:length(vector_userchoices)){
-    query <- "SELECT l.Entrez_ID, p.Name FROM Pathway AS p, Lookup_Gene_Pathway AS l 
-            WHERE p.Pathway_ID = l.Pathway_ID 
-            AND p.Name = ?"
+for (i in 1:seq_along((vector_userchoices)){
+      query <- "SELECT l.Entrez_ID, p.Name FROM Pathway AS p, Lookup_Gene_Pathway AS l 
+              WHERE p.Pathway_ID = l.Pathway_ID 
+              AND p.Name = ?"
 
-    result <- dbGetQuery(conn = con, query, params= vector_userchoices[i])
+result <- dbGetQuery(conn = con, query, params= vector_userchoices[i])
 
-    resultvec <- c(resultvec,result$Entrez_ID)
+resultvec <- c(resultvec,result$Entrez_ID)
 
-
-
+  
 }
 
-return(unique(resultvec))
+  return(unique(resultvec))
 
-}
+  }
 
 #---------------
 #test function 
@@ -118,12 +140,18 @@ entrez_ids_2 <- get_genes_for_pathways(userinput, con)
 #Function extract relevant Genes from original dataset
 #-----------------------------------------------------
 
+#Spaltenvektor ID zurückgeben
+
 extract_relevant_genes <- function(extracted_genes, original_data){
 
 
 extracted_dataset <- original_data[original_data$Entrez_ID %in% extracted_genes, ]
 
+
+
 return(extracted_dataset)
+
+
 
 }
 
@@ -133,5 +161,29 @@ return(extracted_dataset)
 
 extracted_dataset <- extract_relevant_genes(entrez_ids_2, dataset_processed)
 
-#aggregate if there are duplicates 
-#final_exctracted_dataset <- aggregate(. ~ Entrez_ID, data = extracted_dataset, FUN = mean)
+
+
+
+
+
+genvec <- sample(1:40,30,replace = TRUE)
+
+doppelte_werte <- unique(genvec[duplicated(genvec)])
+
+
+for(i in doppelte_werte){
+
+  #Position der doppelten 
+  position <- which( genvec == i )
+
+  for(i in seq_along(position)){
+
+    genvec[position[i]] <- paste0(genvec[position[i]], "_", i)
+
+
+  }
+
+}
+
+
+
