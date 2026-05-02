@@ -39,12 +39,14 @@ dbExecute(con, "
 dbExecute(con, "
   CREATE TABLE if not exists Lookup_Gene_Pathway (
     Lookup_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-    Pathway_ID INTEGER,
+    Pathway_ID varchar(100),
     Entrez_ID INTEGER,
     FOREIGN KEY (Pathway_ID) REFERENCES Pathway (Pathway_ID),
     FOREIGN KEY (Entrez_ID) REFERENCES Gene (Entrez_ID)
   )
 ")
+
+
 
 
 #-------------------------------
@@ -84,18 +86,18 @@ gene_pathways$Pathway_ID <- gsub("path:", "", gene_pathways$Pathway_ID)
 gene_id <- unique(gene_pathways$Entrez_ID)
 
 gen_id_name_symbol <- AnnotationDbi::select(org.Hs.eg.db, 
-                                   keys = gene_id, 
-                                   columns = c("GENENAME","SYMBOL"), 
-                                   keytype = "ENTREZID")
+                                            keys = gene_id, 
+                                            columns = c("GENENAME","SYMBOL"), 
+                                            keytype = "ENTREZID")
 
 #Change datatype from character to integer
 gen_id_name_symbol$ENTREZID <- as.integer(gen_id_name_symbol$ENTREZID)
 colnames(gen_id_name_symbol) <- c("Entrez_ID", "Genname", "Symbol")
 
 #Insert data into database
-dbWriteTable(con,"Lookup_Gene_Pathway", gene_pathways,append = TRUE)
-dbWriteTable(con,"Gene", gen_id_name_symbol,append = TRUE)
+dbWriteTable(con, "Gene", gen_id_name_symbol, append = TRUE)
 dbWriteTable(con, "Pathway", pathway_names, append = TRUE)
+dbWriteTable(con, "Lookup_Gene_Pathway", gene_pathways, append = TRUE)
 
 
 #eventuell case insensitive???
