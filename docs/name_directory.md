@@ -30,3 +30,43 @@ single_linkage(dist_mat)
 cluster_res <- single_linkage(dist_mat)
 cluster_merge <- cluster_res$merge            # für Zugriff auf merge-Matrix
 cluster_height <- cluster_res$matched_at      # für Zugriff auf matched-at Vektor
+```
+####  preprocess_dataset_meta
+Bearbeitet den geladenen Datensatz, welcher IDs enthält und gibt einmal Metadaten und den Datensatz ohne Metadaten zurück. Der Datensatz enthält hierbei in der ersten Spalte die Entrez IDs. Außerdem wird die Spalte in integer umgewandelt 
+```
+preprocess_dataset_meta(data)
+# data: der Datensatz, welcher über read.csv geladen wird
+# output: Liste (Dataframe ohne Metadaten, Dataframe nur Metadaten)
+```
+#### preprocess_dataset_meta_gennames
+Bearbeitet den geladenen Datensatz, welcher Gennamen enthält und gibt einmal Metadaten und den Datensatz ohne Metadaten zurück. Die Gennamen werden hier in IDs umgewandelt und die erste Spalte ebenfalls in Entrez ID umbenannt. Außerdem wird die Spalte in integer umgewandelt 
+
+preprocess_dataset_meta_gennames(data,con)
+data: Der Datensatz, der über read.csv geladen wird
+con: Datenbank Connection Objekt
+output: Liste (Dataframe ohne Metadaten, Dataframe nur Metadaten)
+
+#### get_chosen_gennames_from_database
+Gibt die Gennamen zurück, welche den entsprechend gewählten IDs entsprechen
+
+get_chosen_gennames_from_database(con, entrez_ids)
+con: Datenbank Objekt 
+entrez_ids: Vektor von Entrez IDs in integer
+
+#### get_chosen_IDs_from_database
+
+#### get_pathwaynames_from_database
+
+#### get_genes_for_pathways
+
+#### extract_relevant_genes
+
+#### rename_duplikate_genes
+
+#### run_data_integration 
+Funktion welche alle Hilfsfunktionen unter einen Hut bringt und eine benannte Liste zurückgibt. Auf die mit $ zugegriffen werden kann 
+
+
+
+
+
