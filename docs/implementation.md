@@ -54,3 +54,11 @@ Es stehen sechs Distanzfunktionen zur Auswahl: "minkowski", "euclidean", "manhat
 - Sonderfall p ~ Unendlich, bzw. o ist sehr groß
   - ist p extrem groß, spricht man von der Chebyshev-Distanz
   - bislang noch nicht getestet, aber die Auswahl sollte dem Nutzer ermöglicht werden
+
+ ## Data Schnittstelle zu Team GUI 
+ Es steht eine Funktion run_data_integration zur Verfügung, welche bei Aufruf eine benannte Liste zurückgibt: 
+ Genvektor IDs, gefilteter Datensatz, Gennamen, Metadaten. Für diese Fuktion muss vorher eine Verbindung zur Datenbank hergestellt sein, 
+ außerdem müsse die packages library(RSQLite) library(DBI), wenn noch nicht installiert, installiert werden. 
+
+ Eine weitere Funktion get_pathwaynames_from_database, welche für die Auswahl der Pathways aufgerufen werden sollte, sie benötigt nur ein
+ Datenbank Connection Objekt. Sie gibt einen Character Vector zurück. Diese Datenstruktur sollte genauso für die Checkboxen implementiert werden 
