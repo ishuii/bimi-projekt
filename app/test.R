@@ -111,7 +111,7 @@ main <- dashboardPage(skin = "red",
                     
                     
                     selectInput(inputId = "distanzmatrix", label = "Distanz Matrix auswählen", 
-                                choices = c("Euklidische distanz", "Manhattan distanz"))
+                                choices = c("Euklidische distanz", "Manhattan distanz", "Minkowski distanz", "Canberra distanz", "Pearson distanz", "Angular distanz"))
                     
                   ),
                   
