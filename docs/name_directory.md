@@ -6,7 +6,7 @@ Dies ist v.a. relevant f체r das Outputformat der Clusteranalyse und den Input f�
 #### dist_cpp
 Berechnet eine Distanzmatrix aus einem Datensatz. Code in C++ implementiert 체ber die Library Rcpp. 
 ```
-dist(df, method, p)
+dist_cpp(df, method, p)
 # df: der Datensatz, als numerische Matrix
 # method ist die Methode f체r die Berechnung von Distanzen, 체bergeben als String
 # Optionen f체r method: "euclidean", "manhattan", "minkowski", "canberra", "pearson", "angular"
