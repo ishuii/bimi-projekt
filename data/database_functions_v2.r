@@ -1,3 +1,4 @@
+
 library(RSQLite)
 library(DBI)
 
@@ -88,7 +89,7 @@ preprocess_dataset_meta <- function(data) {
 
 preprocess_dataset_meta_gennames <- function(data,con) {
   
-  data_labels_index <- which(dat[, 1] == "Meta_labels")
+  data_labels_index <- which(data[, 1] == "Meta_labels")
   meta_indices <- data_labels_index : nrow(data)
   
   #dataframe with meta information as row name 
@@ -110,8 +111,6 @@ preprocess_dataset_meta_gennames <- function(data,con) {
 }
 
 
-
-
 ######################################################################
 # matches the extracted Gene IDs with their name in the Database
 ######################################################################
@@ -120,20 +119,21 @@ preprocess_dataset_meta_gennames <- function(data,con) {
 # Database connection object, vector of entrez_ids
 # Return: 
 # character vector of gene names
+
 get_chosen_gennames_from_database <- function(con, entrez_ids) {
   
   platzhalter <- paste(rep("?", length(entrez_ids)), collapse = ",")
   query       <- paste0("SELECT Entrez_ID, Genname FROM Gene WHERE Entrez_ID IN (", platzhalter, ")")
   result      <- dbGetQuery(con, query, params = as.list(entrez_ids))
   
-  # preserve input order
+  # keep input order
   result <- result[match(entrez_ids, result$Entrez_ID), ]
   
   return(result$Genname)
 }
 
 ######################################################################
-# matches the extracted Gene names with their ID in the Database
+# matches the extracted gene names with their ID in the Database
 ######################################################################
 
 # Input values:
@@ -147,7 +147,7 @@ get_chosen_IDs_from_database <- function(con, gene_names) {
   query       <- paste0("SELECT Genname, Entrez_ID FROM Gene WHERE Genname IN (", platzhalter, ")")
   result      <- dbGetQuery(con, query, params = as.list(gene_names))
   
-  # Reihenfolge erzwingen
+  # keep input order
   result <- result[match(gene_names, result$Genname), ]
   
   return(result$Entrez_ID)
@@ -195,9 +195,9 @@ get_genes_for_pathways <- function(chosen_pathways, con) {
   return(unique(resultvec))
 }
 
-######################################################################
-# filters the original dataset and only shows the genes which were
-######################################################################
+###########################################################################
+# filters the original dataset and only shows the genes which were selected
+############################################################################
 # previously selected 
 # Input Value: 
 # Integer vector of previously selected Entrez IDs
@@ -242,7 +242,7 @@ rename_duplikate_genes <- function(extracted_dataset) {
 # HAUPTFUNKTION 
 # ============================================================
 
-#mthe function needs the chosen pathways from the GUI selection as well as the type of dataset
+# the function needs the chosen pathways from the GUI selection as well as the type of dataset
 # furthermore it needs the original dataset the connection object for the database
 # named list is returned: filtered dataset, metadata, gene vector, gene names 
 
@@ -305,13 +305,18 @@ run_data_integration <- function(dataset, chosen_pathways, con, dataset_type) {
 # ============================================================
 # BEISPIELAUFRUF 
 # ============================================================
-#
+
+
+library(RSQLite)
+library(DBI)
+
 con     <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 dataset <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
+meta_csv2 <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/colon_vs_pancreas_meta.csv", header = TRUE)
 
 pathway_names <- get_pathwaynames_from_database(con = con)
 result  <- run_data_integration(
-  dataset          = dataset,
+  dataset          = meta_csv2,
   chosen_pathways  = c("Fatty acid metabolism"),
   con              = con,
   dataset_type     = "Entrez ID"
