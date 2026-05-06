@@ -1,8 +1,10 @@
 # Testing: Distance functions
 
-library(distRcpp)    # devtools::install_github("ishuii/distRcpp")
+library(distRcpp)    # devtools::install_github("ishuii/bimi-projekt-distance")
 library(microbenchmark)
 library(stats)
+
+dist_cpp(df, method = "euclidean")
 
 df <- read.csv("data/TCGA_kidney_unnormalized_TOP10.csv", row.names = 1)
 
