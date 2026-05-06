@@ -4,6 +4,11 @@ library(dipsaus)
 library(shinydashboard)
 library(jsonlite)
 
+source("R/clustering/single_linkage.R")
+source("R/clustering/average_linkage.R")
+source("R/clustering/complete_linkage.R")
+source("Heatmap_Funktion.R")
+
 
 
 if(interactive()){
@@ -161,7 +166,9 @@ main <- dashboardPage(skin = "red",
         
         
         tabItem(tabName = "heatmap",
-                h2("Heatmap"))
+                h2("Heatmap"),
+                plotOutput("heatmapPlot")
+                )
       )
     )
  )
@@ -226,7 +233,28 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$run, {
+    
+    #calls the updated data
+    data <- daten()
+    
+    #user's cluster choices selected
+    if(input$clusterverfahren == "Single-Linkage"){
+      result <- single_linkage(d_mat)
+    }
+    
+    if(input$clusterverfahren == "Average-Linkage"){
+      result <- average_linkage(d_mat)
+    }
+    
+    if(input$clusterverfahren == "Complete-Linkage"){
+      result <- complete_linkage(d_mat)
+    }
+    
+    #store the results
+    cluster_result(result)
+    
     updateTabItems(session, "tabs", selected = "heatmap")
+    
   })
   
   observeEvent(input$save_preset, { #Save Preset in Json
@@ -243,6 +271,7 @@ server <- function(input, output, session) {
     showNotification(paste("Preset gespeichert unter:", pfad), type = "message")
   })
   
+  cluster_result <- reactiveVal(NULL)
 }
   
 shinyApp(main, server)
