@@ -1,11 +1,14 @@
 # Testing: Distance functions
 
-library(distRcpp)    # devtools::install_github("ishuii/bimi-projekt-distance")
+library(distRcpp)    # pak::pak("ishuii/bimi-projekt-distance")
 library(microbenchmark)
 library(stats)
 
-dist_cpp(df, method = "euclidean")
+# test if distRcpp was called correctly 
+mat <- matrix(1:4, 2, 2)
+dist_cpp(mat)
 
+# prepare data for testing
 df <- read.csv("data/TCGA_kidney_unnormalized_TOP10.csv", row.names = 1)
 
 labels <- df[c(11),]
