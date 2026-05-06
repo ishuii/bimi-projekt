@@ -11,7 +11,7 @@ df_normalized <- normalize_log_zscore(df)
 
 ##### distance matrix
 
-source("R/clustering/distance_matrix.R")
+library(distRcpp)
 dist_mat <- dist_cpp(t(df_normalized), "euclidean")
 
 ##### single linkage function
