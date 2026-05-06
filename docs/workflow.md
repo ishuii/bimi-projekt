@@ -15,6 +15,7 @@ Vor dem Beginn der Arbeit sollte der lokale Repo-Clone upgedatet werden.
 In der Bash: 
 ```
 git pull origin dev
+renv::restore()
 ```
 
 In RStudio über den entsprechenden Button (rechts oben auf Git &rarr; Pull wählen). Wichtig: Hierzu muss der Branch "dev" ausgewählt werden!
