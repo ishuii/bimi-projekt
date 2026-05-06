@@ -11,7 +11,8 @@ Wenn ein neues Paket hinzugefügt wird, d.h. man ruft library(irgendwas) auf, da
 ```
 renv::snapshot()
 ```
-Dann muss die Datein renv.lock auch committed werden (und natürlich gepusht). 
+Dann muss die Datein renv.lock auch committed werden (und natürlich gepusht). \\
+WICHTIG: Nun sollte ``` renv::restore()``` regelmäßig nach einem pull durchgeführt werden, VOR ALLEM, wenn renv verändert wurde (d.h. es hat jemand ein neues Paket hinzugefügt). 
 
 ### Clustering
 
