@@ -3,11 +3,14 @@ library(shiny)
 library(dipsaus)
 library(shinydashboard)
 library(jsonlite)
+library(devtools)
 
 source("R/clustering/single_linkage.R")
 source("R/clustering/average_linkage.R")
 source("R/clustering/complete_linkage.R")
 source("Heatmap_Funktion.R")
+source("R/clustering/normalization_methods.R")
+
 
 
 
@@ -237,6 +240,28 @@ server <- function(input, output, session) {
     #calls the updated data
     data <- daten()
     
+    #keep numeric only
+    data <- data[sapply(data, is.numeric)]
+    
+    #placeholder normalization
+    df_normalized <- data
+    
+    #transpose
+    data_t <- t(df_normalized)
+    
+    #user's distance matrix choice
+    method <- switch (input$distanzmatrix,
+      "Euklidische distanz" = euclidean,
+      "Manhattan distanz" = manhattan,
+      "Minkowski distanz" = minkowski,
+      "Canberra distanz" = canberra,
+      "Pearson distanz" = pearson,
+      "Angular distanz" = angular
+    )
+    
+    #calling distanz matrix function
+    d_mat <- dist_cpp(data_t, method = method)
+    
     #user's cluster choices selected
     if(input$clusterverfahren == "Single-Linkage"){
       result <- single_linkage(d_mat)
@@ -271,7 +296,14 @@ server <- function(input, output, session) {
     showNotification(paste("Preset gespeichert unter:", pfad), type = "message")
   })
   
-  cluster_result <- reactiveVal(NULL)
+  output$heatmapPlot <- renderPlot({
+    
+    req(cluster_result())
+    
+    result <- cluster_result()
+    
+    generate_heatmap(result)
+  })
 }
   
 shinyApp(main, server)
