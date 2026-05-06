@@ -1,0 +1,7 @@
+{
+  "anzahlcluster": 2,
+  "clusterverfahren": "Single-Linkage",
+  "distanzmatrix": "Euklidische distanz",
+  "normalisierung": "a",
+  "farbpaletten": "1"
+}
