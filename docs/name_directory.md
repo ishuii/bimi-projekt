@@ -1,11 +1,24 @@
 Hier sollen alle Funktionen und Variablen abgelegt werden, inkl. Input und Output Formaten, sowie einer kurzen Erklärung, um was es sich handelt. 
 Dies ist v.a. relevant für das Outputformat der Clusteranalyse und den Input für die Visualisierungen. 
 
+### Generell
+Es ist nun eine renv-Datei vorhanden, die dafür sorgt, dass wir alle die gleichen Versionen von Paketen verwenden. Jedre muss die folgenden Befehle in der Console ausführen (einmalig): 
+```
+install.packages("renv")
+renv::restore()
+```
+Wenn ein neues Paket hinzugefügt wird, d.h. man ruft library(irgendwas) auf, dann muss in der Console ausgeführt werden: 
+```
+renv::snapshot()
+```
+Dann muss die Datein renv.lock auch committed werden (und natürlich gepusht). 
+
 ### Clustering
 
 #### dist_cpp
-Berechnet eine Distanzmatrix aus einem Datensatz. Code in C++ implementiert über die Library Rcpp. 
+Berechnet eine Distanzmatrix aus einem Datensatz. Code in C++ implementiert über ein eigenes Repo. 
 ```
+library(distRcpp)
 dist_cpp(df, method, p)
 # df: der Datensatz, als numerische Matrix
 # method ist die Methode für die Berechnung von Distanzen, übergeben als String
