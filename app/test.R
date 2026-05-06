@@ -4,6 +4,9 @@ library(dipsaus)
 library(shinydashboard)
 library(jsonlite)
 library(devtools)
+library(distRcpp)
+
+help(dist_cpp)
 
 source("R/clustering/single_linkage.R")
 source("R/clustering/average_linkage.R")
@@ -309,4 +312,6 @@ server <- function(input, output, session) {
 shinyApp(main, server)
 }
   
+
+str(df_normalized)
 
