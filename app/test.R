@@ -4,6 +4,7 @@ library(dipsaus)
 library(shinydashboard)
 library(jsonlite)
 library(devtools)
+library(distRcpp)
 
 source("R/clustering/single_linkage.R")
 source("R/clustering/average_linkage.R")
@@ -119,7 +120,7 @@ main <- dashboardPage(skin = "red",
                     
                     
                     selectInput(inputId = "distanzmatrix", label = "Distanz Matrix auswählen", 
-                                choices = c("Euklidische distanz", "Manhattan distanz", "Minkowski distanz", "Canberra distanz", "Pearson distanz", "Angular distanz"))
+                                choices = c("Euklidische Distanz", "Manhattan-Distanz", "Minkowski-Distanz", "Canberra-Distanz", "Pearson-Distanz", "Winkeldistanz (Angular Seperation)"))
                     
                   ),
                   
@@ -170,8 +171,9 @@ main <- dashboardPage(skin = "red",
         
         tabItem(tabName = "heatmap",
                 h2("Heatmap"),
-                plotOutput("heatmapPlot")
-                )
+                plotOutput("HeatmapPlot"),
+                verbatimTextOutput("debug_matrix")
+        )
       )
     )
  )
@@ -179,6 +181,11 @@ main <- dashboardPage(skin = "red",
   
 
 server <- function(input, output, session) {
+  
+  cluster_result <- reactiveVal(NULL)
+  
+  d_mat_result <- reactiveVal(NULL)
+  
   output$Beispieltext <- renderText({
     paste("Deine Datei:", input$x)
   })
@@ -251,16 +258,18 @@ server <- function(input, output, session) {
     
     #user's distance matrix choice
     method <- switch (input$distanzmatrix,
-      "Euklidische distanz" = euclidean,
-      "Manhattan distanz" = manhattan,
-      "Minkowski distanz" = minkowski,
-      "Canberra distanz" = canberra,
-      "Pearson distanz" = pearson,
-      "Angular distanz" = angular
+      "Euklidische Distanz" = "euclidean",
+      "Manhattan-Distanz" = "manhattan",
+      "Minkowski-Distanz" = "minkowski",
+      "Canberra-Distanz" = "canberra",
+      "Pearson-Distanz" = "pearson",
+      "Winkeldistanz (Angular Seperation)" = "angular"
     )
     
     #calling distanz matrix function
     d_mat <- dist_cpp(data_t, method = method)
+    
+    d_mat_result(d_mat)
     
     #user's cluster choices selected
     if(input$clusterverfahren == "Single-Linkage"){
@@ -275,8 +284,10 @@ server <- function(input, output, session) {
       result <- complete_linkage(d_mat)
     }
     
+
     #store the results
     cluster_result(result)
+    
     
     updateTabItems(session, "tabs", selected = "heatmap")
     
@@ -296,13 +307,24 @@ server <- function(input, output, session) {
     showNotification(paste("Preset gespeichert unter:", pfad), type = "message")
   })
   
-  output$heatmapPlot <- renderPlot({
+ 
+  
+  output$debug_matrix <- renderPrint({
     
-    req(cluster_result())
+   cat("Distanz Matrix: ", input$distanzmatrix, "\n")
+   cat("Cluster Methode: ", input$clusterverfahren, "\n")
     
-    result <- cluster_result()
+    req(d_mat_result())
     
-    generate_heatmap(result)
+    print(d_mat_result())
+    
+  })
+  
+  output$HeatmapPlot <- renderPlot({
+    req(d_mat_result())
+    
+    generate_heatmap(d_mat_result())
+
   })
 }
   
