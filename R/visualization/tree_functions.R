@@ -1,111 +1,96 @@
-#####This function builds up a tree, following different tree nodes#######
+##### 
+# This script contains functions to:
+# 1. build a binary tree from a merge matrix
+# 2. extract the leaf order (order vector) from that tree
+#
+# The order vector can later be used for dendrogram or heatmap alignment.
+#####
 
-####function header with given variable: mergematrix ###################################
-build_tree <- function(mergematrix){                          
+### This function builds a binary tree based on the merge steps ###
+build_tree <- function(mergematrix,height){         ##parameter mergematrix needs to be updated -> clust_object             
   
   ### initialize a data structure to store nodes / subtrees
   nodes <- list()
   
-  ### loop through each merge step   
+  ###   # iterate over each merge step (row of the merge matrix)
   for (i in 1:nrow(mergematrix)){
-    # store left and right index of row i
+    
+    # extract left and right indices for current merge
     left_index  <- mergematrix[i,1]
     right_index <- mergematrix[i,2]
     
     ## --- LEFT NODE ---
+    # negative index → leaf node (original observation)
     if (left_index < 0) {
       
-      # create left leaf node
       left_node <- list(
         left = NULL,
         right = NULL,
         height = 0,
-        label = abs(left_index)
+        id = abs(left_index)    ###IDs of observation -> labels=rownames(data)
       )
-      
-    } else {
+    } 
+    
+    # positive index → reference to a previously created node
+    else {
       left_node <- nodes[[left_index]]
     }
-    
     
     ## --- RIGHT NODE ---
     if (right_index < 0) {
       
-      # create right leaf node
+      # same logic as for left node: create leaf node
       right_node <- list(
         left = NULL,
         right = NULL,
         height = 0,
-        label = abs(right_index)
+        id = abs(right_index)
       )
-      
-    } else {
+    } 
+    
+    # reference existing subtree
+    else {
       right_node <- nodes[[right_index]]
     }
     
     
-    ## --- CREATE NEW NODE ---
+    ## --- CREATE NEW INTERNAL NODE ---
+    # combine left and right child into a new subtree
     new_node <- list(
       left = left_node,
       right = right_node,
-      height = i,   
-      label=NULL 
+      height=height[i],   
+      id=NULL 
     )
     
-    # store node
+    # store newly created node
     nodes[[i]] <- new_node
   }
+  
+  # return root node (last merge step)
   return(nodes[[nrow(mergematrix)]])
 }
 
+####This function extracts the order of leaf nodes from a binary tree that was built
 get_order_vector <- function(tree){
   
+  # Base case 1:
+  # if the node is NULL → nothing to return
   if(is.null(tree)) return(NULL)
   
-  if(!is.null(tree$label)){
-    return(tree$label)
+  # Base case 2:
+  # if the node is a leaf → return its label
+  if(!is.null(tree$id)){
+    return(tree$id)
   }
   
+  # Recursive step:
+  # traverse left subtree first to preserve left-to-right order -> in order traversal   
   left_value  <- get_order_vector(tree$left)
+  
+  # Then recursively traverse right subtree
   right_value <- get_order_vector(tree$right)
   
+  # combine both results into final order vector
   return(c(left_value, right_value))
 }
-
-###################################Test mit Beispielwerten#############################
-# 5 Beobachtungen → 4 Merge-Schritte
-# Genexpression: 6 Gene, 4 Bedingungen
-labels <- c("BRCA1", "TP53", "MYC", "EGFR", "VEGF", "CDH1")
-
-set.seed(42)
-expr_matrix <- matrix(
-  c(8.2, 8.5, 2.1, 9.3,
-    7.9, 4.0, 1.9, 2.0,
-    9.9, 1.8, 9.1, 8.7,
-    2.3, 2.0, 10.0, 9.2,
-    2.0, 2.2, 8.5, 9.8,
-    7.8, 8.3, 5.4, 2.1),
-  nrow = 6, byrow = TRUE,
-  dimnames = list(labels, c("Cond1", "Cond2", "Cond3", "Cond4"))
-)
-
-# Clustering
-hc <- hclust(dist(expr_matrix))
-mergematrix <- hc$merge
-
-# Tree + Order Vektor
-tree         <- build_tree(mergematrix)
-order_vector <- collect_labels(tree)
-
-# Sort Labels
-ordered_labels <- labels[order_vector]
-
-print(order_vector)
-print(ordered_labels)
-
-# Heatmap
-heatmap(expr_matrix[order_vector, ],
-        Rowv = NA,        # kein internes Clustering — du steuerst die Reihenfolge
-        Colv = NA,
-        labRow = ordered_labels,
-        scale = "row")
