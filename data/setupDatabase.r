@@ -2,6 +2,15 @@
 #Install Packages if not installed, otherwise just load them 
 if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 
+# Wir zwingen R auf 20 Minuten (1200 Sekunden)
+options(timeout = 1200)
+
+# Wir versuchen es mit einer Methode, die auf Macs oft stabiler ist ("libcurl")
+install.packages("https://bioconductor.org/packages/3.20/data/annotation/src/contrib/org.Hs.eg.db_3.20.0.tar.gz", 
+                 repos = NULL, 
+                 type = "source",
+                 method = "libcurl")
+
 
 library(RSQLite)
 library(DBI)

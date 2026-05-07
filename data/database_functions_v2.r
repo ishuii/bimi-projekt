@@ -2,6 +2,7 @@
 library(RSQLite)
 library(DBI)
 
+
 # ============================================================
 # HILFSFUNKTIONEN
 # ============================================================
@@ -48,7 +49,7 @@ preprocess_dataset <- function(data) {
 #########################################################
 #Preprocess dataset with meta data and ID as first column 
 #########################################################
-# it searches the index of the row Meta_labels
+# it searches the index of the row Meta_labels ==> it has to be the first one 
 # and get all indices from that index till the last row of the dataset
 # it renames the first column as Entrez_ID which equals the name in the database
 # it changes the Datatype of the ID to integer
@@ -268,8 +269,7 @@ run_data_integration <- function(dataset, chosen_pathways, con, dataset_type) {
   # Ids which correspond to the chosen pathway(s)
   relevant_ids <- get_genes_for_pathways(chosen_pathways, con)
   
-  
-  
+
   #filtered dataset
   filtered <- extract_relevant_genes(relevant_ids, data_clean)
   
@@ -311,12 +311,12 @@ library(RSQLite)
 library(DBI)
 
 con     <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
-dataset <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
-meta_csv2 <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/colon_vs_pancreas_meta.csv", header = TRUE)
+dataset_meta1 <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
+dataset_meta2 <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/colon_vs_pancreas_meta.csv", header = TRUE)
 
 pathway_names <- get_pathwaynames_from_database(con = con)
 result  <- run_data_integration(
-  dataset          = meta_csv2,
+  dataset          = dataset_meta1,
   chosen_pathways  = c("Fatty acid metabolism"),
   con              = con,
   dataset_type     = "Entrez ID"
@@ -327,4 +327,7 @@ gene_vec <- result$gene_vector
 filtered_data <- result$filtered_dataset
 gene_names <- result$gene_names
 
-
+#TODO
+#return genes which were not in the dataset but corresponding to the pathway ???
+#Database disconnection ???
+#empty values 
