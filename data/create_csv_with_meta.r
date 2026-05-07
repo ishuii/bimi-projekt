@@ -3,6 +3,9 @@
 # function which inserts meta data in a dataset 
 ################################################
 
+
+# input: 
+# it requires a csv dataset and the path where it will be saved
 create_meta_csv <- function(dataset,outputpath){
 
 zeilen_index <- which(dataset[, 1] == "labels")
@@ -29,6 +32,8 @@ dataset <- read.csv("data/TCGA_kidney_unnormalized_TOP10.csv", header = TRUE)
 #create_meta_csv(dataset = dataset, "data/TCGA_kidney_unnormalized_TOP10_meta.csv")
 
 #meta_csv <- read.csv( "data/TCGA_kidney_unnormalized_TOP10_meta.csv", header = TRUE)
+
+#Werte
 
 
 
