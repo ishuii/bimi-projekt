@@ -5,6 +5,8 @@ library(shinydashboard)
 library(jsonlite)
 library(devtools)
 library(distRcpp)
+library(shinyFeedback)
+library(shinyjs)
 
 source("R/clustering/single_linkage.R")
 source("R/clustering/average_linkage.R")
@@ -17,7 +19,7 @@ source("R/clustering/normalization_methods.R")
 
 if(interactive()){
   
-main <- dashboardPage(skin = "red",
+ui <- dashboardPage(skin = "red",
     dashboardHeader(title = "ClusterIt"),
     
     dashboardSidebar(
@@ -32,6 +34,8 @@ main <- dashboardPage(skin = "red",
       ),
     
     dashboardBody(
+      
+      useShinyjs(),
       
       tags$style(HTML("
         .form-control{
@@ -103,6 +107,7 @@ main <- dashboardPage(skin = "red",
                     selectInput(inputId = "clusterverfahren", label = "Clusterverfahren auswählen", 
                                 choices = c("Single-Linkage", "Average-Linkage", "Complete-Linkage")),
                     
+
                     radioButtons(inputId = "farbpaletten", label = "Farbpalette für Heatmaps auswählen", 
                                  choices = list(
                                    "Option 1" = 1,
@@ -119,9 +124,14 @@ main <- dashboardPage(skin = "red",
                                 choices = c("a", "b", "c")),
                     
                     
-                    selectInput(inputId = "distanzmatrix", label = "Distanz Matrix auswählen", 
-                                choices = c("Euklidische Distanz", "Manhattan-Distanz", "Minkowski-Distanz", "Canberra-Distanz", "Pearson-Distanz", "Winkeldistanz (Angular Seperation)"))
+                    selectInput(inputId="distanzmatrix", label = "Distanz Matrix auswählen", 
+                                choices = c("Euklidische Distanz", "Manhattan-Distanz", "Minkowski-Distanz", "Canberra-Distanz", "Pearson-Distanz", "Winkeldistanz (Angular Seperation)")),
                     
+                   conditionalPanel(condition = "input.distanzmatrix == 'Minkowski-Distanz'",
+                                    useShinyFeedback(),
+                                    numericInput(inputId = "param", label = "Parameter p eingeben", value = 1),
+                                    textOutput("result")),
+                   
                   ),
                   
                   box(
@@ -181,7 +191,7 @@ main <- dashboardPage(skin = "red",
   
 
 server <- function(input, output, session) {
-  
+
   cluster_result <- reactiveVal(NULL)
   
   d_mat_result <- reactiveVal(NULL)
@@ -242,7 +252,7 @@ server <- function(input, output, session) {
    updateTabItems(session, "tabs", selected = "parameter")
   })
   
-  observeEvent(input$run, {
+  run_analysis <- function(){    
     
     #calls the updated data
     data <- daten()
@@ -291,6 +301,46 @@ server <- function(input, output, session) {
     
     updateTabItems(session, "tabs", selected = "heatmap")
     
+  }
+  
+  observeEvent(input$run, {
+    if(input$param == 1){
+      
+      showModal(
+        modalDialog(
+          title = "Warnung",
+          "hier wird mit Manhattan-Distanz statt Minkowski-Distanz berechnet. Möchten Sie fortfahren?",
+          
+          footer = tagList(
+            modalButton("Abbrechen"),
+            
+            actionButton("confirm_run", "Ja")
+          )
+        )
+      )
+    } else if(input$param == 2){
+      showModal(
+        modalDialog(
+          title = "Warnung",
+          "hier wird mit Euklidische Distanz statt Minkowski-Distanz berechnet. Möchten Sie fortfahren?",
+          
+          footer = tagList(
+            modalButton("Nein"),
+            
+            actionButton("confirm_run", "Ja")
+          )
+        )
+      )
+    }else{
+      run_analysis()
+    }
+  })
+  
+  observeEvent(input$confirm_run,{
+    
+    removeModal()
+    
+    run_analysis()
   })
   
   observeEvent(input$save_preset, { #Save Preset in Json
@@ -326,9 +376,34 @@ server <- function(input, output, session) {
     generate_heatmap(d_mat_result())
 
   })
-}
   
-shinyApp(main, server)
+  observe({
+    
+    req(input$param)
+    
+    #error message: p has to be a number
+    if(is.na(input$param)){
+      feedbackDanger("param", TRUE, "Bitte eine Zahl eingeben")
+      
+    #if p<0, error msg: p has to be greater than 0
+    }else if (input$param <= 0){
+      feedbackDanger("param", TRUE, "Falsche eingabe: bitte ein Zahl größer als 0 eingeben")
+      
+    #if p is not an integer  
+    }else if (input$param %% 1 != 0){
+      feedbackDanger("param", TRUE, "Falsche eingabe: bitte ein Integer eingeben")
+      
+      
+    }else if (input$param > 10000){
+      feedbackDanger("param", TRUE, "Maximale eingabe Zahl ist 10000")
+      
+    }else{
+      feedbackDanger("param", FALSE)
+    }
+  })
+  
+}  
+shinyApp(ui, server)
 }
   
 
