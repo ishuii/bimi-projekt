@@ -19,6 +19,7 @@ WICHTIG: Nun sollte ``` renv::restore()``` regelmäßig nach einem pull durchgef
 #### dist_cpp
 Berechnet eine Distanzmatrix aus einem Datensatz. Code in C++ implementiert über ein eigenes Repo. 
 ```
+# pak::pak("ishuii/bimi-projekt-distance")
 library(distRcpp)
 dist_cpp(df, method, p)
 # df: der Datensatz, als numerische Matrix
