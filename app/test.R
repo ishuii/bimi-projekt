@@ -30,8 +30,13 @@ ui <- dashboardPage(skin = "red",
         menuItem("Heatmap", tabName = "heatmap")
         
         
-        )
-      ),
+        ),
+      br(),
+      div(
+        style = "padding: 10px;",
+        downloadButton("download_pdf", "PDF exportieren")
+      
+      )),
     
     dashboardBody(
       
@@ -200,7 +205,7 @@ server <- function(input, output, session) {
     paste("Deine Datei:", input$x)
   })
   preset_values <- reactiveVal(list()) #Create reactive variable list
-  
+  options(shiny.maxRequestSize = 100 * 1024^2)
   # CSV IMPORT BACKEND
   daten <- reactive({      # for dynamic processing
     req(input$Datei_csv)   # upload check
@@ -242,7 +247,67 @@ server <- function(input, output, session) {
     tmp <- preset_values()
     tmp$farbpaletten <- input$farbpaletten
     preset_values(tmp)
-  }) 
+  })
+  output$download_pdf <- downloadHandler( # EXPORT PDF
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  )
+    
+  refresh_presets <- function() { # Refresh Preset Dropdown
+    if (!dir.exists("presets")) {
+      dir.create("presets")
+    }
+    
+    dateien <- list.files(
+      path = "presets",
+      pattern = "\\.json$",
+      full.names = TRUE
+    )
+    
+    updateSelectInput(
+      session,
+      "preset_datei",
+      choices = setNames(dateien, basename(dateien))
+    )
+  }
+  
+
+  observeEvent(input$load_preset, { #Load Preset after user choice
+    req(input$preset_datei)
+    
+    preset <- jsonlite::fromJSON(input$preset_datei)
+    
+    if (!is.null(preset$anzahlcluster)) {
+      updateNumericInput(session, "anzahlcluster", value = preset$anzahlcluster)
+    }
+    
+    if (!is.null(preset$clusterverfahren)) {
+      updateSelectInput(session, "clusterverfahren", selected = preset$clusterverfahren)
+    }
+    
+    if (!is.null(preset$normalisierung)) {
+      updateSelectInput(session, "normalisierung", selected = preset$normalisierung)
+    }
+    
+    if (!is.null(preset$farbpaletten)) {
+      updateRadioButtons(session, "farbpaletten", selected = preset$farbpaletten)
+    }
+    
+    if (!is.null(preset$distanzmatrix)) {
+      updateSelectInput(session, "distanzmatrix", selected = preset$distanzmatrix)
+    }
+  })
+  
+  
   observeEvent(input$nextpage, {
     updateTabItems(session, "tabs", selected = "datei_hochladen")
   })
@@ -294,9 +359,9 @@ server <- function(input, output, session) {
       result <- complete_linkage(d_mat)
     }
     
-
     #store the results
     cluster_result(result)
+    
     
     
     updateTabItems(session, "tabs", selected = "heatmap")
@@ -344,6 +409,7 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$save_preset, { #Save Preset in Json
+    req(input$preset_name)
     if (!dir.exists("presets")) {
       dir.create("presets")
     }
@@ -355,6 +421,7 @@ server <- function(input, output, session) {
       pretty = TRUE
     )
     showNotification(paste("Preset gespeichert unter:", pfad), type = "message")
+    refresh_presets()
   })
   
  
