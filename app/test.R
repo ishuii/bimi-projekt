@@ -19,7 +19,7 @@ source("R/clustering/normalization_methods.R")
 
 if(interactive()){
   
-ui <- dashboardPage(skin = "red",
+ui <- dashboardPage(skin = "yellow",
     dashboardHeader(title = "ClusterIt"),
     
     dashboardSidebar(
@@ -187,9 +187,13 @@ ui <- dashboardPage(skin = "red",
         tabItem(tabName = "heatmap",
                 h2("Heatmap"),
                 plotOutput("HeatmapPlot"),
-                verbatimTextOutput("debug_matrix")
+                verbatimTextOutput("debug_matrix"),
+                
+                actionButton('back', 'züruck zum Parametern wählen')
         )
-      )
+        
+      )       
+
     )
  )
 
@@ -248,7 +252,7 @@ server <- function(input, output, session) {
     tmp$farbpaletten <- input$farbpaletten
     preset_values(tmp)
   })
-  output$download_pdf <- downloadHandler( # EXPORT PDF
+
     
     
     
@@ -258,9 +262,6 @@ server <- function(input, output, session) {
     
     
     
-    
-    
-  )
     
   refresh_presets <- function() { # Refresh Preset Dropdown
     if (!dir.exists("presets")) {
@@ -369,7 +370,8 @@ server <- function(input, output, session) {
   }
   
   observeEvent(input$run, {
-    if(input$param == 1){
+    if(input$distanzmatrix == "Minkowski-Distanz" &&
+      input$param == 1){
       
       showModal(
         modalDialog(
@@ -383,7 +385,8 @@ server <- function(input, output, session) {
           )
         )
       )
-    } else if(input$param == 2){
+    } else if(input$distanzmatrix == "Minkowski-Distanz" &&
+      input$param == 2){
       showModal(
         modalDialog(
           title = "Warnung",
@@ -468,6 +471,11 @@ server <- function(input, output, session) {
       feedbackDanger("param", FALSE)
     }
   })
+  
+  observeEvent(input$back, {
+    updateTabItems(session, "tabs", selected = "parameter")
+  })  
+  
   
 }  
 shinyApp(ui, server)
