@@ -7,6 +7,9 @@ library(devtools)
 library(distRcpp)
 library(shinyFeedback)
 library(shinyjs)
+library(bslib)
+library(bsicons)
+library(shinyBS)
 
 source("R/clustering/single_linkage.R")
 source("R/clustering/average_linkage.R")
@@ -112,14 +115,6 @@ ui <- dashboardPage(skin = "yellow",
                     selectInput(inputId = "clusterverfahren", label = "Clusterverfahren auswählen", 
                                 choices = c("Single-Linkage", "Average-Linkage", "Complete-Linkage")),
                     
-
-                    radioButtons(inputId = "farbpaletten", label = "Farbpalette für Heatmaps auswählen", 
-                                 choices = list(
-                                   "Option 1" = 1,
-                                   "Option 2" = 2,
-                                   "Option 3" = 3
-                                 )
-                    ),
                     
                     numericInput(inputId = "anzahlcluster", label = "Anzahl von Clustern eingeben",
                                  value = 2, min = 1, max = 10),
@@ -189,7 +184,72 @@ ui <- dashboardPage(skin = "yellow",
                 plotOutput("HeatmapPlot"),
                 verbatimTextOutput("debug_matrix"),
                 
-                actionButton('back', 'züruck zum Parametern wählen')
+                
+                tags$script(HTML('
+          $(document).ready(function(){
+            $("body").popover({ 
+              selector: "[data-toggle=popover]",
+              trigger: "hover click", // Opens on hover OR click
+              container: "body"       // Fixes layout breaking issues
+            });
+          });
+        ')),
+                
+                
+
+                radioButtons(inputId = "farbpaletten", label = "Farbpalette für Heatmaps auswählen", 
+                             choiceNames = list(
+                               
+                               tagList(
+                                 "Standard",
+                                 
+                                 tags$span(
+                                   class = "badge bg-info", # Creates the blue box style from your image
+                                   style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
+                                   `data-toggle` = "popover",
+                                   `data-html` = "true",    # Allows text inside to wrap cleanly
+                                   title = "Standard",      # Bold title of the popover
+                                   `data-content` = "Farben: Blau, Weiß, Rot", # Subtext
+                                   "?"
+                                 )
+                               ), 
+                                 
+                               tagList(
+                                 "Viridis",
+                                 
+                                 tags$span(
+                                   class = "badge bg-info",
+                                   style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
+                                   `data-toggle` = "popover",
+                                   `data-html` = "true",
+                                   title = "Viridis",
+                                   `data-content` = "Farben: Lila, Grün, Gelb",
+                                   "?"
+                                 )
+                               ), 
+                               
+                               tagList(
+                                 "Magma",
+                                 
+                                 tags$span(
+                                   class = "badge bg-info",
+                                   style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
+                                   `data-toggle` = "popover",
+                                   `data-html` = "true",
+                                   title = "Magma",
+                                   `data-content` = "Farben: Schwarz, Lila, Rosa",
+                                   "?"
+                                 )
+                               )
+                      
+                               ), 
+                            choiceValues = list("Standard", "Viridis", "Magma")
+                ),
+                
+                textOutput("selection_feedback"),
+                
+                
+                actionButton('back', 'zurück zum Parametern wählen')
         )
         
       )       
@@ -253,15 +313,6 @@ server <- function(input, output, session) {
     preset_values(tmp)
   })
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
   refresh_presets <- function() { # Refresh Preset Dropdown
     if (!dir.exists("presets")) {
