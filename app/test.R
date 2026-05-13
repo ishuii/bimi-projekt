@@ -22,7 +22,7 @@ source("R/clustering/normalization_methods.R")
 
 if(interactive()){
   
-ui <- dashboardPage(skin = "yellow",
+ui <- dashboardPage(
     dashboardHeader(title = "ClusterIt"),
     
     dashboardSidebar(
@@ -42,6 +42,36 @@ ui <- dashboardPage(skin = "yellow",
       )),
     
     dashboardBody(
+      
+      tags$head(
+        tags$style(HTML("
+      /* Main header */
+      .main-header .logo {
+        background-color: #FBEEB9 !important;
+        color: #000000 !important;
+      }
+
+      .main-header .navbar {
+        background-color: #FBEEB9 !important;
+      }
+
+      /* Sidebar */
+      .main-sidebar {
+        background-color: #D1D1D1 !important;
+      }
+
+      /* Sidebar menu hover */
+      .sidebar-menu > li:hover > a {
+        background-color: #000000 !important;
+      }
+
+      /* Active tab */
+      .sidebar-menu > li.active > a {
+        background-color: #e8d98f !important;
+        color: black !important;
+      }
+    "))
+      ),
       
       useShinyjs(),
       
@@ -201,7 +231,7 @@ ui <- dashboardPage(skin = "yellow",
                              choiceNames = list(
                                
                                tagList(
-                                 "Standard",
+                                 "RdYlBu",
                                  
                                  tags$span(
                                    class = "badge bg-info", # Creates the blue box style from your image
@@ -209,7 +239,7 @@ ui <- dashboardPage(skin = "yellow",
                                    `data-toggle` = "popover",
                                    `data-html` = "true",    # Allows text inside to wrap cleanly
                                    title = "Standard",      # Bold title of the popover
-                                   `data-content` = "Farben: Blau, Weiß, Rot", # Subtext
+                                   `data-content` = "Farben: Rot, Gelb, Blau", # Subtext
                                    "?"
                                  )
                                ), 
@@ -229,7 +259,7 @@ ui <- dashboardPage(skin = "yellow",
                                ), 
                                
                                tagList(
-                                 "Magma",
+                                 "RdBu",
                                  
                                  tags$span(
                                    class = "badge bg-info",
@@ -237,13 +267,27 @@ ui <- dashboardPage(skin = "yellow",
                                    `data-toggle` = "popover",
                                    `data-html` = "true",
                                    title = "Magma",
-                                   `data-content` = "Farben: Schwarz, Lila, Rosa",
+                                   `data-content` = "Farben: Rot, Blau",
+                                   "?"
+                                 )
+                               ),
+                               
+                               tagList(
+                                 "PRGn",
+                                 
+                                 tags$span(
+                                   class = "badge bg-info",
+                                   style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
+                                   `data-toggle` = "popover",
+                                   `data-html` = "true",
+                                   title = "Magma",
+                                   `data-content` = "Farben: Lila, Grün",
                                    "?"
                                  )
                                )
                       
                                ), 
-                            choiceValues = list("Standard", "Viridis", "Magma")
+                            choiceValues = list("RdYlBu", "Viridis", "RdBu","PRGn")
                 ),
                 
                 textOutput("selection_feedback"),
