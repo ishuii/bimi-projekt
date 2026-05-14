@@ -7,44 +7,6 @@ library(DBI)
 # HILFSFUNKTIONEN
 # ============================================================
 
-##################################################################################
-# function to preprocess the original dataset
-##################################################################################
-# it splits off the last row as labels
-# it generates random meta data for Gender and Age
-# it renames the first column as Entrez_ID which equals the name in the database
-# it changes the Datatype of the ID to integer
-
-# Input Values:
-# Dataset which was read by read csv and Header = True ===> important!!
-# Return value:
-# Named list with meta data and pure data 
-
-preprocess_dataset <- function(data) {
-  
-  data_labels_index <- nrow(data)
-  data_labels <- data[data_labels_index, ]
-  data_withoutmeta <- data[-data_labels_index, ]
-  
-  # Random metadata rows
-  meta_age <- sample(18:100, ncol(data), replace = TRUE)
-  meta_age[1] <- "Meta_Samples"
-  meta_gender <- sample(c("M", "F", "D"), ncol(data), replace = TRUE)
-  meta_gender[1]<- "Meta_Gender"
-  meta_data <- rbind(data_labels, meta_age, meta_gender)
-  
-  # First column: Entrez_ID and integer
-  data_withoutmeta[[1]] <- as.integer(data_withoutmeta[[1]])
-  colnames(data_withoutmeta)[1] <- "Entrez_ID"
-  
-  # return named list 
-  return(list(
-    data_withoutmeta = data_withoutmeta,
-    meta_data = meta_data
-  ))
-}
-
-
 
 #########################################################
 #Preprocess dataset with meta data and ID as first column 
@@ -60,11 +22,11 @@ preprocess_dataset <- function(data) {
 # Named list with meta data and pure data 
 
 
-
 preprocess_dataset_meta <- function(data) {
   
-  meta_indices <- grep("Meta", data[, 1], ignore.case = TRUE, perl = FALSE)
-  # split dataset 
+  #indices for all rows where the columns contains the value Meta
+  meta_indices <- grep("^Meta", data[, 1], ignore.case = TRUE, perl = FALSE)
+  # split dataset
   data_withoutmeta <- data[-meta_indices, ]
   
 
@@ -89,21 +51,17 @@ preprocess_dataset_meta <- function(data) {
 ###############################################################
 
 
-preprocess_dataset_meta_gennames <- function(data,con) {
+
+preprocess_dataset_meta_gennames <- function(data) {
   
-  data_labels_index <- which(data[, 1] == "Meta_labels")
-  meta_indices <- data_labels_index : nrow(data)
+  meta_indices <- grep("^Meta_", data[, 1], ignore.case = FALSE, perl = FALSE)
+  # split dataset 
+  data_withoutmeta <- data[-meta_indices, ]
   
   #dataframe with meta information as row name 
   data_meta <- data[meta_indices, ]
   rownames(data_meta) <- data_meta[, 1]
   data_meta <- data_meta[, -1]
-  
-  data_withoutmeta <- data[-meta_indices, ]
-  
-  entrez_ids <- get_chosen_IDs_from_database(con,data_withoutmeta[[1]])
-  data_withoutmeta[ ,1] <- entrez_ids
-  colnames(data_withoutmeta)[1] <- "Entrez_ID"
   
   # return named list 
   return(list(
@@ -111,6 +69,7 @@ preprocess_dataset_meta_gennames <- function(data,con) {
     meta_data = data_meta
   ))
 }
+
 
 
 ######################################################################
@@ -198,7 +157,7 @@ get_all_genes_from_database <- function(con){
 # Return: 
 # integer vector of unique entrez IDs ==> no duplicates 
 
-get_genes_for_pathways <- function(chosen_pathways, con) {
+get_geneIDS_for_pathways <- function(chosen_pathways, con) {
   resultvec <- c()
   
   for (i in seq_along(chosen_pathways)) {
@@ -212,6 +171,76 @@ get_genes_for_pathways <- function(chosen_pathways, con) {
   return(unique(resultvec))
 }
 
+######################################################################
+# returns all gene names which belong to the chosen pathway(s)
+######################################################################
+# unique gen IDs will be returned 
+# Input values:
+# database connection object
+# a character vector of chosen pathways in the GUI
+# Return: 
+# character vector of unique gene names  ==> no duplicates 
+
+get_gene_names_for_pathways <- function(chosen_pathways, con) {
+  resultvec <- c()
+  
+  for (i in seq_along(chosen_pathways)) {
+    query <- "SELECT g.Genname 
+              FROM Pathway AS p, Lookup_Gene_Pathway AS l, Gene AS g
+              WHERE p.Pathway_ID = l.Pathway_ID 
+              AND l.Entrez_ID = g.Entrez_ID
+              AND p.Name = ?"
+    
+    result    <- dbGetQuery(con, query, params = chosen_pathways[i])
+    resultvec <- c(resultvec, result$Genname)
+  }
+  
+  return(unique(resultvec))
+}
+
+######################################################################################################
+#returns a list of Gene Names and IDs which were not found in the dataset bur are part of the pathway 
+######################################################################################################
+#input: 
+#the genes or IDs which are part of the pathway
+#the IDs which appear in the filtered dataset 
+
+extract_unused_genes <- function(pathway_genes, rownames_filtered, con){
+
+# if the dataset contains IDs
+resultvec <- c()
+if (any(grepl("^[0-9]+$", pathway_genes))){
+
+    for(i in pathway_genes){
+
+    #if a gene which  actually corresponds to the pathway is not in the filtered dataset
+      if(!(i %in% rownames_filtered)){
+        resultvec <- c(resultvec, i)
+
+        }
+
+    }
+} else {
+
+    pathway_genes <- get_chosen_IDs_from_database(con, pathway_genes)
+
+     for(i in pathway_genes){
+
+    #if a gene which  actually corresponds to the pathway is not in the filtered dataset
+      if(!(i %in% rownames_filtered)){
+        resultvec <- c(resultvec, i)
+
+        }
+
+    }
+
+}
+
+return(list(ids = resultvec, names =  get_chosen_gennames_from_database(con,resultvec)))
+
+}
+
+
 ###########################################################################
 # filters the original dataset and only shows the genes which were selected
 ############################################################################
@@ -224,7 +253,7 @@ get_genes_for_pathways <- function(chosen_pathways, con) {
 
 extract_relevant_genes <- function(extracted_genes, original_data) {
   
-  extracted_dataset <- original_data[original_data$Entrez_ID %in% extracted_genes, ]
+  extracted_dataset <- original_data[original_data[, 1] %in% extracted_genes, ]
   
   return(extracted_dataset)
 }
@@ -237,66 +266,79 @@ extract_relevant_genes <- function(extracted_genes, original_data) {
 # the final minimized Dataset 
 # Return.
 # dataframe with unique entrez IDs possibly with suffixes 
+
 rename_duplikate_genes <- function(extracted_dataset) {
   
-  duplicate_values <- unique(extracted_dataset$Entrez_ID[duplicated(extracted_dataset$Entrez_ID)])
+  ids <- as.character(extracted_dataset$Entrez_ID)  
+  duplicate_values <- unique(ids[duplicated(ids)])
   
   if (length(duplicate_values) > 0) {
-    extracted_dataset$Entrez_ID <- as.character(extracted_dataset$Entrez_ID)
-    
     for (dup_id in duplicate_values) {
-      positions <- which(extracted_dataset$Entrez_ID == as.character(dup_id))
+      positions <- which(ids == dup_id)
       for (i in seq_along(positions)) {
-        extracted_dataset$Entrez_ID[positions[i]] <- paste0(extracted_dataset$Entrez_ID[positions[i]], "_", i)
+        ids[positions[i]] <- paste0(ids[positions[i]], "_", i)
       }
     }
   }
   
+  extracted_dataset$Entrez_ID <- ids  # ← zurückschreiben
   return(extracted_dataset)
 }
-
 
 # ============================================================
 # HAUPTFUNKTION 
 # ============================================================
 
-# the function needs the chosen pathways from the GUI selection as well as the type of dataset
+# the function needs the chosen pathways from the GUI selection
 # furthermore it needs the original dataset the connection object for the database
-# named list is returned: filtered dataset, metadata, gene vector, gene names 
+# named list is returned: filtered dataset, metadata, gene vector, gene names, list of unused 
+# gene names and ids 
 
 
-run_data_integration <- function(dataset, chosen_pathways, con, dataset_type) {
-  
-  
-  if (dataset_type == "Entrez ID"){
-    
+run_data_integration <- function(dataset, chosen_pathways, con) {
+
+
+if (any(grepl("^[0-9]+$", dataset[, 1]))) {
+
     preprocessed <- preprocess_dataset_meta(dataset)
     data_clean <- preprocessed$data_withoutmeta
     meta_data <- preprocessed$meta_data
-  }
-  
-  else {
+
+    relevant_ids <- get_geneIDS_for_pathways(chosen_pathways, con)
+
+    filtered <- extract_relevant_genes(relevant_ids, data_clean)
+
+    unused_list <- extract_unused_genes(relevant_ids, filtered[,1], con)
+
+    if (nrow(filtered) == 0) {
+        stop("No genes found which correspond to the chosen pathway ")
+    }
     
-    preprocessed <- preprocess_dataset_meta_gennames(dataset,con)
+    gene_names <- get_chosen_gennames_from_database(con, filtered$Entrez_ID)
+
+} else {
+
+    
+    preprocessed <- preprocess_dataset_meta_gennames(dataset)
     data_clean <- preprocessed$data_withoutmeta
     meta_data <- preprocessed$meta_data
+
+    relevant_gene_names <- get_gene_names_for_pathways(chosen_pathways,con)
+
+    filtered <- extract_relevant_genes(relevant_gene_names, data_clean)
+
+
+    if (nrow(filtered) == 0) {
+        stop("No genes found which correspond to the chosen pathway ")
+    }
+
+    gene_names <- filtered[ ,1]
+    entrez_ids <- get_chosen_IDs_from_database(con, filtered[, 1])
+    filtered[, 1] <- entrez_ids
+    unused_list <- extract_unused_genes(relevant_gene_names, filtered[,1], con)
+    colnames(filtered)[1] <- "Entrez_ID"
     
   }
-  
-  # Ids which correspond to the chosen pathway(s)
-  relevant_ids <- get_genes_for_pathways(chosen_pathways, con)
-  
-
-  #filtered dataset
-  filtered <- extract_relevant_genes(relevant_ids, data_clean)
-  
-  #if there are no matches in the dataset
-  if (nrow(filtered) == 0) {
-    stop("No genes found which correspond to the chosen pathway ")
-  }
-  
-  # gen names which correspond to the Ids
-  gene_names <- get_chosen_gennames_from_database(con, filtered$Entrez_ID)
   
   # rename duplicate values if thera are any
   filtered <- rename_duplikate_genes(filtered)
@@ -314,7 +356,8 @@ run_data_integration <- function(dataset, chosen_pathways, con, dataset_type) {
     filtered_dataset = filtered,
     meta_data        = meta_data,
     gene_vector      = gene_vector,
-    gene_names       = gene_names
+    gene_names       = gene_names,
+    unused_genes     = unused_list
   ))
 }
 
@@ -329,29 +372,24 @@ library(DBI)
 
 con     <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 dataset_meta1 <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
-dataset_meta2 <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/colon_vs_pancreas_meta.csv", header = TRUE)
+dataset_meta2_names <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_gene_names.csv", header = TRUE)
 
 pathway_names <- get_pathwaynames_from_database(con = con)
 result  <- run_data_integration(
   dataset          = dataset_meta1,
-  chosen_pathways  = c("Fatty acid metabolism"),
-  con              = con,
-  dataset_type     = "Entrez ID"
+  chosen_pathways  = c("Fatty acid metabolism", "Biosynthesis of amino acids"),
+  con              = con
 )
 
-meta <- result$meta_data
-gene_vec <- result$gene_vector
-filtered_data <- result$filtered_dataset
-gene_names <- result$gene_names
 
-#TODO
-#return genes which were not in the dataset but corresponding to the pathway ???
-#Database disconnection ???
-#empty values 
+gefilteterDatensatz <- result$filtered_dataset
+metaDaten_gefiltert <- result$meta_data
+gene_vektor <- result$gene_vector
+gene_name <- result$gene_names
+unused <- result$unused_genes
 
-test1<- preprocess_dataset_meta(dataset_meta1)
+unusedids <- unused$ids
+unusedgenes <- unused$names
 
-test2 <- test1$data_withoutmeta
 
-head(test2$Entrez_ID)
-class(test2$Entrez_ID)
+
