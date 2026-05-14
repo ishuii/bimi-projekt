@@ -1,0 +1,478 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  14 MAY 2026 13:22
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**./main.tex
+(main.tex
+LaTeX2e <2025-11-01>
+L3 programming layer <2025-12-24>
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/base\article.cls
+Document Class: article 2025/01/22 v1.4n Standard LaTeX document class
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/base\size12.clo
+File: size12.clo 2025/01/22 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count275
+\c@section=\count276
+\c@subsection=\count277
+\c@subsubsection=\count278
+\c@paragraph=\count279
+\c@subparagraph=\count280
+\c@figure=\count281
+\c@table=\count282
+\abovecaptionskip=\skip49
+\belowcaptionskip=\skip50
+\bibindent=\dimen148
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.sty
+Package: geometry 2026/03/07 v6.0 Page Geometry
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.sty
+Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
+\KV@toks@=\toks17
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/generic/iftex\ifvtex.sty
+Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/generic/iftex\iftex.sty
+Package: iftex 2024/12/12 v1.0g TeX engine tests
+))
+\Gm@cnth=\count283
+\Gm@cntv=\count284
+\c@Gm@tempcnt=\count285
+\Gm@bindingoffset=\dimen149
+\Gm@wd@mp=\dimen150
+\Gm@odd@mp=\dimen151
+\Gm@even@mp=\dimen152
+\Gm@layoutwidth=\dimen153
+\Gm@layoutheight=\dimen154
+\Gm@layouthoffset=\dimen155
+\Gm@layoutvoffset=\dimen156
+\Gm@dimlist=\toks18
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.cfg))
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphicx.sty
+Package: graphicx 2024/12/31 v1.2e Enhanced LaTeX Graphics (DPC,SPQR)
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphics.sty
+Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/graphics\trig.sty
+Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\graphics.c
+fg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 106.
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/graphics-def\pdftex.def
+File: pdftex.def 2025/09/29 v1.2d Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen157
+\Gin@req@width=\dimen158
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/algorithms\algorithm.st
+y
+Package: algorithm 2009/08/24 v0.1 Document Style `algorithm' - floating enviro
+nment
+ (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/float\float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count286
+\float@exts=\toks19
+\float@box=\box53
+\@float@everytoks=\toks20
+\@floatcapt=\box54
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/base\ifthen.sty
+Package: ifthen 2024/03/16 v1.1e Standard LaTeX ifthen package (DPC)
+)
+\@float@every@algorithm=\toks21
+\c@algorithm=\count287
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/algorithms\algorithmic.
+sty
+Package: algorithmic 2009/08/24 v0.1 Document Style `algorithmic'
+\c@ALC@unique=\count288
+\c@ALC@line=\count289
+\c@ALC@rem=\count290
+\c@ALC@depth=\count291
+\ALC@tlm=\skip51
+\algorithmicindent=\skip52
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amssymb.sty
+Package: amssymb 2013/01/14 v3.01 AMS font symbols
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amsfonts.sty
+Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
+\@emptytoks=\toks22
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Redeclaring math symbol \hbar on input line 98.
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
+))
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epstopdf.s
+ty
+Package: epstopdf 2020-01-24 v2.11 Conversion with epstopdf on the fly (HO)
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/generic/infwarerr\infwarerr.s
+ty
+Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
+) (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/grfext\grfext.sty
+Package: grfext 2019/12/03 v1.3 Manage graphics extensions (HO)
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/generic/kvdefinekeys\kvdefine
+keys.sty
+Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
+))
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/kvoptions\kvoptions.sty
+Package: kvoptions 2022-06-15 v3.15 Key value format for package options (HO)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/generic/ltxcmds\ltxcmds.sty
+Package: ltxcmds 2023-12-04 v1.26 LaTeX kernel commands for general use (HO)
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/kvsetkeys\kvsetkeys.sty
+Package: kvsetkeys 2022-10-05 v1.19 Key value parser (HO)
+))
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/generic/pdftexcmds\pdftexcmds
+.sty
+Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO
+)
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epstopdf-b
+ase.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+Package grfext Info: Graphics extension search list:
+(grfext)             [.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPE
+G,.JBIG2,.JB2,.eps]
+(grfext)             \AppendGraphicsExtensions on input line 504.
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/00miktex\epstopdf-sys.c
+fg
+File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
+))) (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/generic/babel\babel.sty
+Package: babel 2025/12/11 v25.17 The multilingual framework for LuaLaTeX, pdfLa
+TeX and XeLaTeX
+\babel@savecnt=\count292
+LaTeX Encoding Info:    Redeclaring text command \ij (encoding OT1) on input li
+ne 2068.
+LaTeX Encoding Info:    Redeclaring text command \IJ (encoding OT1) on input li
+ne 2070.
+LaTeX Encoding Info:    Redeclaring text command \ij (encoding T1) on input lin
+e 2072.
+LaTeX Encoding Info:    Redeclaring text command \IJ (encoding T1) on input lin
+e 2073.
+LaTeX Encoding Info:    Ignoring declaration for text command \ij (encoding ?) 
+on input line 2074.
+LaTeX Encoding Info:    Ignoring declaration for text command \IJ (encoding ?) 
+on input line 2076.
+LaTeX Encoding Info:    Ignoring declaration for text command \SS (encoding ?) 
+on input line 2101.
+\U@D=\dimen159
+\l@unhyphenated=\language79
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/generic/babel\txtbabel.def)
+\bbl@readstream=\read2
+\bbl@dirlevel=\count293
+Package babel Info: Configuration files are deprecated, as
+(babel)             they can break document portability.
+(babel)             Reported on input line 4196.
+
+*************************************
+* Local config file bblopts.cfg used
+*
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/arabi\bblopts.cfg
+File: bblopts.cfg 2005/09/08 v0.1 add Arabic and Farsi to "declared" options of
+ babel
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/generic/babel/locale/de\babel
+-german.tex)
+
+Package babel Warning: The name 'german' with the 'ldf' mechanism is
+(babel)                currently assigned to the old 1901 variant of German.
+(babel)                For modern post-1996 German, use the name 'ngerman'.
+(babel)                Reported on input line 4320.
+
+Package babel Info: Importing font and identification data for german
+(babel)             from babel-de-1901.ini. Reported on input line 4320.
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/babel-german\german.ldf
+Language: german 
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/babel-german\babel-germ
+an.def
+Package babel Info: Making " an active character on input line 500.
+)))
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/base\inputenc.sty
+Package: inputenc 2024/02/08 v1.3d Input encoding file
+\inpenc@prehook=\toks23
+\inpenc@posthook=\toks24
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/pdfpages\pdfpages.sty
+Package: pdfpages 2026/03/30 v0.6h Insert pages of external PDF documents (AM)
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/tools\calc.sty
+Package: calc 2025/03/01 v4.3b Infix arithmetic (KKT,FJ)
+\calc@Acount=\count294
+\calc@Bcount=\count295
+\calc@Adimen=\dimen160
+\calc@Bdimen=\dimen161
+\calc@Askip=\skip53
+\calc@Bskip=\skip54
+LaTeX Info: Redefining \setlength on input line 86.
+LaTeX Info: Redefining \addtolength on input line 87.
+\calc@Ccount=\count296
+\calc@Cskip=\skip55
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/eso-pic\eso-pic.sty
+Package: eso-pic 2025/12/10 v3.0d eso-pic (RN)
+\ESO@tempdima=\dimen162
+\ESO@tempdimb=\dimen163
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/xcolor\xcolor.sty
+Package: xcolor 2024/09/29 v3.02 LaTeX color extensions (UK)
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\color.cfg
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package xcolor Info: Driver file: pdftex.def on input line 274.
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/graphics\mathcolor.ltx)
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1349.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1353.
+Package xcolor Info: Model `RGB' extended on input line 1365.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1367.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1368.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1370.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1371.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
+))
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/etoolbox\etoolbox.sty
+Package: etoolbox 2025/10/02 v2.5m e-TeX tools for LaTeX (JAW)
+\etb@tempcnta=\count297
+)
+\AM@pagewidth=\dimen164
+\AM@pageheight=\dimen165
+\AM@fboxrule=\dimen166
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/pdfpages\pppdftex.def
+File: pppdftex.def 2026/03/30 v0.6h Pdfpages driver for pdfTeX (AM)
+)
+\pdfpages@includegraphics@status=\count298
+\AM@pagebox=\box55
+\AM@global@opts=\toks25
+\AM@pagecnt=\count299
+\AM@toc@title=\toks26
+\AM@lof@heading=\toks27
+\c@AM@survey=\count300
+\AM@templatesizebox=\box56
+) (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/fancyhdr\fancyhdr.sty
+Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
+
+\f@nch@headwidth=\skip56
+\f@nch@offset@elh=\skip57
+\f@nch@offset@erh=\skip58
+\f@nch@offset@olh=\skip59
+\f@nch@offset@orh=\skip60
+\f@nch@offset@elf=\skip61
+\f@nch@offset@erf=\skip62
+\f@nch@offset@olf=\skip63
+\f@nch@offset@orf=\skip64
+\f@nch@height=\skip65
+\f@nch@footalignment=\skip66
+\f@nch@widthL=\skip67
+\f@nch@widthC=\skip68
+\f@nch@widthR=\skip69
+\@temptokenb=\toks28
+)
+Package babel-german Info: Using contemporary glottonyms
+(babel-german)             `german' denotes post-1996 spelling. on input line 2
+3.
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/generic/babel/locale/de\babel
+-german.tex
+Package babel Info: Importing basic data for german
+(babel)             from babel-de.ini. Reported on input line 18.
+)
+
+Package babel-german Warning: Hyphenation patterns `ngerman-x-latest', requeste
+d by german, not available. Falling back to legacy! on input line 23.
+
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdf
+tex.def
+File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count301
+) (main.aux
+Package babel Info: 'german' activates 'german' shorthands.
+(babel)             Reported on input line 5.
+)
+\openout1 = `main.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+*geometry* verbose mode - [ preamble ] result:
+* driver: pdftex
+* paper: a4paper
+* layout: <same size as paper>
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(56.9055pt, 483.69687pt, 56.9055pt)
+* v-part:(T,H,B)=(56.9055pt, 731.23584pt, 56.9055pt)
+* \paperwidth=597.50787pt
+* \paperheight=845.04684pt
+* \textwidth=483.69687pt
+* \textheight=731.23584pt
+* \oddsidemargin=-15.36449pt
+* \evensidemargin=-15.36449pt
+* \topmargin=-52.36449pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=42.67912pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \@twocolumnfalse
+* \@twosidefalse
+* \@mparswitchfalse
+* \@reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mk
+ii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count302
+\scratchdimen=\dimen167
+\scratchbox=\box57
+\nofMPsegments=\count303
+\nofMParguments=\count304
+\everyMPshowfont=\toks29
+\MPscratchCnt=\count305
+\MPscratchDim=\dimen168
+\MPnumerator=\count306
+\makeMPintoPDFobject=\count307
+\everyMPtoPDFconversion=\toks30
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/pdflscape\pdflscape.sty
+Package: pdflscape 2022-10-27 v0.13 Display of landscape pages in PDF
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/pdflscape\pdflscape-nom
+etadata.sty
+Package: pdflscape-nometadata 2022-10-28 v0.13 Display of landscape pages in PD
+F (HO)
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/graphics\lscape.sty
+Package: lscape 2020/05/28 v3.02 Landscape Pages (DPC)
+)
+Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
+))
+LaTeX Font Info:    Trying to load font information for U+msa on input line 26.
+
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 26.
+
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+[1
+
+{C:/Users/wikto/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[2]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[3]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[4]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[5]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[6]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[7] (main.aux)
+ ***********
+LaTeX2e <2025-11-01>
+L3 programming layer <2025-12-24>
+ ***********
+ ) 
+Here is how much of TeX's memory you used:
+ 6615 strings out of 467871
+ 111200 string characters out of 5418377
+ 544958 words of memory out of 5000000
+ 35391 multiletter control sequences out of 15000+600000
+ 631830 words of font info for 56 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 68i,11n,90p,217b,349s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/
+cmbx12.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/ams
+fonts/cm/cmr12.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/pu
+blic/amsfonts/cm/cmr17.pfb>
+Output written on main.pdf (7 pages, 48238 bytes).
+PDF statistics:
+ 41 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+
