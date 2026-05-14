@@ -56,9 +56,14 @@ Es stehen sechs Distanzfunktionen zur Auswahl: "minkowski", "euclidean", "manhat
   - bislang noch nicht getestet, aber die Auswahl sollte dem Nutzer ermöglicht werden
 
  ## Data Schnittstelle zu Team GUI 
- Es steht eine Funktion run_data_integration zur Verfügung, welche bei Aufruf eine benannte Liste zurückgibt: 
- Genvektor IDs, gefilteter Datensatz, Gennamen, Metadaten. Für diese Fuktion muss vorher eine Verbindung zur Datenbank hergestellt sein, 
- außerdem müsse die packages library(RSQLite) library(DBI), wenn noch nicht installiert, installiert werden. 
+ Es steht eine Funktion run_data_integration zur Verfügung unter data/database_functions_v3.r, welche bei Aufruf eine benannte Liste mit folgendem Inhalt zurückgibt: 
+ Genvektor IDs, gefilteter Datensatz, Gennamen, Metadaten, und Gene und IDs, die nicht im Datensatz vorgekommen sind, aber Teil des ausgewählten Pathways sind.  
 
- Eine weitere Funktion get_pathwaynames_from_database, welche für die Auswahl der Pathways aufgerufen werden sollte, sie benötigt nur ein
+ Die Inputparameter der Funktion sind: 
+ Originaldatensatz, den der User auswählt, Con Objekt, und der ausgewählte Pathway, bzw ein Vektor der ausgewählten Pathways 
+ 
+ Für diese Fuktion muss vorher eine Verbindung zur Datenbank hergestellt sein, 
+ Außerdem müsse die packages library(RSQLite) library(DBI), wenn noch nicht installiert, installiert werden. 
+
+ Eine weitere Funktion ist: get_pathwaynames_from_database, welche für die Auswahl der Pathways aufgerufen werden sollte. Sie benötigt nur ein
  Datenbank Connection Objekt. Sie gibt einen Character Vector zurück. Diese Datenstruktur sollte genauso für die Checkboxen implementiert werden 
