@@ -10,18 +10,23 @@ library(shinyjs)
 library(bslib)
 library(bsicons)
 library(shinyBS)
+library(RSQLite)
+library(DBI)
 
 source("R/clustering/single_linkage.R")
 source("R/clustering/average_linkage.R")
 source("R/clustering/complete_linkage.R")
 source("Heatmap_Funktion.R")
 source("R/clustering/normalization_methods.R")
+source("data/database_functions_v2.r")
 
 
+options(shiny.maxRequestSize = 200 * 1024^2)
 
 
 if(interactive()){
   
+
 ui <- dashboardPage(
     dashboardHeader(title = "ClusterIt"),
     
@@ -116,13 +121,14 @@ ui <- dashboardPage(
                     width = 12,
                     status = "success",
                     
-                    checkboxGroupInput(inputId = "pathways", label = "Pathways Auswählen",
-                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3),
-                                       selected = 1, width = '400px', inline = FALSE),
-                    
-                    checkboxGroupInput(inputId = "gene", label = "Gene Auswählen",
-                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3),
-                                       selected = 1, width = '400px', inline = FALSE)
+                    selectizeInput(
+                      "pathways",
+                      "Pathways auswählen",
+                      
+                      choices = NULL,
+                      
+                      multiple = TRUE
+                    )
                 
                   )
                 ),
@@ -148,6 +154,69 @@ ui <- dashboardPage(
                     
                     numericInput(inputId = "anzahlcluster", label = "Anzahl von Clustern eingeben",
                                  value = 2, min = 1, max = 10),
+                    
+                    radioButtons(inputId = "farbpaletten", label = "Farbpalette für Heatmaps auswählen", 
+                                 choiceNames = list(
+                                   
+                                   tagList(
+                                     "RdYlBu",
+                                     
+                                     tags$span(
+                                       class = "badge bg-info", # Creates the blue box style from your image
+                                       style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
+                                       `data-toggle` = "popover",
+                                       `data-html` = "true",    # Allows text inside to wrap cleanly
+                                       title = "Standard",      # Bold title of the popover
+                                       `data-content` = "Farben: Rot, Gelb, Blau", # Subtext
+                                       "?"
+                                     )
+                                   ), 
+                                   
+                                   tagList(
+                                     "Viridis",
+                                     
+                                     tags$span(
+                                       class = "badge bg-info",
+                                       style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
+                                       `data-toggle` = "popover",
+                                       `data-html` = "true",
+                                       title = "Viridis",
+                                       `data-content` = "Farben: Lila, Grün, Gelb",
+                                       "?"
+                                     )
+                                   ), 
+                                   
+                                   tagList(
+                                     "RdBu",
+                                     
+                                     tags$span(
+                                       class = "badge bg-info",
+                                       style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
+                                       `data-toggle` = "popover",
+                                       `data-html` = "true",
+                                       title = "Magma",
+                                       `data-content` = "Farben: Rot, Blau",
+                                       "?"
+                                     )
+                                   ),
+                                   
+                                   tagList(
+                                     "PRGn",
+                                     
+                                     tags$span(
+                                       class = "badge bg-info",
+                                       style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
+                                       `data-toggle` = "popover",
+                                       `data-html` = "true",
+                                       title = "Magma",
+                                       `data-content` = "Farben: Lila, Grün",
+                                       "?"
+                                     )
+                                   )
+                                   
+                                 ), 
+                                 choiceValues = list("RdYlBu", "Viridis", "RdBu","PRGn")
+                    ),
                     
                     
                     selectInput(inputId = "normalisierung", label = "Normalisierungs Verfahren auswählen", 
@@ -293,7 +362,9 @@ ui <- dashboardPage(
                 textOutput("selection_feedback"),
                 
                 
-                actionButton('back', 'zurück zum Parametern wählen')
+                actionButton('back', 'zurück zum Parametern wählen'),
+                conditionalPanel(condition = "input.distanzmatrix == 'Minkowski-Distanz'",
+                                 useShinyFeedback())
         )
         
       )       
@@ -308,6 +379,8 @@ server <- function(input, output, session) {
   cluster_result <- reactiveVal(NULL)
   
   d_mat_result <- reactiveVal(NULL)
+  
+  pathway_list <- reactiveVal()
   
   output$Beispieltext <- renderText({
     paste("Deine Datei:", input$x)
@@ -572,6 +645,54 @@ server <- function(input, output, session) {
   })  
   
   
+  observe({
+    req(con)
+    
+    pw <- get_pathwaynames_from_database(con)
+    
+    pathway_list(pw)
+  })
+  
+  
+  observe({
+    req(pathway_list())
+    
+    updateSelectizeInput(
+      session,
+      "pathways",
+      choices = pathway_list(),
+      server=TRUE
+    )
+  })
+  
+  observeEvent(input$switchtab, {
+    
+    selected_pathways <- input$pathways
+    
+    print(selected_pathways)
+    
+  })
+  
+  observeEvent(input$back, {
+      
+      showModal(
+        modalDialog(
+          title = "Warnung",
+          "Das Zurückkehren zu den Parametern löscht die aktuelle Heatmap. Möchten Sie fortfahren",
+          
+          footer = tagList(
+            modalButton("Ja"),
+            
+            actionButton("confirm_run", "Nein")
+          )
+        )
+      )
+  })
+  
+  observeEvent(input$confirm_run,{
+    
+    removeModal()
+  })
 }  
 shinyApp(ui, server)
 }
