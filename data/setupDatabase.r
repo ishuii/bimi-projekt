@@ -83,6 +83,7 @@ gene_pathways <- read.csv2("data/Gene_Pathway.csv", header= FALSE)
 colnames(gene_pathways) <- c("Entrez_ID", "Pathway_ID")
 
 # remove hsa: and path: in columns 
+gene_pathways$Entrez_ID <- as.integer(gene_pathways$Entrez_ID)
 gene_pathways$Entrez_ID <- gsub("hsa:", "", gene_pathways$Entrez_ID)
 gene_pathways$Pathway_ID <- gsub("path:", "", gene_pathways$Pathway_ID)
 
