@@ -30,6 +30,26 @@ dist_cpp(df, method, p)
 # Beispielanwendung:
 dist_mat <- dist_cpp(t(df_normalized), method = "euclidean")
 ```
+#### hierarchical_clustering
+Die allgemeine Funktion für die Clusteranalyse.
+```
+# Input: Distanzmatrix, Clustering-Funktion als String, optional eine benannte Parameter-Liste
+hierarchical_clustering(dist_mat, method = "single", custom_params = NULL)
+
+# output: eine Liste mit zwei Elementen, nämlich...
+# ... matched_at: ein Vektor, der die Werte enthält, an denen die Cluster zusammengefügt wurden (hierbei immer die minimale Distanz an jedem Schritt)
+# ... merge: eine n-1 mal 2 Matrix, die in jeder Zeile die zusammengefügten Cluster-Indexe enthält. Prinzipiell wie bei hclust, allerdings u.U. andere Reihenfolge innerhalb der Zeile. 
+
+# Anwendung:
+cluster_res <- hierarchical_clustering(dist_mat, "single")
+cluster_merge <- cluster_res$merge            # für Zugriff auf merge-Matrix
+cluster_height <- cluster_res$matched_at      # für Zugriff auf matched-at Vektor
+```
+Hinter ```method``` versteckt sich eine Liste mit vier Elementen: alpha_a, alpha_b, beta, und gamma. Wird demnach eine Funktion wie ```"single"```
+eingegeben, so macht sie nichts anderes als eine Liste mit diesen vier Elementen zurückzugeben.\\
+Es wäre daher möglich, auch eine Custom-Eingabe zu erlauben, bei der der Nutzer vier Werte eingeben kann: alpha_a, alpha_b, beta, und gamma (die ```custom_params```).
+Intern wird dann die Funktion ```custom_linkage``` aufgerufen, die aus den vier Parametern eine geeignete Methode erstellt, die dann genauso wie die anderen Funktionen
+verwendet werden kann.
 
 #### single_linkage
 Führt eine Clusteranalyse nach der Single-Linkage Methode durch. 
