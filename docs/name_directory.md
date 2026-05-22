@@ -70,94 +70,95 @@ cluster_height <- cluster_res$matched_at      # für Zugriff auf matched-at Vekt
 #### preprocess_general
 Bereinigt den Datensatz indem Zeilen mit fehlenden, leeren oder null Werten in der ersten Spalte entfernt werden. Gibt zusätzlich Statistiken über die entfernten Zeilen zurück.
 
+```
 preprocess_general(data)
 # data: der Datensatz, welcher über read.csv geladen wird
 # output: Liste (Anzahl NAs in erster Spalte, Anzahl Nullen in erster Spalte, Anzahl leere Werte in erster Spalte, Anzahl entfernter Zeilen (wenn die komplette Zeile NA ist), bereinigter Datensatz)
-
+```
 #### preprocess_dataset_meta
 Bearbeitet den von preprocess_general zurückgegebenen Datensatz, welcher IDs enthält und gibt einmal Metadaten und den Datensatz ohne Metadaten zurück. Der Datensatz enthält hierbei in der ersten Spalte die Entrez IDs. Außerdem wird die Spalte in integer umgewandelt.
-
+```
 preprocess_dataset_meta(data)
 # data: der Datensatz, welcher über read.csv geladen wird
 # output: Liste (Dataframe ohne Metadaten, Dataframe nur Metadaten)
-
+```
 #### preprocess_dataset_meta_gennames
 Bearbeitet den von preprocess_general zurückgegebenen Datensatz, welcher Gennamen enthält und gibt einmal Metadaten und den Datensatz ohne Metadaten zurück.
-
+```
 preprocess_dataset_meta_gennames(data)
 # data: der Datensatz, welcher über read.csv geladen wird
 # output: Liste (Dataframe ohne Metadaten, Dataframe nur Metadaten)
-
+```
 #### get_chosen_gennames_from_database
 Gibt die Gennamen zurück, welche den entsprechend gewählten IDs entsprechen. Die Reihenfolge der Eingabe wird beibehalten.
-
+```
 get_chosen_gennames_from_database(con, entrez_ids)
 # con: Datenbank Connection Objekt
 # entrez_ids: Vektor von Entrez IDs als integer
 # output: character Vektor der Gennamen
-
+```
 #### get_chosen_IDs_from_database
 Gibt die Entrez IDs zurück, welche den entsprechend gewählten Gennamen entsprechen. Die Reihenfolge der Eingabe wird beibehalten.
-
+```
 get_chosen_IDs_from_database(con, gene_names)
 # con: Datenbank Connection Objekt
 # gene_names: character Vektor von Gennamen
 # output: integer Vektor der Entrez IDs
-
+```
 #### get_pathwaynames_from_database
 Gibt alle in der Datenbank gespeicherten Pathway Namen zurück. Wird für die Auswahl in der GUI verwendet, sodass die Namen exakt mit den Datenbankeinträgen übereinstimmen.
-
+```
 get_pathwaynames_from_database(con)
 # con: Datenbank Connection Objekt
 # output: character Vektor aller in der Datenbank gespeicherten Pathways
-
+```
 #### get_geneIDS_for_pathways
 Gibt alle Entrez IDs zurück, die einem oder mehreren gewählten Pathways zugeordnet sind. Duplikate werden entfernt.
-
+```
 get_geneIDS_for_pathways(chosen_pathways, con)
 # chosen_pathways: character Vektor der gewählten Pathway-Namen
 # con: Datenbank Connection Objekt
 # output: integer Vektor der Entrez IDs ohne Duplikate
-
+```
 #### get_gene_names_for_pathways
 Gibt alle Gennamen zurück, die einem oder mehreren gewählten Pathways zugeordnet sind. Duplikate werden entfernt.
-
+```
 get_gene_names_for_pathways(chosen_pathways, con)
 # chosen_pathways: character Vektor der gewählten Pathway-Namen
 # con: Datenbank Connection Objekt
 # output: character Vektor eindeutiger Gennamen
-
+```
 #### extract_relevant_genes
 Filtert den Datensatz und gibt nur die Zeilen zurück, deren erste Spalte den gewählten Genen oder IDs entspricht.
-
+```
 extract_relevant_genes(extracted_genes, original_data)
 # extracted_genes: Vektor von Entrez IDs oder Gennamen
 # original_data: bereinigter Dataframe ohne Metadaten
 # output: gefilterter Dataframe
-
+```
 #### rename_duplikate_genes
 Behandelt doppelte Entrez IDs im Datensatz, indem ein numerisches Suffix angehängt mittels Unterstrich.
-
+```
 rename_duplikate_genes(extracted_dataset)
 # extracted_dataset: Dataframe mit möglicherweise doppelten Entrez IDs
 # output: Dataframe mit eindeutigen Entrez IDs
-
+```
 #### analyze_pathways_coverage
 Berechnet für jeden gewählten Pathway wie viele der zugehörigen Gene im Datensatz vorhanden sind. Gibt zusätzlich einen Vektor aller fehlenden Entrez IDs zurück. 
-
+```
 analyze_pathways_coverage(chosen_pathways, dataset_ids, con)
 # chosen_pathways: character Vektor der gewählten Pathway Namen in der GUI
 # dataset_ids: gefilterter Dataframe dessen erste Spalte die Entrez IDs enthält
 # con: Datenbank Connection Objekt
 # output: Liste (Matrix mit Total/Found/Missing/Coverage pro Pathway, Vektor fehlender Entrez IDs)
-
+```
 #### run_data_integration
 Hauptfunktion die alle Schritte kombiniert: Preprocessing, Pathway Filterung, Coverage Analyse und Rückgabe des finalen Datensatzes. Erkennt automatisch ob die erste Spalte Entrez IDs oder Gennamen enthält.
-
+```
 run_data_integration(dataset, chosen_pathways, con)
 # dataset: der Datensatz, welcher über read.csv geladen wird
 # chosen_pathways: character Vektor der gewählten Pathway-Namen
 # con: Datenbank Connection Objekt
 # output: Liste (gefilterter Datensatz, Metadaten, Gen-Vektor, Gennamen,
 #                Coverage-Matrix, Vektor fehlender IDs)  
-
+```
