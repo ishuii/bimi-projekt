@@ -6,6 +6,46 @@ library(DBI)
 # ============================================================
 # HILFSFUNKTIONEN
 # ============================================================
+#####################################################################################################
+# First Step of Preprocessing the data after the User chooses the datasets which will be analyzed
+#####################################################################################################
+preprocess_general <- function(data){
+
+  # amount of rows which do not have any value ==> no ID or Gen corresponding
+  amount_na_values_genes <- sum(is.na(data[ ,1]))
+  amount_zero_values_genes <- sum(data[ ,1] == 0, na.rm = TRUE)
+  amount_empty_values_genes <- sum(data[ ,1] == "", na.rm = TRUE)
+
+  # vector which stores the amount of na values per row 
+  na_vec <- apply(data, 1, function(x) {
+    sum(is.na(x))
+  })
+
+  # indices where the whole row is just NA
+  na_whole_row <- which(na_vec == ncol(data))
+  
+  # indices of the rows 
+  indices_na <- which(is.na(data[,1]))
+  indices_zero <- which(data[ ,1] == "0")
+  indices_empty <- which(data[ ,1]== "")
+
+  # combine all indices which should be removed
+  indices_remove <- unique(c(indices_na, indices_zero, indices_empty, na_whole_row))
+
+  # if there are any indices which should be removed cut them out of the dataset 
+  if(length(indices_remove) > 0){
+      data_cleaned <- data[-indices_remove, ]
+  } else {
+      data_cleaned <- data
+  }
+
+  return (list(number_na = amount_na_values_genes,
+               number_zero = amount_zero_values_genes, 
+               number_empty = amount_empty_values_genes, 
+               rows_removed = length(indices_remove), 
+               dataset_preprocessed = data_cleaned))
+}
+
 
 
 #########################################################
@@ -71,6 +111,37 @@ preprocess_dataset_meta_gennames <- function(data) {
 }
 
 
+#################################################################
+#function which returns a list including a Matrix and a vector
+#################################################################
+#input value: the chosen pathway by the user, and the dataset which 
+#includes the ids 
+#database object con
+
+#return:
+#matrix:  where the rows stand for the chosen pathways and columns represent how
+#many genes are part of a pathway and how many are found in the dataset
+#columns: total, found, missing, and covering which is simply the proportion in percent  
+#vector of the ids which could not be found in the dataset
+
+
+analyze_pathways_coverage <- function(chosen_pathways, dataset_ids, con) {
+  
+  result <- matrix(NA, nrow = length(chosen_pathways), ncol = 4,dimnames = list(chosen_pathways, c("Total", "Found Genes", "Missing Genes", "Coverage")))
+  missing_ids <- c()
+  
+  for (i in chosen_pathways) {
+    pathway_genes <- unique(get_geneIDS_for_pathways(i, con))
+    missing <- pathway_genes[!(pathway_genes %in% dataset_ids[, 1])]
+    found <- length(pathway_genes) - length(missing)
+    coverage <- round(found/ length(pathway_genes) * 100, digits = 2)
+    
+    result[i, ]  <- c(length(pathway_genes), found, length(missing), coverage)
+    missing_ids   <- unique(c(missing_ids, missing))
+  }
+  
+  return(list(matrix_unused = result, missing_ids = missing_ids))
+}
 
 ######################################################################
 # matches the extracted Gene IDs with their name in the Database
@@ -198,48 +269,6 @@ get_gene_names_for_pathways <- function(chosen_pathways, con) {
   return(unique(resultvec))
 }
 
-######################################################################################################
-#returns a list of Gene Names and IDs which were not found in the dataset bur are part of the pathway 
-######################################################################################################
-#input: 
-#the genes or IDs which are part of the pathway
-#the IDs which appear in the filtered dataset 
-
-extract_unused_genes <- function(pathway_genes, rownames_filtered, con){
-
-# if the dataset contains IDs
-resultvec <- c()
-if (any(grepl("^[0-9]+$", pathway_genes))){
-
-    for(i in pathway_genes){
-
-    #if a gene which  actually corresponds to the pathway is not in the filtered dataset
-      if(!(i %in% rownames_filtered)){
-        resultvec <- c(resultvec, i)
-
-        }
-
-    }
-} else {
-
-    pathway_genes <- get_chosen_IDs_from_database(con, pathway_genes)
-
-     for(i in pathway_genes){
-
-    #if a gene which  actually corresponds to the pathway is not in the filtered dataset
-      if(!(i %in% rownames_filtered)){
-        resultvec <- c(resultvec, i)
-
-        }
-
-    }
-
-}
-
-return(list(ids = resultvec, names =  get_chosen_gennames_from_database(con,resultvec)))
-
-}
-
 
 ###########################################################################
 # filters the original dataset and only shows the genes which were selected
@@ -293,11 +322,13 @@ rename_duplikate_genes <- function(extracted_dataset) {
 # furthermore it needs the original dataset the connection object for the database
 # named list is returned: filtered dataset, metadata, gene vector, gene names, list of unused 
 # gene names and ids 
+# if there are no matches with the chosen pathways ==> stop 
 
 
 run_data_integration <- function(dataset, chosen_pathways, con) {
 
 
+#if the first column is numeric 
 if (any(grepl("^[0-9]+$", dataset[, 1]))) {
 
     preprocessed <- preprocess_dataset_meta(dataset)
@@ -308,17 +339,20 @@ if (any(grepl("^[0-9]+$", dataset[, 1]))) {
 
     filtered <- extract_relevant_genes(relevant_ids, data_clean)
 
-    unused_list <- extract_unused_genes(relevant_ids, filtered[,1], con)
-
     if (nrow(filtered) == 0) {
         stop("No genes found which correspond to the chosen pathway ")
     }
-    
+
+    list_unused <- analyze_pathways_coverage(chosen_pathways, filtered,con)
+    unused_matrix <- list_unused$matrix_unused
+    unused_ids <- list_unused$missing_ids
+  
     gene_names <- get_chosen_gennames_from_database(con, filtered$Entrez_ID)
 
 } else {
 
     
+    #if there are gene names in the first column 
     preprocessed <- preprocess_dataset_meta_gennames(dataset)
     data_clean <- preprocessed$data_withoutmeta
     meta_data <- preprocessed$meta_data
@@ -335,19 +369,22 @@ if (any(grepl("^[0-9]+$", dataset[, 1]))) {
     gene_names <- filtered[ ,1]
     entrez_ids <- get_chosen_IDs_from_database(con, filtered[, 1])
     filtered[, 1] <- entrez_ids
-    unused_list <- extract_unused_genes(relevant_gene_names, filtered[,1], con)
+    list_unused <- analyze_pathways_coverage(chosen_pathways, filtered,con)
+    unused_matrix <- list_unused$matrix_unused
+    unused_ids <- list_unused$missing_ids
+
     colnames(filtered)[1] <- "Entrez_ID"
     
   }
   
-  # rename duplicate values if thera are any
+  # rename duplicate values if ther are any
   filtered <- rename_duplikate_genes(filtered)
   
   # set rownames as entrez Ids and remove the column
   rownames(filtered) <- filtered$Entrez_ID
   filtered$Entrez_ID <- NULL
   
-  # gene vector equals the row names now     
+  # gene vector equals the row names now, not the first column anymore 
   gene_vector <- rownames(filtered)
   
   
@@ -357,39 +394,15 @@ if (any(grepl("^[0-9]+$", dataset[, 1]))) {
     meta_data        = meta_data,
     gene_vector      = gene_vector,
     gene_names       = gene_names,
-    unused_genes     = unused_list
+    matrix_unused    = unused_matrix,
+    ids_unused       = unused_ids
   ))
 }
 
 
-# ============================================================
-# BEISPIELAUFRUF 
-# ============================================================
 
 
-library(RSQLite)
-library(DBI)
 
-con     <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
-dataset_meta1 <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
-dataset_meta2_names <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_gene_names.csv", header = TRUE)
-
-pathway_names <- get_pathwaynames_from_database(con = con)
-result  <- run_data_integration(
-  dataset          = dataset_meta1,
-  chosen_pathways  = c("Fatty acid metabolism", "Biosynthesis of amino acids"),
-  con              = con
-)
-
-
-gefilteterDatensatz <- result$filtered_dataset
-metaDaten_gefiltert <- result$meta_data
-gene_vektor <- result$gene_vector
-gene_name <- result$gene_names
-unused <- result$unused_genes
-
-unusedids <- unused$ids
-unusedgenes <- unused$names
 
 
 
