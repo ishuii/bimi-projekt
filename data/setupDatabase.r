@@ -55,7 +55,9 @@ dbExecute(con, "
   )
 ")
 
-
+dbExecute(con, "DELETE FROM Lookup_Gene_Pathway")  # zuerst wegen Foreign Keys!
+dbExecute(con, "DELETE FROM Gene")
+dbExecute(con, "DELETE FROM Pathway")
 
 
 #-------------------------------
@@ -83,9 +85,9 @@ gene_pathways <- read.csv2("data/Gene_Pathway.csv", header= FALSE)
 colnames(gene_pathways) <- c("Entrez_ID", "Pathway_ID")
 
 # remove hsa: and path: in columns 
-gene_pathways$Entrez_ID <- as.integer(gene_pathways$Entrez_ID)
 gene_pathways$Entrez_ID <- gsub("hsa:", "", gene_pathways$Entrez_ID)
 gene_pathways$Pathway_ID <- gsub("path:", "", gene_pathways$Pathway_ID)
+gene_pathways$Entrez_ID <- as.integer(gene_pathways$Entrez_ID)
 
 
 
@@ -93,12 +95,17 @@ gene_pathways$Pathway_ID <- gsub("path:", "", gene_pathways$Pathway_ID)
 #Gene
 #--------------
 #get all the unique genes which are present in the pathways
-gene_id <- unique(gene_pathways$Entrez_ID)
+gene_id <- unique(as.character(gene_pathways$Entrez_ID))
 
 gen_id_name_symbol <- AnnotationDbi::select(org.Hs.eg.db, 
                                             keys = gene_id, 
                                             columns = c("GENENAME","SYMBOL"), 
                                             keytype = "ENTREZID")
+
+any(duplicated(gen_id_name_symbol$ENTREZID))
+
+
+
 
 #Change datatype from character to integer
 gen_id_name_symbol$ENTREZID <- as.integer(gen_id_name_symbol$ENTREZID)
