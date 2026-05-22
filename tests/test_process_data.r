@@ -1,5 +1,5 @@
 
-source("data/database_functions_v2.r")
+source("data/database_functions_v3.r")
 
 # Test dataset with duplicate genes
 
@@ -53,22 +53,41 @@ df_duplicates4 <- data.frame(
 )
 
 
+#################
+#Beispielaufruf 
+#################
 
-# Test run 
 
 con     <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
-pathway_names <- get_pathwaynames_from_database(con = con)
+dataset_kidney_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
+dataset_kidney_Gene <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_gene_names.csv", header = TRUE)
+dataset_colon_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/colon_vs_pancreas_meta.csv", header = TRUE)
+dataset_SHIPP_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/SHIPP_microarray.csv")
 
+
+
+
+preprocess <- preprocess_general(df_duplicates2)
+data_preprocessed <- preprocess$dataset_preprocessed
+na <- preprocess$number_na
+zero <- preprocess$number_zero
+empty <- preprocess$number_empty
+removed <- preprocess$rows_removed
+
+pathway_names <- get_pathwaynames_from_database(con = con)
 result  <- run_data_integration(
-  dataset          = df_duplicates4,
-  chosen_pathways  = c("Fatty acid metabolism"),
-  con              = con,
-  dataset_type     = "Gene"
+  dataset          = data_preprocessed,
+  chosen_pathways  = c("Biosynthesis of amino acids", "Metabolic pathways"),
+  con              = con
 )
 
 
-meta <- result$meta_data
-gene_vec <- result$gene_vector
-filtered_data <- result$filtered_dataset
-gene_names <- result$gene_names
+gefilteterDatensatz <- result$filtered_dataset
+metaDaten_gefiltert <- result$meta_data
+gene_vektor <- result$gene_vector
+gene_name <- result$gene_names
+unusedmatrix <- result$matrix_unused
+unusedids <- result$ids_unused
+
+
 
