@@ -55,15 +55,32 @@ Es stehen sechs Distanzfunktionen zur Auswahl: "minkowski", "euclidean", "manhat
   - ist p extrem groß, spricht man von der Chebyshev-Distanz
   - bislang noch nicht getestet, aber die Auswahl sollte dem Nutzer ermöglicht werden
 
- ## Data Schnittstelle zu Team GUI 
- Es steht eine Funktion run_data_integration zur Verfügung unter data/database_functions_v3.r, welche bei Aufruf eine benannte Liste mit folgendem Inhalt zurückgibt: 
- Genvektor IDs, gefilteter Datensatz, Gennamen, Metadaten, und Gene und IDs, die nicht im Datensatz vorgekommen sind, aber Teil des ausgewählten Pathways sind.  
 
- Die Inputparameter der Funktion sind: 
- Originaldatensatz, den der User auswählt, Con Objekt, und der ausgewählte Pathway, bzw ein Vektor der ausgewählten Pathways 
- 
- Für diese Fuktion muss vorher eine Verbindung zur Datenbank hergestellt sein, 
- Außerdem müsse die packages library(RSQLite) library(DBI), wenn noch nicht installiert, installiert werden. 
+## Datenschnittstelle zum GUI-Team
 
- Eine weitere Funktion ist: get_pathwaynames_from_database, welche für die Auswahl der Pathways aufgerufen werden sollte. Sie benötigt nur ein
- Datenbank Connection Objekt. Sie gibt einen Character Vector zurück. Diese Datenstruktur sollte genauso für die Checkboxen implementiert werden 
+Unter `data/database_functions_v3.r` steht die Funktion `run_data_integration` zur Verfügung. Vor dem Aufruf müssen folgende Voraussetzungen erfüllt sein:
+
+- Die Pakete `RSQLite` und `DBI` müssen installiert und geladen sein
+- Eine Datenbankverbindung muss über `dbConnect` hergestellt worden sein
+- Der Datensatz muss zunächst durch `preprocess_general` vorverarbeitet und danach übergeben werden
+
+**Inputparameter:**
+```
+run_data_integration(dataset, chosen_pathways, con)
+# dataset: vorverarbeiteter Datensatz nach preprocess_general
+# chosen_pathways: character Vektor der gewählten Pathway-Namen
+# con: Datenbank Connection Objekt
+```
+
+**Rückgabe:** benannte Liste mit folgendem Inhalt:
+```
+# filtered_dataset: gefilterter Datensatz
+# meta_data:        Metadaten
+# gene_vector:      Vektor der Entrez IDs
+# gene_names:       Vektor der Gennamen
+# matrix_unused:    Matrix mit Coverage-Informationen pro Pathway
+# ids_unused:       Vektor der IDs die nicht im Datensatz vorkommen,
+#                   aber zum gewählten Pathway gehören
+```
+
+Für die Auswahl der Pathways in der GUI sollte zunächst `get_pathwaynames_from_database(con)` aufgerufen werden. Die Funktion gibt einen character Vektor aller verfügbaren Pathway Namen zurück. Dieser Vektor sollte direkt als Grundlage für die Checkboxen verwendet werden, da so sichergestellt ist, dass die Namen exakt mit den Datenbankeinträgen übereinstimmen. 
