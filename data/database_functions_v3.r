@@ -7,42 +7,65 @@ library(DBI)
 # HILFSFUNKTIONEN
 # ============================================================
 #####################################################################################################
-# First Step of Preprocessing the data after the User chooses the datasets which will be analyzed
+# First Step of Preprocessing the data after the User chooses the dataset which will be analyzed
 #####################################################################################################
 preprocess_general <- function(data){
 
+
+  #######
+  #rows
+  ######
   # amount of rows which do not have any value ==> no ID or Gen corresponding
   amount_na_values_genes <- sum(is.na(data[ ,1]))
   amount_zero_values_genes <- sum(data[ ,1] == 0, na.rm = TRUE)
   amount_empty_values_genes <- sum(data[ ,1] == "", na.rm = TRUE)
 
-  # vector which stores the amount of na values per row 
-  na_vec <- apply(data, 1, function(x) {
-    sum(is.na(x))
-  })
 
-  # indices where the whole row is just NA
-  na_whole_row <- which(na_vec == ncol(data))
-  
   # indices of the rows 
   indices_na <- which(is.na(data[,1]))
   indices_zero <- which(data[ ,1] == "0")
   indices_empty <- which(data[ ,1]== "")
 
+  # vector which stores the amount of na values per row 
+  na_vec_rows <- apply(data, 1, function(x) {
+    sum(is.na(x))
+  })
+
+  # indices where the whole row is just NA
+  na_whole_row <- which(na_vec_rows == ncol(data))
+  
   # combine all indices which should be removed
-  indices_remove <- unique(c(indices_na, indices_zero, indices_empty, na_whole_row))
+  indices_remove_row <- unique(c(indices_na, indices_zero, indices_empty, na_whole_row))
 
   # if there are any indices which should be removed cut them out of the dataset 
-  if(length(indices_remove) > 0){
-      data_cleaned <- data[-indices_remove, ]
+  if(length(indices_remove_row) > 0){
+      data_cleaned <- data[-indices_remove_row, ]
   } else {
       data_cleaned <- data
   }
 
+  #column => remove column if the whole column is na
+  #vector which stores the amount of na values per column
+  na_vec_cols <- apply(data_cleaned, 2, function(x) {
+    sum(is.na(x))
+  })
+  # indices where the whole column is just NA
+  na_whole_column <- which(na_vec_cols == nrow(data_cleaned))
+  na_patients <- which(is.na(colnames(data)))
+
+  indices_remove_column <- c(na_whole_column, na_patients)
+
+  # if there are na values for the whole column, remove them 
+  if (length(indices_remove_column) > 0) {
+    data_cleaned <- data_cleaned[, -indices_remove_column]
+  }
+
+
   return (list(number_na = amount_na_values_genes,
                number_zero = amount_zero_values_genes, 
                number_empty = amount_empty_values_genes, 
-               rows_removed = length(indices_remove), 
+               rows_removed = length(indices_remove_row), 
+               columns_removed = length(indices_remove_column),
                dataset_preprocessed = data_cleaned))
 }
 

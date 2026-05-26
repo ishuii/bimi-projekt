@@ -66,13 +66,13 @@ dataset_SHIPP_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/SHIPP_m
 
 
 
-
-preprocess <- preprocess_general(df_duplicates2)
+preprocess <- preprocess_general(dataset_kidney_ID)
 data_preprocessed <- preprocess$dataset_preprocessed
 na <- preprocess$number_na
 zero <- preprocess$number_zero
 empty <- preprocess$number_empty
-removed <- preprocess$rows_removed
+removed_rows <- preprocess$rows_removed
+removed_columns <- preprocess$columns_removed
 
 pathway_names <- get_pathwaynames_from_database(con = con)
 result  <- run_data_integration(
