@@ -146,9 +146,9 @@ rename_duplikate_genes(extracted_dataset)
 #### analyze_pathways_coverage
 Berechnet für jeden gewählten Pathway wie viele der zugehörigen Gene im Datensatz vorhanden sind. Gibt zusätzlich einen Vektor aller fehlenden Entrez IDs zurück. 
 ```
-analyze_pathways_coverage(chosen_pathways, dataset_ids, con)
+analyze_pathways_coverage(chosen_pathways, dataset_cleaned, con)
 # chosen_pathways: character Vektor der gewählten Pathway Namen in der GUI
-# dataset_ids: gefilterter Dataframe dessen erste Spalte die Entrez IDs enthält
+# dataset_cleaned: Datensatz, welcher der Output ist von preprocess_general 
 # con: Datenbank Connection Objekt
 # output: Liste (Matrix mit Total/Found/Missing/Coverage pro Pathway, Vektor fehlender Entrez IDs)
 ```
