@@ -13,9 +13,10 @@ library(DBI)
 #input
 #the chosen dataset by the use
 #return
-#a list of: amount of rows removed, amount of columns removed, amount of na, empty and "" values for genes
+#a list of: amount of rows removed, amount of columns removed, amount of na
 #and the dataset which does not include anymore the rows and columns which are n
-preprocess_general_v1 <- function(data){
+
+preprocess_general <- function(data){
 
 
   #######
@@ -23,14 +24,11 @@ preprocess_general_v1 <- function(data){
   ######
   # amount of rows which do not have any value ==> no ID or Gen corresponding
   amount_na_values_genes <- sum(is.na(data[ ,1]))
-  amount_zero_values_genes <- sum(data[ ,1] == 0, na.rm = TRUE)
-  amount_empty_values_genes <- sum(data[ ,1] == "", na.rm = TRUE)
+ 
 
-
-  # indices of the rows 
+  # indices of the rows which are na
   indices_na <- which(is.na(data[,1]))
-  indices_zero <- which(data[ ,1] == "0")
-  indices_empty <- which(data[ ,1]== "")
+ 
 
   # vector which stores the amount of na values per row 
   na_vec_rows <- apply(data, 1, function(x) {
@@ -41,7 +39,7 @@ preprocess_general_v1 <- function(data){
   na_whole_row <- which(na_vec_rows == ncol(data))
   
   # combine all indices which should be removed
-  indices_remove_row <- unique(c(indices_na, indices_zero, indices_empty, na_whole_row))
+  indices_remove_row <- unique(c(indices_na,na_whole_row))
 
   # if there are any indices which should be removed cut them out of the dataset 
   if(length(indices_remove_row) > 0){
@@ -67,69 +65,8 @@ preprocess_general_v1 <- function(data){
   }
 
 
-  return (list(number_na = amount_na_values_genes,
-               number_zero = amount_zero_values_genes, 
-               number_empty = amount_empty_values_genes, 
-               rows_removed = length(indices_remove_row), 
-               columns_removed = length(indices_remove_column),
-               dataset_preprocessed = data_cleaned))
-}
-
-preprocess_general_v2 <- function(data){
-
-
-  #######
-  #rows
-  ######
-  # amount of rows which do not have any value ==> no ID or Gen corresponding
-  amount_na_values_genes <- sum(is.na(data[ ,1]))
-  amount_zero_values_genes <- sum(data[ ,1] == 0, na.rm = TRUE)
-  amount_empty_values_genes <- sum(data[ ,1] == "", na.rm = TRUE)
-
-
-  # indices of the rows 
-  indices_na <- which(is.na(data[,1]))
-  indices_zero <- which(data[ ,1] == "0")
-  indices_empty <- which(data[ ,1]== "")
-
-  # vector which stores the amount of na values per row 
-  na_vec_rows <- apply(data, 1, function(x) {
-    sum(is.na(x))
-  })
-
-  # indices where the whole row is just NA
-  na_whole_row <- which(na_vec_rows == ncol(data))
-  
-  # combine all indices which should be removed
-  indices_remove_row <- unique(c(indices_na, indices_zero, indices_empty, na_whole_row))
-
-  # if there are any indices which should be removed cut them out of the dataset 
-  if(length(indices_remove_row) > 0){
-      data_cleaned <- data[-indices_remove_row, ]
-  } else {
-      data_cleaned <- data
-  }
-
-  #column => remove column if the whole column is na
-  #vector which stores the amount of na values per column
-  na_vec_cols <- apply(data_cleaned, 2, function(x) {
-    sum(is.na(x))
-  })
-  # indices where the whole column is just NA
-  na_whole_column <- which(na_vec_cols == nrow(data_cleaned))
-  na_patients <- which(is.na(colnames(data)))
-
-  indices_remove_column <- c(na_whole_column, na_patients)
-
-  # if there are na values for the whole column, remove them 
-  if (length(indices_remove_column) > 0) {
-    data_cleaned <- data_cleaned[, -indices_remove_column]
-  }
-
-
-  return (list(number_na = amount_na_values_genes,
-               number_zero = amount_zero_values_genes, 
-               number_empty = amount_empty_values_genes, 
+  return (list(number_na_genes = amount_na_values_genes,
+                number_na_patients = na_patients, 
                rows_removed = length(indices_remove_row), 
                columns_removed = length(indices_remove_column),
                dataset_preprocessed = data_cleaned))
@@ -213,24 +150,53 @@ preprocess_dataset_meta_gennames <- function(data) {
 #vector of the ids which could not be found in the dataset
 
 
-analyze_pathways_coverage <- function(chosen_pathways, dataset_ids, con) {
+analyze_pathways_coverage <- function(chosen_pathways, dataset_cleaned, con) {
   
+  # Matrix für die Ergebnisse vorbereiten
   result <- matrix(NA, nrow = length(chosen_pathways), ncol = 4,dimnames = list(chosen_pathways, c("Total", "Found Genes", "Missing Genes", "Coverage")))
   missing_ids <- c()
-  
+
+  if (any(grepl("^[0-9]+$", dataset_cleaned[, 1]))) {
+    
+    preprocessed <- preprocess_dataset_meta(dataset_cleaned)
+    data_clean <- preprocessed$data_withoutmeta
+    
+    # Für den Abgleich brauchen wir ALLE IDs aus dem Datensatz, nicht die gefilterten!
+    dataset_ids_all <- data_clean[, 1]
+
+  } else {
+    
+    preprocessed <- preprocess_dataset_meta_gennames(dataset_cleaned)
+    data_clean <- preprocessed$data_withoutmeta
+
+    # Wenn es Gennamen sind, konvertieren wir die komplette erste Spalte in IDs
+    gene_names_all <- data_clean[, 1]
+    dataset_ids_all <- get_chosen_IDs_from_database(con, gene_names_all)
+  }
+
+
+  dataset_ids_all <- unique(dataset_ids_all)
+
   for (i in chosen_pathways) {
     pathway_genes <- unique(get_geneIDS_for_pathways(i, con))
-    missing <- pathway_genes[!(pathway_genes %in% dataset_ids[, 1])]
+    
+    # WICHTIG: Wir prüfen gegen 'dataset_ids_all' (den kompletten Datensatz)
+    missing <- pathway_genes[!(pathway_genes %in% dataset_ids_all)]
     found <- length(pathway_genes) - length(missing)
-    coverage <- round(found/ length(pathway_genes) * 100, digits = 2)
+    
+    # Schutz vor Division durch 0, falls ein Pathway in der DB leer ist
+    if (length(pathway_genes) > 0) {
+      coverage <- round(found / length(pathway_genes) * 100, digits = 2)
+    } else {
+      coverage <- 0
+    }
     
     result[i, ]  <- c(length(pathway_genes), found, length(missing), coverage)
-    missing_ids   <- unique(c(missing_ids, missing))
+    missing_ids  <- unique(c(missing_ids, missing))
   }
   
   return(list(matrix_unused = result, missing_ids = missing_ids))
 }
-
 ######################################################################
 # matches the extracted Gene IDs with their name in the Database
 ######################################################################
@@ -272,6 +238,8 @@ get_chosen_IDs_from_database <- function(con, gene_names) {
   
   return(result$Entrez_ID)
 }
+
+
 
 
 ######################################################################
@@ -402,6 +370,14 @@ rename_duplikate_genes <- function(extracted_dataset) {
   return(extracted_dataset)
 }
 
+
+rename_duplikate_genes_v2<- function(extracted_dataset) {
+  ids <- as.character(extracted_dataset$Entrez_ID)  
+ 
+  extracted_dataset$Entrez_ID <- make.unique(ids, sep = "_")
+  return(extracted_dataset)
+}
+
 # ============================================================
 # HAUPTFUNKTION 
 # ============================================================
@@ -431,9 +407,6 @@ if (any(grepl("^[0-9]+$", dataset[, 1]))) {
         stop("No genes found which correspond to the chosen pathway ")
     }
 
-    list_unused <- analyze_pathways_coverage(chosen_pathways, filtered,con)
-    unused_matrix <- list_unused$matrix_unused
-    unused_ids <- list_unused$missing_ids
   
     gene_names <- get_chosen_gennames_from_database(con, filtered$Entrez_ID)
 
@@ -457,16 +430,13 @@ if (any(grepl("^[0-9]+$", dataset[, 1]))) {
     gene_names <- filtered[ ,1]
     entrez_ids <- get_chosen_IDs_from_database(con, filtered[, 1])
     filtered[, 1] <- entrez_ids
-    list_unused <- analyze_pathways_coverage(chosen_pathways, filtered,con)
-    unused_matrix <- list_unused$matrix_unused
-    unused_ids <- list_unused$missing_ids
 
     colnames(filtered)[1] <- "Entrez_ID"
     
   }
   
   # rename duplicate values if ther are any
-  filtered <- rename_duplikate_genes(filtered)
+  filtered <- rename_duplikate_genes_v2(filtered)
   
   # set rownames as entrez Ids and remove the column
   rownames(filtered) <- filtered$Entrez_ID
@@ -481,9 +451,7 @@ if (any(grepl("^[0-9]+$", dataset[, 1]))) {
     filtered_dataset = filtered,
     meta_data        = meta_data,
     gene_vector      = gene_vector,
-    gene_names       = gene_names,
-    matrix_unused    = unused_matrix,
-    ids_unused       = unused_ids
+    gene_names       = gene_names
   ))
 }
 

@@ -1,5 +1,5 @@
 
-source("data/database_functions_v3.r")
+source("data/database_functions_v4.r")
 
 # Test dataset with duplicate genes
 
@@ -66,18 +66,22 @@ dataset_SHIPP_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/SHIPP_m
 
 
 
-preprocess <- preprocess_general(dataset_kidney_ID)
+preprocess <- preprocess_general(dataset_SHIPP_ID)
 data_preprocessed <- preprocess$dataset_preprocessed
-na <- preprocess$number_na
-zero <- preprocess$number_zero
-empty <- preprocess$number_empty
+na_rows <- preprocess$number_na_genes
+na_cols <- preprocess$number_na_patients
 removed_rows <- preprocess$rows_removed
 removed_columns <- preprocess$columns_removed
 
 pathway_names <- get_pathwaynames_from_database(con = con)
+coverage_list <- analyze_pathways_coverage(c("Biosynthesis of amino acids", "Pentose and glucuronate interconversions"),data_preprocessed, con)
+
+matrix_unused_per_pathway <- coverage_list$matrix_unused
+ids_unused <- coverage_list$missing_ids
+
 result  <- run_data_integration(
   dataset          = data_preprocessed,
-  chosen_pathways  = c("Biosynthesis of amino acids", "Metabolic pathways"),
+  chosen_pathways  = c("Biosynthesis of amino acids", "Pentose and glucuronate interconversions"),
   con              = con
 )
 
@@ -86,8 +90,7 @@ gefilteterDatensatz <- result$filtered_dataset
 metaDaten_gefiltert <- result$meta_data
 gene_vektor <- result$gene_vector
 gene_name <- result$gene_names
-unusedmatrix <- result$matrix_unused
-unusedids <- result$ids_unused
+
 
 
 

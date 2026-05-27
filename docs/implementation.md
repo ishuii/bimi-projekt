@@ -58,11 +58,12 @@ Es stehen sechs Distanzfunktionen zur Auswahl: "minkowski", "euclidean", "manhat
 
 ## Datenschnittstelle zum GUI-Team
 
-Unter `data/database_functions_v3.r` steht die Funktion `run_data_integration` zur Verfügung. Vor dem Aufruf müssen folgende Voraussetzungen erfüllt sein:
+Unter `data/database_functions_v4.r` steht die Funktion `run_data_integration` zur Verfügung. Vor dem Aufruf müssen folgende Voraussetzungen erfüllt sein:
 
 - Die Pakete `RSQLite` und `DBI` müssen installiert und geladen sein
 - Eine Datenbankverbindung muss über `dbConnect` hergestellt worden sein
 - Der Datensatz muss zunächst durch `preprocess_general` vorverarbeitet und danach übergeben werden
+- um bei Auswahl eine Matrix über die Coverage im Datensatz pro Datensatz zu erhalten muss `analyze_pathway_coverage` aufgerufen werden. Daraufhin sollte der User entscheiden können, ob er die Pathway haben will, oder sie doch ändern möchte
 
 **Inputparameter:**
 ```
@@ -84,3 +85,6 @@ run_data_integration(dataset, chosen_pathways, con)
 ```
 
 Für die Auswahl der Pathways in der GUI sollte zunächst `get_pathwaynames_from_database(con)` aufgerufen werden. Die Funktion gibt einen character Vektor aller verfügbaren Pathway Namen zurück. Dieser Vektor sollte direkt als Grundlage für die Checkboxen verwendet werden, da so sichergestellt ist, dass die Namen exakt mit den Datenbankeinträgen übereinstimmen. 
+
+Workflow: 
+preprocess_general ==> analyze_pathway_coverage ==> run_data_integration
