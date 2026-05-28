@@ -436,7 +436,7 @@ if (any(grepl("^[0-9]+$", dataset[, 1]))) {
   }
   
   # rename duplicate values if ther are any
-  filtered <- rename_duplikate_genes_v2(filtered)
+  filtered <- rename_duplikate_genes(filtered)
   
   # set rownames as entrez Ids and remove the column
   rownames(filtered) <- filtered$Entrez_ID

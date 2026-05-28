@@ -62,11 +62,12 @@ con     <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 dataset_kidney_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
 dataset_kidney_Gene <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_gene_names.csv", header = TRUE)
 dataset_colon_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/colon_vs_pancreas_meta.csv", header = TRUE)
-dataset_SHIPP_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/SHIPP_microarray.csv")
+dataset_SHIPP_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/SHIPP_microarray.csv", header =TRUE)
+dataset_GOLUB_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/GOLUB_microarray.csv", header = TRUE)
 
 
 
-preprocess <- preprocess_general(dataset_SHIPP_ID)
+preprocess <- preprocess_general(dataset_GOLUB_ID)
 data_preprocessed <- preprocess$dataset_preprocessed
 na_rows <- preprocess$number_na_genes
 na_cols <- preprocess$number_na_patients
