@@ -42,7 +42,7 @@ prepare_data <- function(df) {
   
   # we return matrix to make sure it stays numeric (no switch back to dataframe)
   
-  return(list(data = df, labels = labels))
+  return(data = df)
 }
 
 ################################################################################
@@ -110,3 +110,4 @@ normalization <- function(df, norm_method) {
   # Each gene (row) is centered on its median and normalized by a robust measure of spread (MAD)
   
 }
+
