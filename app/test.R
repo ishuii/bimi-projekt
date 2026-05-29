@@ -9,6 +9,8 @@ library(devtools)
 library(distRcpp)
 library(shinyFeedback)
 library(shinyjs)
+library(rmarkdown)
+library(knitr)
 library(bslib)
 library(bsicons)
 library(shinyBS)
@@ -206,10 +208,15 @@ ui <- dashboardPage(
                 
                    fluidRow(
                      box(
-                       title = "Auswertung",
                        width = 12,
-                       tableOutput("Beispieltext"),
-                       verbatimTextOutput("Spalten")
+                       h4("NA-Fehlerbehandlung"),
+                       verbatimTextOutput("na_info"),
+                       
+                       actionButton(
+                         inputId = "drop_na",
+                         label = "NA-Spalten entfernen",
+                         class = "btn-warning"
+                       ),
                        )
                      ),
 
@@ -386,6 +393,7 @@ ui <- dashboardPage(
   
 
 server <- function(input, output, session) {
+  
 
   cluster_result <- reactiveVal(NULL)
   
@@ -397,19 +405,229 @@ server <- function(input, output, session) {
     paste("Deine Datei:", input$x)
   })
   preset_values <- reactiveVal(list()) #Create reactive variable list
-  options(shiny.maxRequestSize = 100 * 1024^2)
+  options(shiny.maxRequestSize = 1024 * 1024^2)
   # CSV IMPORT BACKEND
-  daten <- reactive({      # for dynamic processing
-    req(input$Datei_csv)   # upload check
-    read.csv(input$Datei_csv$datapath)
+  daten_original <- reactiveVal(NULL)
+  
+  daten_aktuell <- reactiveVal(NULL)
+  
+  na_infos <- reactiveVal(NULL)
+  
+  observeEvent(input$Datei_csv, {
+    
+    req(input$Datei_csv)
+    
+    df <- read.csv(
+      input$Datei_csv$datapath,
+      header = TRUE,
+      stringsAsFactors = FALSE,
+      na.strings = c("", " ", "NA", "NaN", "NULL", "N/A")
+    )
+    df[df == ""] <- NA
+    
+   
+    na_gesamt <- sum(is.na(df))
+    
+   
+    zeilen_mit_na <- !complete.cases(df)
+    
+   
+    anzahl_zeilen_mit_na <- sum(zeilen_mit_na)
+    
+   
+    na_pro_spalte <- colSums(is.na(df))
+    
+    daten_original(df)
+    daten_aktuell(df)
+    
+    
+    na_infos(list(
+      na_gesamt = na_gesamt,
+      zeilen_mit_na = anzahl_zeilen_mit_na,
+      zeilen_gesamt = nrow(df),
+      spalten_gesamt = ncol(df),
+      na_pro_spalte = na_pro_spalte,
+      bereits_bereinigt = FALSE
+    ))
+    
     
   })
   
-  #CSV PROCESSING
-  output$Spalten <- renderText({
-    paste0("Der Datensatz hat ",nrow(daten())-1, " Messwerte", "\n",
-           "Der Datensatz hat ",ncol(daten()), " Samples")
+  output$na_info <- renderPrint({
+    
+    info <- na_infos()
+    
+    if (is.null(info)) {
+      cat("Noch keine CSV-Datei hochgeladen.")
+      return(invisible(NULL))
+    }
+    
+    cat("Anzahl aller NA-Werte:", info$na_gesamt, "\n")
+    cat("Zeilen mit mindestens einem NA-Wert:", info$zeilen_mit_na, "\n")
+    cat("Spalten mit mindestens einem NA-Wert:", sum(info$na_pro_spalte > 0), "\n")
+    cat("Zeilen gesamt:", info$zeilen_gesamt, "\n")
+    cat("Spalten gesamt:", info$spalten_gesamt, "\n\n")
+    
+    
+    if (isTRUE(info$bereits_bereinigt)) {
+      cat("\nStatus: NA-Spalten wurden entfernt.\n")
+      cat("Entfernte Spalten:", info$entfernte_spalten, "\n")
+      
+      if (length(info$entfernte_spalten_namen) > 0) {
+        cat("Entfernte Spaltennamen:\n")
+        print(info$entfernte_spalten_namen)
+      }
+    } else {
+      cat("\nStatus: Datei wurde geprüft. Es wurde noch nichts gelöscht.\n")
+    }
+    
+    invisible(NULL)
   })
+  
+  observeEvent(input$drop_na, {
+    
+    req(daten_aktuell())
+    
+    df <- daten_aktuell()
+    
+    # Colum with at least one NA
+    spalten_mit_na <- colSums(is.na(df)) > 0
+    
+    # save name of removed colum
+    entfernte_spalten_namen <- names(df)[spalten_mit_na]
+    
+   #Remove coloum
+    df_clean <- df[, !spalten_mit_na, drop = FALSE]
+    
+    #Number of removed columns
+    entfernte_spalten <- sum(spalten_mit_na)
+    
+    #save clean data
+    daten_aktuell(df_clean)
+    
+    # refresh na_infos
+    na_infos(list(
+      na_gesamt = sum(is.na(df_clean)),
+      spalten_mit_na = sum(colSums(is.na(df_clean)) > 0),
+      zeilen_mit_na = sum(!complete.cases(df_clean)),
+      zeilen_gesamt = nrow(df_clean),
+      spalten_gesamt = ncol(df_clean),
+      na_pro_spalte = colSums(is.na(df_clean)),
+      bereits_bereinigt = TRUE,
+      entfernte_spalten = entfernte_spalten,
+      entfernte_spalten_namen = entfernte_spalten_namen
+    ))
+  })
+  daten <- reactive({
+    req(daten_aktuell())
+    daten_aktuell()
+  })
+  output$download_pdf <- downloadHandler(
+    
+    filename = function() {
+      paste0("cluster_report_", Sys.Date(), ".pdf")
+    },
+    
+    contentType = "application/pdf",
+    
+    content = function(file) {
+      
+      info <- na_infos()
+      daten <- daten_aktuell()
+      
+      pdf(file, width = 8.27, height = 11.69)  # A4 ungefähr
+      
+      plot.new()
+      par(mar = c(1, 1, 1, 1))
+      
+      y <- 0.95
+      
+      text(0.05, y, "Cluster Analyse Report", adj = 0, cex = 1.6, font = 2)
+      y <- y - 0.08
+      
+      if (!is.null(input$Datei_csv)) {
+        text(0.05, y, paste("Dateiname:", input$Datei_csv$name), adj = 0, cex = 1)
+        y <- y - 0.05
+      }
+      
+      text(0.05, y, paste("Erstellt am:", Sys.Date()), adj = 0, cex = 1)
+      y <- y - 0.08
+      
+      text(0.05, y, "NA-Fehlerbehandlung", adj = 0, cex = 1.3, font = 2)
+      y <- y - 0.06
+      
+      if (is.null(info)) {
+        
+        text(0.05, y, "Noch keine CSV-Datei hochgeladen.", adj = 0, cex = 1)
+        
+      } else {
+        
+        text(0.05, y, paste("Anzahl aller NA-Werte:", info$na_gesamt), adj = 0, cex = 1)
+        y <- y - 0.045
+        
+        text(0.05, y, paste("Zeilen mit mindestens einem NA-Wert:", info$zeilen_mit_na), adj = 0, cex = 1)
+        y <- y - 0.045
+        
+        text(0.05, y, paste("Zeilen gesamt:", info$zeilen_gesamt), adj = 0, cex = 1)
+        y <- y - 0.045
+        
+        text(0.05, y, paste("Spalten gesamt:", info$spalten_gesamt), adj = 0, cex = 1)
+        y <- y - 0.06
+        
+        if (isTRUE(info$bereits_bereinigt)) {
+          text(0.05, y, "Status: NA-Spalten wurden entfernt.", adj = 0, cex = 1)
+          y <- y - 0.045
+          
+          if (!is.null(info$entfernte_spalten)) {
+            text(0.05, y, paste("Entfernte Spalten:", info$entfernte_spalten), adj = 0, cex = 1)
+            y <- y - 0.045
+          }
+        } else {
+          text(0.05, y, "Status: Datei wurde geprüft. Es wurde noch nichts gelöscht.", adj = 0, cex = 1)
+          y <- y - 0.045
+        }
+      }
+      
+      y <- y - 0.06
+      
+      text(0.05, y, "Gewählte Parameter", adj = 0, cex = 1.3, font = 2)
+      y <- y - 0.06
+      
+      text(0.05, y, paste("Clusterverfahren:", input$clusterverfahren), adj = 0, cex = 1)
+      y <- y - 0.045
+      
+      text(0.05, y, paste("Distanzmatrix:", input$distanzmatrix), adj = 0, cex = 1)
+      y <- y - 0.045
+      
+      text(0.05, y, paste("Normalisierung:", input$normalisierung), adj = 0, cex = 1)
+      y <- y - 0.045
+      
+      text(0.05, y, paste("Anzahl Cluster:", input$anzahlcluster), adj = 0, cex = 1)
+      
+      if (!is.null(daten)) {
+        
+        plot.new()
+        par(mar = c(1, 1, 1, 1))
+        
+        text(0.05, 0.95, "Datensatz-Vorschau", adj = 0, cex = 1.4, font = 2)
+        
+        preview <- head(daten[, seq_len(min(5, ncol(daten))), drop = FALSE], 10)
+        preview_text <- capture.output(print(preview))
+        
+        y <- 0.88
+        
+        for (line in preview_text) {
+          text(0.05, y, line, adj = 0, cex = 0.75, family = "mono")
+          y <- y - 0.04
+        }
+      }
+      
+      dev.off()
+    }
+  )
+  
+  
+ 
   
   observeEvent(input$anzahlcluster, {   # Save User Choice Cluster
     tmp <- preset_values()
@@ -440,6 +658,7 @@ server <- function(input, output, session) {
     tmp$farbpaletten <- input$farbpaletten
     preset_values(tmp)
   })
+  
 
     
   refresh_presets <- function() { # Refresh Preset Dropdown
@@ -748,6 +967,9 @@ server <- function(input, output, session) {
       shinyjs::disable("run")
     }
   })
+  session$onFlushed(function() {
+    refresh_presets()
+  }, once = TRUE)
   
   
   
