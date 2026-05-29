@@ -117,4 +117,3 @@ dbWriteTable(con, "Pathway", pathway_names, append = TRUE)
 dbWriteTable(con, "Lookup_Gene_Pathway", gene_pathways, append = TRUE)
 
 
-#eventuell case insensitive???
