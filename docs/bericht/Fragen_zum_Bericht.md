@@ -50,5 +50,15 @@ Hier können dann noch einmal weitere Bilder gezeigt werden.
 
 
 
+Was sonst rein gehört:
+- Genexpression erklären
+- warum für doktor wichtig warum wir ihn als Zielgruppe wählen
+- Dashboard: Warum wir das so haben bzw. darstellen
+- Clustering
+-> Einleitung
+
+
+
+
 
   
