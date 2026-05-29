@@ -147,3 +147,22 @@ run_data_integration(dataset, chosen_pathways, con)
 # output: Liste (gefilterter Datensatz, Metadaten, Gen-Vektor, Gennamen,
 #                Coverage-Matrix, Vektor fehlender IDs)  
 ```
+
+#### prepare_data
+Funktion die die eingegebenen Daten in eine Matrix umwandelt, sowie Fehlerbehandlung durchführt die bei der Clusterfunktionen Probleme bereiten können. Insbesondere checkt ob alle Werte numerisch sind(weil das benötigt wird) und füllt alle NA/nicht-numerischen Werte mit den Mittelwert der Zeile wo der Fehler ist auf. Falls das nicht möglich ist dann wird Fehler geworfen.
+
+```
+prepare_data(df)
+input: dataframe von Alisa
+output: Matrix mit nur numerischen Werte
+# Fehlerbehandlung
+```
+
+#### normalization
+Funktion die alle Normalisierungsmethoden beinhaltet(4)
+
+```
+normalization(df, norm_method)
+input: matrix von prepare_data genommen, Zahl von 1-4 die die Normalisierungsmethode bestimmt
+output: Matrix die normalisiert worden ist
+```
