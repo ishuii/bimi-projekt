@@ -1,3 +1,5 @@
+options(shiny.maxRequestSize = 150 * 1024^2)  # 150 MB
+
 
 library(shiny)
 library(dipsaus)
@@ -16,12 +18,10 @@ library(DBI)
 source("R/clustering/single_linkage.R")
 source("R/clustering/average_linkage.R")
 source("R/clustering/complete_linkage.R")
-source("Heatmap_Funktion.R")
+source("tests/heatmap_tests.R")
 source("R/clustering/normalization_methods.R")
 source("data/database_functions_v2.r")
 
-
-options(shiny.maxRequestSize = 200 * 1024^2)
 
 
 if(interactive()){
@@ -31,11 +31,104 @@ ui <- dashboardPage(
     dashboardHeader(title = "ClusterIt"),
     
     dashboardSidebar(
+      width = 350,
       sidebarMenu(id = "tabs",
         menuItem("Startseite", tabName = "Startseite", icon = icon("home")),
         menuItem("Datei Hochladen", icon = icon("upload"), tabName = "datei_hochladen"),
         menuItem("Parametern Wählen", icon = icon("sliders"), tabName = "parameter"),
-        menuItem("Heatmap", tabName = "heatmap")
+        menuItem("Heatmap", tabName = "heatmap"),
+        
+        conditionalPanel(
+          condition = 'input.tabs == "heatmap"',
+          
+          div(
+            title = "Cluster Einstellungen",
+            width = 6,
+            solidHeader = TRUE,
+            status = "primary",
+            
+            selectInput(inputId = "clusterverfahren", label = "Clusterverfahren auswählen", 
+                        choices = c("Single-Linkage", "Average-Linkage", "Complete-Linkage")),
+            
+            
+            selectInput(inputId = "normalisierung", label = "Normalisierungs Verfahren auswählen", 
+                        choices = c("Standard", "Normalize Log Only", "Correlation-based Normalization", "Logarithm with MAD")),
+            
+            
+            selectInput(inputId="distanzmatrix", label = "Distanz Matrix auswählen", 
+                        choices = c("Euklidische Distanz", "Manhattan-Distanz", "Minkowski-Distanz", "Canberra-Distanz", "Pearson-Distanz", "Winkeldistanz (Angular Seperation)")),
+            
+            conditionalPanel(condition = "input.distanzmatrix == 'Minkowski-Distanz'",
+                             useShinyFeedback(),
+                             numericInput(inputId = "param", label = "Parameter p eingeben", value = 1),
+                             textOutput("result")),
+            
+            radioButtons(inputId = "farbpaletten", label = "Farbpalette für Heatmaps auswählen", 
+                         choiceNames = list(
+                           
+                           tagList(
+                             "RdYlBu",
+                             
+                             tags$span(
+                               class = "badge bg-info", # Creates the blue box style from your image
+                               style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
+                               `data-toggle` = "popover",
+                               `data-html` = "true",    # Allows text inside to wrap cleanly
+                               title = "Standard",      # Bold title of the popover
+                               `data-content` = "Farben: Rot, Gelb, Blau", # Subtext
+                               "?"
+                             )
+                           ), 
+                           
+                           tagList(
+                             "Viridis",
+                             
+                             tags$span(
+                               class = "badge bg-info",
+                               style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
+                               `data-toggle` = "popover",
+                               `data-html` = "true",
+                               title = "Viridis",
+                               `data-content` = "Farben: Lila, Grün, Gelb",
+                               "?"
+                             )
+                           ), 
+                           
+                           tagList(
+                             "RdBu",
+                             
+                             tags$span(
+                               class = "badge bg-info",
+                               style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
+                               `data-toggle` = "popover",
+                               `data-html` = "true",
+                               title = "Magma",
+                               `data-content` = "Farben: Rot, Blau",
+                               "?"
+                             )
+                           ),
+                           
+                           tagList(
+                             "PRGn",
+                             
+                             tags$span(
+                               class = "badge bg-info",
+                               style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
+                               `data-toggle` = "popover",
+                               `data-html` = "true",
+                               title = "Magma",
+                               `data-content` = "Farben: Lila, Grün",
+                               "?"
+                             )
+                           )
+                           
+                         ), 
+                         choiceValues = list("RdYlBu", "Viridis", "RdBu","PRGn")
+            ),
+            
+          ),
+          
+        )
         
         
         ),
@@ -49,20 +142,26 @@ ui <- dashboardPage(
     dashboardBody(
       
       tags$head(
+        
+        tags$style(HTML("
+             .main-header {position:fixed; width:100%;}
+             .content-wrapper{padding-top; 50px !important;}            ")),
+      
+        
         tags$style(HTML("
       /* Main header */
       .main-header .logo {
-        background-color: #FBEEB9 !important;
-        color: #000000 !important;
+        background-color: #ECECEC !important;
+        color: #ECECEC !important;
       }
 
       .main-header .navbar {
-        background-color: #FBEEB9 !important;
+        background-color: #ECECEC !important;
       }
 
       /* Sidebar */
       .main-sidebar {
-        background-color: #D1D1D1 !important;
+        background-color: #ECECEC !important;
       }
 
       /* Sidebar menu hover */
@@ -72,7 +171,7 @@ ui <- dashboardPage(
 
       /* Active tab */
       .sidebar-menu > li.active > a {
-        background-color: #e8d98f !important;
+        background-color: #000000 !important;
         color: black !important;
       }
     "))
@@ -144,16 +243,14 @@ ui <- dashboardPage(
                   
                   box(
                     title = "Cluster Einstellungen",
-                    width = 6,
+                    width = 12,
                     solidHeader = TRUE,
                     status = "primary",
                     
                     selectInput(inputId = "clusterverfahren", label = "Clusterverfahren auswählen", 
                                 choices = c("Single-Linkage", "Average-Linkage", "Complete-Linkage")),
                     
-                    
-                    numericInput(inputId = "anzahlcluster", label = "Anzahl von Clustern eingeben",
-                                 value = 2, min = 1, max = 10),
+            
                     
                     radioButtons(inputId = "farbpaletten", label = "Farbpalette für Heatmaps auswählen", 
                                  choiceNames = list(
@@ -220,7 +317,7 @@ ui <- dashboardPage(
                     
                     
                     selectInput(inputId = "normalisierung", label = "Normalisierungs Verfahren auswählen", 
-                                choices = c("a", "b", "c")),
+                                choices = c("Standard", "Normalize Log Only", "Correlation-based Normalization", "Logarithm with MAD")),
                     
                     
                     selectInput(inputId="distanzmatrix", label = "Distanz Matrix auswählen", 
@@ -232,30 +329,7 @@ ui <- dashboardPage(
                                     textOutput("result")),
                    
                   ),
-                  
-                  box(
-                    title = "Datensatz Einstellungen",
-                    width = 6,
-                    status = "primary",
-                    solidHeader = TRUE,
-                    
-                    checkboxGroupInput(inputId = "variable", label = "Variablen Auswählen",
-                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3),
-                                       selected = 1, width = '400px', inline = FALSE),
-                    
-                    
-                    radioButtons(inputId = "gewebe", label = "Gewebe art auswählen", 
-                                 choices = list(
-                                   "Gesunde Gewebe" = 1,
-                                   "Ungesunde Gewebe" = 2
-                                 )
-                    ),
-                    
-                    checkboxGroupInput(inputId = "koerper", label = "Körperteile Auswählen",
-                                       choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3),
-                                       selected = 1, width = '100px', inline = FALSE),
-                    
-                  )
+        
                 ),
                 
                 fluidRow(
@@ -273,7 +347,7 @@ ui <- dashboardPage(
                   )
                 ),
                 
-                actionButton('run', 'Run Cluster Analyse'),
+                disabled(actionButton("run", "Run Cluster Analyse", class = "btn-successful")),
                 
                 ),
         
@@ -294,70 +368,7 @@ ui <- dashboardPage(
           });
         ')),
                 
-                
-
-                radioButtons(inputId = "farbpaletten", label = "Farbpalette für Heatmaps auswählen", 
-                             choiceNames = list(
-                               
-                               tagList(
-                                 "RdYlBu",
-                                 
-                                 tags$span(
-                                   class = "badge bg-info", # Creates the blue box style from your image
-                                   style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
-                                   `data-toggle` = "popover",
-                                   `data-html` = "true",    # Allows text inside to wrap cleanly
-                                   title = "Standard",      # Bold title of the popover
-                                   `data-content` = "Farben: Rot, Gelb, Blau", # Subtext
-                                   "?"
-                                 )
-                               ), 
-                                 
-                               tagList(
-                                 "Viridis",
-                                 
-                                 tags$span(
-                                   class = "badge bg-info",
-                                   style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
-                                   `data-toggle` = "popover",
-                                   `data-html` = "true",
-                                   title = "Viridis",
-                                   `data-content` = "Farben: Lila, Grün, Gelb",
-                                   "?"
-                                 )
-                               ), 
-                               
-                               tagList(
-                                 "RdBu",
-                                 
-                                 tags$span(
-                                   class = "badge bg-info",
-                                   style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
-                                   `data-toggle` = "popover",
-                                   `data-html` = "true",
-                                   title = "Magma",
-                                   `data-content` = "Farben: Rot, Blau",
-                                   "?"
-                                 )
-                               ),
-                               
-                               tagList(
-                                 "PRGn",
-                                 
-                                 tags$span(
-                                   class = "badge bg-info",
-                                   style = "cursor: pointer; padding: 3px 6px; font-weight: bold;",
-                                   `data-toggle` = "popover",
-                                   `data-html` = "true",
-                                   title = "Magma",
-                                   `data-content` = "Farben: Lila, Grün",
-                                   "?"
-                                 )
-                               )
-                      
-                               ), 
-                            choiceValues = list("RdYlBu", "Viridis", "RdBu","PRGn")
-                ),
+          
                 
                 textOutput("selection_feedback"),
                 
@@ -617,27 +628,34 @@ server <- function(input, output, session) {
   
   observe({
     
-    req(input$param)
+    val <- input$param
     
     #error message: p has to be a number
-    if(is.na(input$param)){
-      feedbackDanger("param", TRUE, "Bitte eine Zahl eingeben")
-      
+    shinyFeedback::feedbackDanger(
+      "param",
+      is.null(val) || is.na(val),
+      "Bitte eine Zahl eingeben"
+    )
+    
     #if p<0, error msg: p has to be greater than 0
-    }else if (input$param <= 0){
-      feedbackDanger("param", TRUE, "Falsche eingabe: bitte ein Zahl größer als 0 eingeben")
+    shinyFeedback::feedbackDanger(
+      "param",
+      !is.null(val) && !is.na(val) && val <= 0,
+      "Falsche eingabe: bitte ein Zahl größer als 0 eingeben"
+    )
+    
+    shinyFeedback::feedbackDanger(
+      "param",
+      !is.null(val) && !is.na(val) && val > 10000,
+      "Maximale eingabe Zahl ist 10000"
+    )
       
-    #if p is not an integer  
-    }else if (input$param %% 1 != 0){
-      feedbackDanger("param", TRUE, "Falsche eingabe: bitte ein Integer eingeben")
+    shinyFeedback::feedbackDanger(
+      "param",
+      !is.null(val) && !is.na(val) && val %% 1 != 0,
+      "Falsche eingabe: bitte ein Integer eingeben"
+    )
       
-      
-    }else if (input$param > 10000){
-      feedbackDanger("param", TRUE, "Maximale eingabe Zahl ist 10000")
-      
-    }else{
-      feedbackDanger("param", FALSE)
-    }
   })
   
   observeEvent(input$back, {
@@ -693,6 +711,46 @@ server <- function(input, output, session) {
     
     removeModal()
   })
+  
+ 
+  inputs_valid <- reactive({
+    req_cluster <- !is.null(input$clusterverfahren) && input$clusterverfahren != "" #ensures that some option is chosen from cluster methods dropdown
+    
+    req_farb <- length(input$farbpaletten) >0
+    
+    req_norm <- !is.null(input$normalisierung) && input$normalisierung != ""
+    
+    req_dist <- !is.null(input$distanzmatrix) && input$distanzmatrix != ""
+    
+    
+    mink_valid <- TRUE
+    
+    if(input$distanzmatrix == "Minkowski-Distanz"){
+      mink_valid <- !is.null(input$param) &&
+        !is.na(input$param) &&
+        input$param > 0 &&
+        input$param <= 10000 &&
+        input$param %% 1 == 0
+    }
+    
+    req_cluster &&
+      req_norm &&
+      req_dist &&
+      req_farb &&
+      mink_valid
+  })
+  
+  observe({
+    
+    if(inputs_valid()){
+      shinyjs::enable("run")
+    }else{
+      shinyjs::disable("run")
+    }
+  })
+  
+  
+  
 }  
 shinyApp(ui, server)
 }
