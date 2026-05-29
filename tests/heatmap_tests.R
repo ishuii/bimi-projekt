@@ -7,6 +7,7 @@ library(viridis)
 library(RColorBrewer) 
 
 source("R/clustering/normalization_methods.R") 
+source("R/visualization/heatmap.R")
 
 # List of colours 
 viridis <- viridis::viridis(100) 
@@ -14,76 +15,10 @@ RdYlBu <- brewer.pal(11, "RdYlBu")
 RdBu <- brewer.pal(11, "RdBu") 
 PRGn <- brewer.pal(11, "PRGn") 
 
-#heatmap function 
-generate_heatmap <- function(data_matrix, gene_order, patient_order, show_x_axis = FALSE) { 
-
-# Sort rows and columns 
-sorted_matrix <- data_matrix[gene_order, patient_order] 
-
-# Convert matrix to long format 
-df_plot <- melt(sorted_matrix) colnames(df_plot) <- c("Gene", "Patient", "Expression") 
-
-# Correct display order 
-df_plot$Gene <- factor( df_plot$Gene, levels = rev(rownames(sorted_matrix)) ) 
-df_plot$Patient <- factor( df_plot$Patient, levels = colnames(sorted_matrix) ) 
-
-# Heatmap 
-p <- ggplot( 
-  df_plot, 
-  aes( x = Patient, y = Gene, fill = Expression ) ) +
-
-  geom_tile(color = "grey85") + 
-  
-  scale_fill_gradientn( colours = RdYlBu, 
-                        name = "Expression", 
-                        limits = range(df_plot$Expression, na.rm = TRUE) ) + 
-  
-  labs( title = "Gene Expression Heatmap", 
-            x = "Patients", 
-            y = "Genes" ) + 
-  
-  theme_minimal() + 
-  
-  theme( axis.text.x = element_text( angle = 90, 
-                                     vjust = 1, 
-                                     hjust = 1, 
-                                     size = 4 ), 
-         axis.ticks.x = element_line() ) + 
-  
-  guides( fill = guide_colorbar( barwidth = 3.1, 
-                                 barheight = 8, 
-                                 title.position = "top", 
-                                 title.hjust = 0.5 ) ) 
-
-#hide x axis 
-
-if (!show_x_axis) { 
-  p <- p + theme(
-    axis.text.x = element_blank(), axis.ticks.x = element_blank() )
-} 
-
-return(p) 
-
-} 
-
-#add fields for meta data and hover function
-
-create_heatmap_field_data <- function(data_matrix, metadata_df, cluster_vector) { 
-  
-  field_data <- melt(data_matrix) 
-  
-  colnames(field_data) <- c( "Gene", "Patient", "Expression:" ) 
-  
-  field_data$`Gender:` <- metadata_df[field_data$Patient, "meta_gender" ] 
-  field_data$`Age:` <- metadata_df[ field_data$Patient, "meta_age" ] 
-  
-  return(field_data) 
-  
-  } 
 
 #load right csv data 
 
-df <- read.csv( "C:/Users/Huawei/Desktop/Projekt LL/bimi-projekt-dev/data/TCGA_kidney_unnormalized_TOP10_meta.csv", 
+df <- read.csv( "data/TCGA_kidney_unnormalized_TOP10_meta.csv", 
                 row.names = 1, 
                 check.names = FALSE ) 
 
@@ -101,17 +36,16 @@ df <- df[ !(rownames(df) %in% c( "Gender:", "Age:", "Labels" )), ]
 
 #normalization 
 
-df_normalized <- normalize_log_zscore(df) 
+df_normalized <- normalization(df, 1)
 
 #remove labels 
 
 df_normalized <- df_normalized[ rownames(df_normalized) != "labels", ] 
 
-#heatmap fields 
+#heatmap fields
 
 heatmap_fields <- create_heatmap_field_data( data_matrix = df_normalized, 
-                                             metadata_df = metadata_df, 
-                                             cluster_vector = cluster_vector ) 
+                                             metadata_df = metadata_df) 
 
 # Keep only needed columns 
 
