@@ -1,5 +1,4 @@
 # data preparation
-# goal: remove labels row, save it in list if needed later
 # we only normalize and cluster the rest of the data
 
 prepare_data <- function(df) {
@@ -17,42 +16,40 @@ prepare_data <- function(df) {
   # convert to matrix
   df <- as.matrix(df)
   
-  # process each row separately
-  for (i in 1:nrow(df)) {
+  # convert everything to numeric
+  suppressWarnings(mode(df) <- "numeric")
+  
+  # process rows containing NAs
+  na_rows <- which(apply(df, 1, function(x) any(is.na(x))))
+  
+  for (i in na_rows) {
     
-    # convert current row to numeric
-    row_numeric <- suppressWarnings(as.numeric(df[i, ]))
+    row_data <- df[i, ]
     
-    # check if row contains invalid values (NA after conversion)
-    if (any(is.na(row_numeric))) {
-      
-      # calculate mean from valid numeric values only
-      row_mean <- mean(row_numeric, na.rm = TRUE)
-      
-      # if no numeric value exists -> error
-      if (is.nan(row_mean)) {
-        stop(paste(
-          "Fehler: Zeile", i,
-          "enthält keine numerischen Werte."
-        ))
-      }
-      
-      # replace all invalid / NA values with row mean
-      row_numeric[is.na(row_numeric)] <- row_mean
+    # count non-NA values
+    n_valid <- sum(!is.na(row_data))
+    
+    # at least one numeric value required
+    if (n_valid == 0) {
+      stop(
+        paste("Fehler: Zeile", i,
+              "enthält keine numerischen Werte.")
+      )
     }
     
-    # replace row in matrix
-    df[i, ] <- row_numeric
+    # calculate mean of available values
+    row_mean <- mean(row_data, na.rm = TRUE)
+    
+    # replace NAs with row mean
+    row_data[is.na(row_data)] <- row_mean
+    
+    df[i, ] <- row_data
   }
-  
-  # convert whole matrix to numeric
-  suppressWarnings(mode(df) <- "numeric")
   
   # check for infinite values
   if (any(is.infinite(df))) {
     stop("Fehler: Der Datensatz enthält Inf oder -Inf Werte.")
   }
   
-  # return numeric matrix
   return(df)
 }
