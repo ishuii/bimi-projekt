@@ -19,32 +19,28 @@ prepare_data <- function(df) {
   # convert everything to numeric
   suppressWarnings(mode(df) <- "numeric")
   
-  # process rows containing NAs
-  na_rows <- which(apply(df, 1, function(x) any(is.na(x))))
-  
-  for (i in na_rows) {
+  # process rows
+  df <- t(apply(df, 1, function(row_data) {
     
-    row_data <- df[i, ]
-    
-    # count non-NA values
-    n_valid <- sum(!is.na(row_data))
-    
-    # at least one numeric value required
-    if (n_valid == 0) {
-      stop(
-        paste("Fehler: Zeile", i,
-              "enthält keine numerischen Werte.")
-      )
+    if (any(is.na(row_data))) {
+      
+      # count non-NA values
+      n_valid <- sum(!is.na(row_data))
+      
+      # at least one numeric value required
+      if (n_valid == 0) {
+        stop("Fehler: Eine Zeile enthält keine numerischen Werte.")
+      }
+      
+      # calculate mean of available values
+      row_mean <- mean(row_data, na.rm = TRUE)
+      
+      # replace NAs with row mean
+      row_data[is.na(row_data)] <- row_mean
     }
     
-    # calculate mean of available values
-    row_mean <- mean(row_data, na.rm = TRUE)
-    
-    # replace NAs with row mean
-    row_data[is.na(row_data)] <- row_mean
-    
-    df[i, ] <- row_data
-  }
+    row_data
+  }))
   
   # check for infinite values
   if (any(is.infinite(df))) {
