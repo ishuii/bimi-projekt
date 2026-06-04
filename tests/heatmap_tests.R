@@ -83,7 +83,7 @@ create_heatmap_field_data <- function(data_matrix, metadata_df, cluster_vector) 
 
 #load right csv data 
 
-df <- read.csv( "C:/Users/Huawei/Desktop/Projekt LL/bimi-projekt-dev/data/TCGA_kidney_unnormalized_TOP10_meta.csv", 
+df <- read.csv( "data/TCGA_kidney_unnormalized_TOP10_meta.csv", 
                 row.names = 1, 
                 check.names = FALSE ) 
 
@@ -187,3 +187,4 @@ for (i in seq(1, ncol(df_normalized),
   } 
 
 dev.off()
+
