@@ -58,6 +58,7 @@ df_duplicates4 <- data.frame(
 #################
 
 
+#Datenobjekt anlegen, muss zwingeng da sein 
 con     <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 dataset_kidney_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
 dataset_kidney_Gene <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_gene_names.csv", header = TRUE)
@@ -66,7 +67,8 @@ dataset_SHIPP_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/SHIPP_m
 dataset_GOLUB_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/GOLUB_microarray.csv", header = TRUE)
 
 
-
+#Funktion, welche als benannte Liste NA Spalten und Zeilen entfernt und zurück gibt wie viele na Werte es gibt
+# und wie viele entfernt wurden 
 preprocess <- preprocess_general(dataset_GOLUB_ID)
 data_preprocessed <- preprocess$dataset_preprocessed
 na_rows <- preprocess$number_na_genes
@@ -75,11 +77,19 @@ removed_rows <- preprocess$rows_removed
 removed_columns <- preprocess$columns_removed
 
 pathway_names <- get_pathwaynames_from_database(con = con)
-coverage_list <- analyze_pathways_coverage(c("Biosynthesis of amino acids", "Pentose and glucuronate interconversions"),data_preprocessed, con)
 
+# Coverage Analyse nur relevant für Adrika, Saliha und Domi nein 
+coverage_list <- analyze_pathways_coverage(c("Biosynthesis of amino acids", "Pentose and glucuronate interconversions"),data_preprocessed, con)
 matrix_unused_per_pathway <- coverage_list$matrix_unused
 ids_unused <- coverage_list$missing_ids
 
+
+
+#Diese Funktion ist die Hauptfunktion!!
+#Input:
+#- preprocessed Datensatz, also ohne Na => Ergebnis Funktion preprocess_general
+#- Liste der von User gewählten Pathways hier Beispielhaft zwei 
+# - Con Objekt 
 result  <- run_data_integration(
   dataset          = data_preprocessed,
   chosen_pathways  = c("Biosynthesis of amino acids", "Pentose and glucuronate interconversions"),
@@ -87,6 +97,12 @@ result  <- run_data_integration(
 )
 
 
+#Rückgabewerte 
+# - gefilteter Datensatz: Datenstruktur Dataframe, Gene IDs als Row Names
+# - Metadaten Datensatz: Datenstruktur Dataframe, Beschreibung als Row Names
+# - Vektor mit Gen IDs, die im Datensatz novch vorhanden sind 
+# - Vektor mit korrespondierenden Namen 
+#
 gefilteterDatensatz <- result$filtered_dataset
 metaDaten_gefiltert <- result$meta_data
 gene_vektor <- result$gene_vector
