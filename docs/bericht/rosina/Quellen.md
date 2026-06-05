@@ -1,0 +1,4 @@
+Quellen für Normalization funktionen
+
+
+
