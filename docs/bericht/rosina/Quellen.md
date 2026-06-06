@@ -24,3 +24,14 @@ log2 und zscore zusammen:
 https://link.springer.com/article/10.1186/s13059-021-02337-8?utm_source=chatgpt.com
 Methods like hierarchical clustering, k-means clustering, and self-organizing maps can be used to identify clusters of coordinately regulated genes with similar expression patterns [107, 108] (Fig. 4). The representative expression pattern for each of these clusters can be identified by taking the average of the z-score of the log-transformed expression values for each of the sample. The z-score is the number of standard deviations that a value for a given gene in a given sample is away from the mean of all the values for all the samples for the same gene. A z-score of -2 means that this value is 2 standard deviations lower than the mean across all the samples. It is an effective tool for normalizing prior to visualization particularly when there is not a clear reference sample. When a reference sample is available that all samples are compared to, the log-fold change can be shown relative to the reference.
 Chung, M., Bruno, V.M., Rasko, D.A. et al. Best practices on the differential expression analysis of multi-species RNA-seq. Genome Biol 22, 121 (2021). https://doi.org/10.1186/s13059-021-02337-8
+
+log2 median-centering:
+
+AHHHHHHHHHHH
+
+
+log2 MAD:
+
+https://pmc.ncbi.nlm.nih.gov/articles/PMC7641762/
+Bhuva, D. D., Cursons, J., & Davis, M. J. (2020). Stable gene expression for normalisation and single-sample scoring. Nucleic acids research, 48(19), e113. https://doi.org/10.1093/nar/gkaa802
+erklärt MAD sogar mit log2, sehr gut
