@@ -14,5 +14,8 @@ normalisierungs-function:
 1 Stunde - Programmieren der ersten 5 Funktionen (1 wurde dann gelöscht) + spätere Änderungen auf Zeilen statt spalten
 30min - Alle Funktionen in eine zusammenfügen
 
+Testing:
+2 Stunden 
+
 
 
