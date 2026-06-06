@@ -2,7 +2,7 @@
 normalization <- function(df, norm_method) {
   # 1 == normalize_log_zscore
   # 2 == normalize_log_only
-  # 3 == get_correlation_distance
+  # 3 == normalize_log_median_centering
   # 4 == normalize_log_mad
   
 #--------------    
