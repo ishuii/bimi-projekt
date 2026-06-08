@@ -1,5 +1,3 @@
-options(shiny.maxRequestSize = 150 * 1024^2)  # 150 MB
-
 
 library(shiny)
 library(dipsaus)
@@ -20,7 +18,8 @@ source("R/clustering/average_linkage.R")
 source("R/clustering/complete_linkage.R")
 source("tests/heatmap_tests.R")
 source("R/clustering/normalization_methods.R")
-source("data/database_functions_v2.r")
+source("data/database_functions_v4.r")
+source("R/clustering/hierarchical_clustering.R")
 
 
 
@@ -28,7 +27,7 @@ if(interactive()){
   
   
   ui <- dashboardPage(
-    dashboardHeader(title = "ClusterIt"),
+    dashboardHeader(title = "GenexCluster"),
     
     dashboardSidebar(
       width = 350,
@@ -45,25 +44,33 @@ if(interactive()){
                       title = "Cluster Einstellungen",
                       width = 6,
                       solidHeader = TRUE,
-                      status = "primary",
+                      status = "warning",
+                      class = "heatmap-controls",
+                      id = "heatmap",
                       
-                      selectInput(inputId = "clusterverfahren", label = "Clusterverfahren auswählen", 
-                                  choices = c("Single-Linkage", "Average-Linkage", "Complete-Linkage")),
-                      
-                      
-                      selectInput(inputId = "normalisierung", label = "Normalisierungs Verfahren auswählen", 
-                                  choices = c("Standard", "Normalize Log Only", "Correlation-based Normalization", "Logarithm with MAD")),
+                      selectInput(inputId = "clusterverfahren_sidebar", label = "Clusterverfahren auswählen", 
+                                  choices = c("Single-Linkage", "Average-Linkage", "Complete-Linkage", "Custom-Linkage")),
                       
                       
-                      selectInput(inputId="distanzmatrix", label = "Distanz Matrix auswählen", 
+                      selectInput(inputId = "normalisierung_sidebar", label = "Normalisierungs Verfahren auswählen", 
+                                  choices = c("normalize_log_zscore", "normalize_log_only", "normalize_log_median_centering", "normalize_log_mad")),
+                      
+                      
+                      selectInput(inputId="distanzmatrix_sidebar", label = "Distanz Matrix auswählen", 
                                   choices = c("Euklidische Distanz", "Manhattan-Distanz", "Minkowski-Distanz", "Canberra-Distanz", "Pearson-Distanz", "Winkeldistanz (Angular Seperation)")),
                       
-                      conditionalPanel(condition = "input.distanzmatrix == 'Minkowski-Distanz'",
-                                       useShinyFeedback(),
-                                       numericInput(inputId = "param", label = "Parameter p eingeben", value = 1),
+                      conditionalPanel(condition = "input.distanzmatrix_sidebar == 'Minkowski-Distanz'",
+                                       numericInput(inputId = "param_heatmap", label = "Parameter p eingeben", value = 1),
                                        textOutput("result")),
+                      conditionalPanel(
+                        condition = "input.clusterverfahren_sidebar == 'Custom-Linkage'",
+                        numericInput("alpha_a", "Alpha a", value=0.5),
+                        numericInput("alpha_b", "Alpha b", value = 0.5),
+                        numericInput("beta", "Beta", value=0),
+                        numericInput("gamma", "Gamma", value=0)
+                      ),
                       
-                      radioButtons(inputId = "farbpaletten", label = "Farbpalette für Heatmaps auswählen", 
+                      radioButtons(inputId = "farbpaletten_sidebar", label = "Farbpalette für Heatmaps auswählen", 
                                    choiceNames = list(
                                      
                                      tagList(
@@ -140,20 +147,27 @@ if(interactive()){
       )),
     
     dashboardBody(
+      useShinyFeedback(),
+      useShinyjs(),
       
       tags$head(
         
         tags$style(HTML("
              .main-header {position:fixed; width:100%;}
-             .content-wrapper{padding-top; 50px !important;}            ")),
+             .content-wrapper{padding-top: 50px !important;}            ")),
         
         
         tags$style(HTML("
       /* Main header */
       .main-header .logo {
         background-color: #ECECEC !important;
-        color: #ECECEC !important;
+        color: #000000 !important;
       }
+      
+      .main-header .logo:hover {
+      background-color: #ECECEC !important;
+      color: black !important;
+    }
 
       .main-header .navbar {
         background-color: #ECECEC !important;
@@ -163,32 +177,90 @@ if(interactive()){
       .main-sidebar {
         background-color: #ECECEC !important;
       }
-
-      /* Sidebar menu hover */
-      .sidebar-menu > li:hover > a {
-        background-color: #000000 !important;
-      }
-
-      /* Active tab */
-      .sidebar-menu > li.active > a {
-        background-color: #000000 !important;
-        color: black !important;
-      }
+      
+      /* All sidebar text */
+    .sidebar-menu > li > a {
+      color: black !important;
+    }
+     
+     /* Active menu item */
+    .sidebar-menu > li.active > a {
+      background-color: #ECECEC !important;
+      color: black !important;
+    }
+      
+       /* Treeview arrows/icons */
+    .sidebar-menu li a .fa,
+    .sidebar-menu li a .glyphicon {
+      color: black !important;
+    }
+    
+    .custom-box .box-header{
+    background-color: #FBEEB9 !important;
+    }
+    
+    .custom-box .box-title{
+    color: black !important;
+    }
+    
+    .cluster-box .box-header{
+    background-color:  #FBEEB9 !important;
+    }
+    
+    .cluster-box .box-title{
+    color: black !important;
+    }
+    
+    .preset-box .box-header{
+    background-color:  #FBEEB9 !important;
+    }
+    
+    .preset-box .box-title{
+    color: black !important;
+    }
+    
+    /* Overrides SUCCESS box header */
+    .box.box-success > .box-header {
+      background-color: #FBEEB9 !important;
+      color: black !important;
+      border-bottom: none;
+    }
+    
+    /* Overrides PRIMARY box header */
+    .box.box-primary > .box-header {
+      background-color: #FBEEB9 !important;
+      color: black !important;
+      border-bottom: none;
+    }
+    
+    #changes text in sidebar to black
+    .heatmap-controls label {
+    color: black !important;
+    }
+    
+    .heatmap-controls .control-label {
+    color: black !important;
+    }
+    
+    .heatmap-controls .radio-label {
+    color: black !important;
+    }
+    
+    #heatmap .radio label{
+    color: black !important;
+    }
+    
+    .heatmap-controls h1,
+    .heatmap-controls h2,
+    .heatmap-controls h3,
+    .heatmap-controls h4,
+    .heatmap-controls h5,
+    .heatmap-controls h6 {
+    color: black !important;
+    }
+    
     "))
       ),
-      
-      useShinyjs(),
-      
-      tags$style(HTML("
-        .form-control{
-          font-size: 16px;
-        }
-        
-        label{
-        font-size: 16px;
-        font-weight:600;
-        }
-      ")),
       
       tabItems(
         
@@ -206,19 +278,26 @@ if(interactive()){
                 
                 fluidRow(
                   box(
-                    title = "Auswertung",
                     width = 12,
-                    tableOutput("Beispieltext"),
-                    verbatimTextOutput("Spalten")
+                    h4("NA-Fehlerbehandlung"),
+                    verbatimTextOutput("na_info"),
+                    
+                    actionButton(
+                      inputId = "drop_na",
+                      label = "NA-Spalten entfernen",
+                      class = "btn-warning"
+                    ),
                   )
                 ),
+                
+                tableOutput("coverage_table"),
                 
                 fluidRow(
                   
                   box(
                     title = "Datensatz Parametern einstellen",
                     width = 12,
-                    status = "success",
+                    class = "custom-box",
                     
                     selectizeInput(
                       "pathways",
@@ -231,6 +310,8 @@ if(interactive()){
                     
                   )
                 ),
+                
+                actionButton('confirm_button', "Weiter mit diesem Pathways"),
                 
                 actionButton('switchtab', 'Parametern Wählen'),
                 
@@ -245,10 +326,19 @@ if(interactive()){
                     title = "Cluster Einstellungen",
                     width = 12,
                     solidHeader = TRUE,
-                    status = "primary",
+                    status = "success",
+                    class = "cluster-box",
                     
                     selectInput(inputId = "clusterverfahren", label = "Clusterverfahren auswählen", 
-                                choices = c("Single-Linkage", "Average-Linkage", "Complete-Linkage")),
+                                choices = c("Single-Linkage", "Average-Linkage", "Complete-Linkage", "Custom-Linkage")),
+                    
+                    conditionalPanel(
+                      condition = "input.clusterverfahren == 'Custom-Linkage'",
+                      numericInput("alpha_a", "Alpha a", value=0.5),
+                      numericInput("alpha_b", "Alpha b", value = 0.5),
+                      numericInput("beta", "Beta", value=0),
+                      numericInput("gamma", "Gamma", value=0)
+                    ),
                     
                     
                     
@@ -317,15 +407,14 @@ if(interactive()){
                     
                     
                     selectInput(inputId = "normalisierung", label = "Normalisierungs Verfahren auswählen", 
-                                choices = c("Standard", "Normalize Log Only", "Correlation-based Normalization", "Logarithm with MAD")),
+                                choices = c("normalize_log_zscore", "normalize_log_only", "normalize_log_median_centering", "normalize_log_mad")),
                     
                     
                     selectInput(inputId="distanzmatrix", label = "Distanz Matrix auswählen", 
                                 choices = c("Euklidische Distanz", "Manhattan-Distanz", "Minkowski-Distanz", "Canberra-Distanz", "Pearson-Distanz", "Winkeldistanz (Angular Seperation)")),
                     
                     conditionalPanel(condition = "input.distanzmatrix == 'Minkowski-Distanz'",
-                                     useShinyFeedback(),
-                                     numericInput(inputId = "param", label = "Parameter p eingeben", value = 1),
+                                     numericInput(inputId = "param_paramtab", label = "Parameter p eingeben", value = 1),
                                      textOutput("result")),
                     
                   ),
@@ -336,8 +425,9 @@ if(interactive()){
                   box(
                     title = "Preset speichern/laden",
                     width = 12,
-                    status = "warning",
                     solidHeader = TRUE,
+                    status = "primary",
+                    class = "preset-box",
                     
                     textInput("preset_name", "Name des Presets"),
                     actionButton("save_preset", "Preset speichern"),
@@ -375,7 +465,7 @@ if(interactive()){
                 
                 actionButton('back', 'zurück zum Parametern wählen'),
                 conditionalPanel(condition = "input.distanzmatrix == 'Minkowski-Distanz'",
-                                 useShinyFeedback())
+                )
         )
         
       )       
@@ -393,23 +483,232 @@ if(interactive()){
     
     pathway_list <- reactiveVal()
     
+    coverage_result <- reactiveVal(NULL)
+    
     output$Beispieltext <- renderText({
       paste("Deine Datei:", input$x)
     })
     preset_values <- reactiveVal(list()) #Create reactive variable list
     options(shiny.maxRequestSize = 100 * 1024^2)
     # CSV IMPORT BACKEND
-    daten <- reactive({      # for dynamic processing
-      req(input$Datei_csv)   # upload check
-      read.csv(input$Datei_csv$datapath)
+    daten_original <- reactiveVal(NULL)
+    
+    daten_aktuell <- reactiveVal(NULL)
+    
+    na_infos <- reactiveVal(NULL)
+    
+    observeEvent(input$Datei_csv, {
+      
+      req(input$Datei_csv)
+      
+      df <- read.csv(
+        input$Datei_csv$datapath,
+        header = TRUE,
+        stringsAsFactors = FALSE,
+        na.strings = c("", " ", "NA", "NaN", "NULL", "N/A")
+      )
+      df[df == ""] <- NA
+      
+      
+      na_gesamt <- sum(is.na(df))
+      
+      
+      zeilen_mit_na <- !complete.cases(df)
+      
+      
+      anzahl_zeilen_mit_na <- sum(zeilen_mit_na)
+      
+      
+      na_pro_spalte <- colSums(is.na(df))
+      
+      daten_original(df)
+      daten_aktuell(df)
+      
+      
+      na_infos(list(
+        na_gesamt = na_gesamt,
+        zeilen_mit_na = anzahl_zeilen_mit_na,
+        zeilen_gesamt = nrow(df),
+        spalten_gesamt = ncol(df),
+        na_pro_spalte = na_pro_spalte,
+        bereits_bereinigt = FALSE
+      ))
+      
       
     })
     
-    #CSV PROCESSING
-    output$Spalten <- renderText({
-      paste0("Der Datensatz hat ",nrow(daten())-1, " Messwerte", "\n",
-             "Der Datensatz hat ",ncol(daten()), " Samples")
+    output$na_info <- renderPrint({
+      
+      info <- na_infos()
+      
+      if (is.null(info)) {
+        cat("Noch keine CSV-Datei hochgeladen.")
+        return(invisible(NULL))
+      }
+      
+      cat("Anzahl aller NA-Werte:", info$na_gesamt, "\n")
+      cat("Zeilen mit mindestens einem NA-Wert:", info$zeilen_mit_na, "\n")
+      cat("Spalten mit mindestens einem NA-Wert:", sum(info$na_pro_spalte > 0), "\n")
+      cat("Zeilen gesamt:", info$zeilen_gesamt, "\n")
+      cat("Spalten gesamt:", info$spalten_gesamt, "\n\n")
+      
+      
+      if (isTRUE(info$bereits_bereinigt)) {
+        cat("\nStatus: NA-Spalten wurden entfernt.\n")
+        cat("Entfernte Spalten:", info$entfernte_spalten, "\n")
+        
+        if (length(info$entfernte_spalten_namen) > 0) {
+          cat("Entfernte Spaltennamen:\n")
+          print(info$entfernte_spalten_namen)
+        }
+      } else {
+        cat("\nStatus: Datei wurde geprüft. Es wurde noch nichts gelöscht.\n")
+      }
+      
+      invisible(NULL)
     })
+    
+    observeEvent(input$drop_na, {
+      
+      req(daten_aktuell())
+      
+      df <- daten_aktuell()
+      
+      # Colum with at least one NA
+      spalten_mit_na <- colSums(is.na(df)) > 0
+      
+      # save name of removed colum
+      entfernte_spalten_namen <- names(df)[spalten_mit_na]
+      
+      #Remove coloum
+      df_clean <- df[, !spalten_mit_na, drop = FALSE]
+      
+      #Number of removed columns
+      entfernte_spalten <- sum(spalten_mit_na)
+      
+      #save clean data
+      daten_aktuell(df_clean)
+      
+      # refresh na_infos
+      na_infos(list(
+        na_gesamt = sum(is.na(df_clean)),
+        spalten_mit_na = sum(colSums(is.na(df_clean)) > 0),
+        zeilen_mit_na = sum(!complete.cases(df_clean)),
+        zeilen_gesamt = nrow(df_clean),
+        spalten_gesamt = ncol(df_clean),
+        na_pro_spalte = colSums(is.na(df_clean)),
+        bereits_bereinigt = TRUE,
+        entfernte_spalten = entfernte_spalten,
+        entfernte_spalten_namen = entfernte_spalten_namen
+      ))
+    })
+    daten <- reactive({
+      req(daten_aktuell())
+      daten_aktuell()
+    })
+    output$download_pdf <- downloadHandler(
+      
+      filename = function() {
+        paste0("cluster_report_", Sys.Date(), ".pdf")
+      },
+      
+      contentType = "application/pdf",
+      
+      content = function(file) {
+        
+        info <- na_infos()
+        daten <- daten_aktuell()
+        
+        pdf(file, width = 8.27, height = 11.69)  # A4 ungefähr
+        
+        plot.new()
+        par(mar = c(1, 1, 1, 1))
+        
+        y <- 0.95
+        
+        text(0.05, y, "Cluster Analyse Report", adj = 0, cex = 1.6, font = 2)
+        y <- y - 0.08
+        
+        if (!is.null(input$Datei_csv)) {
+          text(0.05, y, paste("Dateiname:", input$Datei_csv$name), adj = 0, cex = 1)
+          y <- y - 0.05
+        }
+        
+        text(0.05, y, paste("Erstellt am:", Sys.Date()), adj = 0, cex = 1)
+        y <- y - 0.08
+        
+        text(0.05, y, "NA-Fehlerbehandlung", adj = 0, cex = 1.3, font = 2)
+        y <- y - 0.06
+        
+        if (is.null(info)) {
+          
+          text(0.05, y, "Noch keine CSV-Datei hochgeladen.", adj = 0, cex = 1)
+          
+        } else {
+          
+          text(0.05, y, paste("Anzahl aller NA-Werte:", info$na_gesamt), adj = 0, cex = 1)
+          y <- y - 0.045
+          
+          text(0.05, y, paste("Zeilen mit mindestens einem NA-Wert:", info$zeilen_mit_na), adj = 0, cex = 1)
+          y <- y - 0.045
+          
+          text(0.05, y, paste("Zeilen gesamt:", info$zeilen_gesamt), adj = 0, cex = 1)
+          y <- y - 0.045
+          
+          text(0.05, y, paste("Spalten gesamt:", info$spalten_gesamt), adj = 0, cex = 1)
+          y <- y - 0.06
+          
+          if (isTRUE(info$bereits_bereinigt)) {
+            text(0.05, y, "Status: NA-Spalten wurden entfernt.", adj = 0, cex = 1)
+            y <- y - 0.045
+            
+            if (!is.null(info$entfernte_spalten)) {
+              text(0.05, y, paste("Entfernte Spalten:", info$entfernte_spalten), adj = 0, cex = 1)
+              y <- y - 0.045
+            }
+          } else {
+            text(0.05, y, "Status: Datei wurde geprüft. Es wurde noch nichts gelöscht.", adj = 0, cex = 1)
+            y <- y - 0.045
+          }
+        }
+        
+        y <- y - 0.06
+        
+        text(0.05, y, "Gewählte Parameter", adj = 0, cex = 1.3, font = 2)
+        y <- y - 0.06
+        
+        text(0.05, y, paste("Clusterverfahren:", input$clusterverfahren), adj = 0, cex = 1)
+        y <- y - 0.045
+        
+        text(0.05, y, paste("Distanzmatrix:", input$distanzmatrix), adj = 0, cex = 1)
+        y <- y - 0.045
+        
+        text(0.05, y, paste("Normalisierung:", input$normalisierung), adj = 0, cex = 1)
+        y <- y - 0.045
+        
+        text(0.05, y, paste("Anzahl Cluster:", input$anzahlcluster), adj = 0, cex = 1)
+        
+        if (!is.null(daten)) {
+          
+          plot.new()
+          par(mar = c(1, 1, 1, 1))
+          
+          text(0.05, 0.95, "Datensatz-Vorschau", adj = 0, cex = 1.4, font = 2)
+          
+          preview <- head(daten[, seq_len(min(5, ncol(daten))), drop = FALSE], 10)
+          preview_text <- capture.output(print(preview))
+          
+          y <- 0.88
+          
+          for (line in preview_text) {
+            text(0.05, y, line, adj = 0, cex = 0.75, family = "mono")
+            y <- y - 0.04
+          }
+        }
+        
+        dev.off()
+      }
+    )
     
     observeEvent(input$anzahlcluster, {   # Save User Choice Cluster
       tmp <- preset_values()
@@ -499,11 +798,18 @@ if(interactive()){
     
     run_analysis <- function(){    
       
+      req(daten())
+      req(input$distanzmatrix)
+      req(input$clusterverfahren)
+      
       #calls the updated data
       data <- daten()
       
       #keep numeric only
       data <- data[sapply(data, is.numeric)]
+      
+      #prevents empty numeric matrix crash
+      req(ncol(data) > 0)
       
       #placeholder normalization
       df_normalized <- data
@@ -520,6 +826,8 @@ if(interactive()){
                         "Pearson-Distanz" = "pearson",
                         "Winkeldistanz (Angular Seperation)" = "angular"
       )
+      
+      req(method != "")
       
       #calling distanz matrix function
       d_mat <- dist_cpp(data_t, method = method)
@@ -543,14 +851,71 @@ if(interactive()){
       cluster_result(result)
       
       
+      if(input$clusterverfahren == "Custom-Linkage"){
+        custom_params <- list(
+          alpha_a = input$alpha_a,
+          alpha_b = input$alpha_b,
+          beta = input$beta,
+          gamma = input$gamma
+        )
+        
+        result_custom <- hierarchical_clustering(
+          d_mat,
+          method = "custom",
+          custom_params = custom_params
+        )
+      }else{
+        method_name <- switch (input$clusterverfahren,
+                               "Single-Linkage" = "single",
+                               "Average-Linkage" = "average",
+                               "Complete-Linkage" = "complete"
+        )
+        
+        result_method <- hierarchical_clustering(
+          d_mat,
+          method = method_name
+        )
+      }
+      
+      if(input$clusterverfahren_sidebar == "Custom-Linkage"){
+        custom_params <- list(
+          alpha_a = input$alpha_a,
+          alpha_b = input$alpha_b,
+          beta = input$beta,
+          gamma = input$gamma
+        )
+        
+        result_custom <- hierarchical_clustering(
+          d_mat,
+          method = "custom",
+          custom_params = custom_params
+        )
+      }else{
+        method_name <- switch (input$clusterverfahren_sidebar,
+                               "Single-Linkage" = "single",
+                               "Average-Linkage" = "average",
+                               "Complete-Linkage" = "complete"
+        )
+        
+        result_method <- hierarchical_clustering(
+          d_mat,
+          method = method_name
+        )
+      }
+      
       
       updateTabItems(session, "tabs", selected = "heatmap")
       
+      print(dim(data))
+      print(method) 
     }
     
     observeEvent(input$run, {
+      
+      req(inputs_valid())
+      
       if(input$distanzmatrix == "Minkowski-Distanz" &&
-         input$param == 1){
+         input$param_paramtab == 1){
         
         showModal(
           modalDialog(
@@ -565,7 +930,7 @@ if(interactive()){
           )
         )
       } else if(input$distanzmatrix == "Minkowski-Distanz" &&
-                input$param == 2){
+                input$param_paramtab == 2){
         showModal(
           modalDialog(
             title = "Warnung",
@@ -583,12 +948,14 @@ if(interactive()){
       }
     })
     
-    observeEvent(input$confirm_run,{
+    observeEvent(input$confirm_run, {
       
       removeModal()
       
       run_analysis()
     })
+    
+    
     
     observeEvent(input$save_preset, { #Save Preset in Json
       req(input$preset_name)
@@ -621,39 +988,63 @@ if(interactive()){
     
     output$HeatmapPlot <- renderPlot({
       req(d_mat_result())
-      
+      print(dim(d_mat_result())) #Debug
       generate_heatmap(d_mat_result())
       
     })
     
     observe({
       
-      val <- input$param
+      if(input$distanzmatrix != "Minkowski-Distanz"){
+        shinyFeedback::hideFeedback("param_paramtab")
+        return()
+      }
+      
+      val <- input$param_paramtab
+      msg <- NULL
       
       #error message: p has to be a number
+      if(is.null(val)||is.na(val)){                                         #error message: p has to be a number
+        msg <- "Bitte eine Zahl eingeben"
+      }else if(val <= 0){                                                  #if p<0, error msg: p has to be greater than 0
+        msg <- "Falsche eingabe: bitte ein Zahl größer als 0 eingeben"
+      }else if(val>10000){
+        msg <- "Maximale eingabe Zahl ist 10000"
+      }else if(val %% 1 !=0){
+        msg <- "Falsche eingabe: bitte ein Integer eingeben"
+      }
       shinyFeedback::feedbackDanger(
-        "param",
-        is.null(val) || is.na(val),
-        "Bitte eine Zahl eingeben"
+        "param_paramtab",
+        !is.null(msg),
+        msg
       )
       
-      #if p<0, error msg: p has to be greater than 0
-      shinyFeedback::feedbackDanger(
-        "param",
-        !is.null(val) && !is.na(val) && val <= 0,
-        "Falsche eingabe: bitte ein Zahl größer als 0 eingeben"
-      )
+    })
+    
+    observe({
       
-      shinyFeedback::feedbackDanger(
-        "param",
-        !is.null(val) && !is.na(val) && val > 10000,
-        "Maximale eingabe Zahl ist 10000"
-      )
+      if(input$distanzmatrix_sidebar != "Minkowski-Distanz"){
+        shinyFeedback::hideFeedback("param_heatmap")
+        return()
+      }
       
+      val <- input$param_heatmap
+      msg <- NULL
+      
+      #error message: p has to be a number
+      if(is.null(val)||is.na(val)){                                         #error message: p has to be a number
+        msg <- "Bitte eine Zahl eingeben"
+      }else if(val <= 0){                                                  #if p<0, error msg: p has to be greater than 0
+        msg <- "Falsche eingabe: bitte ein Zahl größer als 0 eingeben"
+      }else if(val>10000){
+        msg <- "Maximale eingabe Zahl ist 10000"
+      }else if(val %% 1 !=0){
+        msg <- "Falsche eingabe: bitte ein Integer eingeben"
+      }
       shinyFeedback::feedbackDanger(
-        "param",
-        !is.null(val) && !is.na(val) && val %% 1 != 0,
-        "Falsche eingabe: bitte ein Integer eingeben"
+        "param_heatmap",
+        !is.null(msg),
+        msg
       )
       
     })
@@ -714,45 +1105,87 @@ if(interactive()){
     
     
     inputs_valid <- reactive({
-      req_cluster <- !is.null(input$clusterverfahren) && input$clusterverfahren != "" #ensures that some option is chosen from cluster methods dropdown
       
-      req_farb <- length(input$farbpaletten) >0
+      req(input$clusterverfahren)
+      req(input$normalisierung)
+      req(input$distanzmatrix)
       
-      req_norm <- !is.null(input$normalisierung) && input$normalisierung != ""
-      
-      req_dist <- !is.null(input$distanzmatrix) && input$distanzmatrix != ""
+      req(!is.null(input$farbpaletten))
       
       
       mink_valid <- TRUE
       
       if(input$distanzmatrix == "Minkowski-Distanz"){
-        mink_valid <- !is.null(input$param) &&
-          !is.na(input$param) &&
-          input$param > 0 &&
-          input$param <= 10000 &&
-          input$param %% 1 == 0
+        mink_valid <- !is.null(input$param_paramtab) &&
+          !is.na(input$param_paramtab) &&
+          input$param_paramtab > 0 &&
+          input$param_paramtab <= 10000 &&
+          input$param_paramtab == as.integer(input$param_paramtab) 
       }
       
-      req_cluster &&
-        req_norm &&
-        req_dist &&
-        req_farb &&
-        mink_valid
+      
+      TRUE && mink_valid
     })
     
     observe({
       
-      if(inputs_valid()){
+      if(isTRUE(inputs_valid())){
         shinyjs::enable("run")
       }else{
         shinyjs::disable("run")
       }
     })
     
+    observeEvent(input$run, {
+      print("RUN CLICKED")
+    })
+    
+    
+    observeEvent(input$analyze_pathways, {
+      cov_matrix <- analyze_pathways_coverage(
+        daten(),
+        input$pathways
+      )
+      
+      coverage_result(cov_matrix)
+    })
+    
+    output$coverage_table <- renderTable({
+      
+      req(coverage_result())
+      
+      as.data.frame(coverage_result())
+    }, rownames = TRUE)
+    
+    observeEvent(input$confirm_button, {
+      
+      showModal(
+        modalDialog(
+          title = "Warnung",
+          "Einige Gene in den ausgewählten Pathways wurden entfernt. Möchten Sie trotzdem mit den ausgewählten Pathways fortfahren?",
+          
+          footer = tagList(
+            modalButton("Andere Pathways auswählen"),
+            
+            actionButton("continue_analysis", "Ja")
+          )
+        )
+      )
+    })
+    
+    observeEvent(input$continue_analysis,{
+      
+      removeModal()
+      
+      updateTabItems(
+        session,
+        "tabs",
+        selected = "paramter"
+      )
+    })
     
     
   }  
   shinyApp(ui, server)
 }
-
 

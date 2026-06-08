@@ -20,9 +20,9 @@ library(DBI)
 source("R/clustering/single_linkage.R")
 source("R/clustering/average_linkage.R")
 source("R/clustering/complete_linkage.R")
-source("tests/heatmap_tests.R")
 source("R/clustering/normalization_methods.R")
-source("data/database_functions_v4.r")
+source("tests/heatmap_tests.R")
+
 
 
 
@@ -984,50 +984,54 @@ server <- function(input, output, session) {
       shinyjs::disable("run")
     }
   })
-  session$onFlushed(function() {
-    refresh_presets()
-  }, once = TRUE)
+  
+ # session$onFlushed(function() {
+  #  refresh_presets()
+#  }, once = TRUE)
   
   
-  observeEvent(input$analyse_pathways, {
-    result <- analyze_pathways_coverage(
-      chosen_pathways = input$pathways,
-      dataset_cleaned = daten_aktuel(),
-      con = con
-    )
+#  observeEvent(input$analyse_pathways, {
+ #   result <- analyze_pathways_coverage(
+  #    chosen_pathways = input$pathways,
+   #   dataset_cleaned = daten_aktuel(),
+    #  con = con
+    #)
     
-    coverage_result(result)
+    #coverage_result(result)
     
-  })
+  #})
   
   #Gives the matrix after pathways has been selected
-  output$coverage_table <- renderTable({
+ # output$coverage_table <- renderTable({
     
-    req(coverage_result())
+  #  req(coverage_result())
     
-    as.data.frame(coverage_result())
-  }, rownames = TRUE)
+   # as.data.frame(coverage_result())
+#  }, rownames = TRUE)
   
   
-  observeEvent(input$confirm_pathways, {
+ # observeEvent(input$confirm_pathways, {
     
-    showModal(
-      modalDialog(
-        title = "Pathways auswahl bestätigen",
+  #  showModal(
+   #   modalDialog(
+    #    title = "Pathways auswahl bestätigen",
         
-          "Möchten Sie mit dem ausgewählten Pathways fortfahren",
+     #     "Möchten Sie mit dem ausgewählten Pathways fortfahren",
         
-        footer = tagList(
-          modalButton("Ja"),
+      #   modalButton("Ja"),
           
-          actionButton("confirm_run", "Andere Pathways auswählen")
-        )
-      )
-    )
-  })
+       #   actionButton("confirm_run", "Andere Pathways auswählen")
+        #)
+      #)
+    #)
+#  })
+  
   
 }  
 shinyApp(ui, server)
 }
+
+
   
+
 
