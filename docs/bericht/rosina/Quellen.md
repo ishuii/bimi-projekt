@@ -1,5 +1,9 @@
 Quellen für Normalization funktionen
 
+Normalisierung grundsätzlich:
+The idea behind normalization is to reduce any kind of noise and source of errors that pull away the results from the true value, i.e., bias, and to preserve only the biological variability. Some factors of uncontrolled variability can come from sample handling, changing conditions such as slight fluctuations in temperature, sample degradation, technical variability linked to instrumentation, among others. Generally, those variations are not easy to measure nor to quantify, which increases the difficulty of proper normalization (Mertens, 2017; De Livera et al., 2015).
+https://www.sciencedirect.com/science/article/pii/S0303264722000533
+
 log2 transformation:
 
 https://www.researchgate.net/publication/264500976_Log-transformation_and_its_implications_for_data_analysis
@@ -27,7 +31,25 @@ Chung, M., Bruno, V.M., Rasko, D.A. et al. Best practices on the differential ex
 
 log2 median-centering:
 
-AHHHHHHHHHHH
+https://www.sciencedirect.com/science/article/pii/S0303264722000533
+In particular, quantile sample normalization, RUV, mean and median centering showed very good performances, while quantile protein normalization provided worse results than those obtained with unnormalized data.
+
+The aim of the mean/median normalization is to center the data to the mean/median of the distribution of each sample (Valikangas et al., 2018; Callister et al., 2006) as follows:
+(7)
+where 
+ represents the value of the protein j in the ith sample, 
+ the mean or median of all protein value sin the ith sample j and 
+ the normalized value of protein j in sample i.
+Generally, centering by the median is preferred over the mean as the median is more robust against outliers.
+Etienne Dubois, Antonio Núñez Galindo, Loïc Dayon, Ornella Cominetti,
+Assessing normalization methods in mass spectrometry-based proteome profiling of clinical samples,
+Biosystems,
+Volumes 215–216,
+2022,
+104661,
+ISSN 0303-2647,
+https://doi.org/10.1016/j.biosystems.2022.104661.
+(https://www.sciencedirect.com/science/article/pii/S0303264722000533)
 
 
 log2 MAD:
