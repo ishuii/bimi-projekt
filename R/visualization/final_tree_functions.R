@@ -15,10 +15,11 @@
 # height at which the merge happened. Leaves store their original observation ID.
 #####===========================================================================
 
-build_tree <- function(cluster_result, height) {
+build_tree <- function(cluster_result) {
   
   # extracting mergematrix of cluster result
   mergematrix <- cluster_result$merge
+  height <- cluster_result$matched_at
   
   # initializing list to store each node as the tree is built step by step
   nodes <- list()
