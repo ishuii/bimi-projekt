@@ -166,3 +166,66 @@ normalization(df, norm_method)
 input: matrix von prepare_data genommen, Zahl von 1-4 die die Normalisierungsmethode bestimmt
 output: Matrix die normalisiert worden ist
 ```
+
+### Dendrogram Visualisierung
+#### build_tree()
+Wandelt den Output von hierarchical_clustering in eine verschachtelte Binärbaum-Struktur um, die rekursiv traversiert werden kann.
+
+rbuild_tree(cluster_result)
+# Input: cluster_result -> Output von hierarchical_clustering
+
+# Output: verschachtelte Liste (Binärbaum), jeder Knoten enthält:
+# ... $left    : linker Kindknoten (NULL bei Blättern)
+# ... $right   : rechter Kindknoten (NULL bei Blättern)
+# ... $height  : Merge-Höhe an diesem Knoten (0 bei Blättern)
+# ... $id      : Beobachtungsindex (nur bei Blättern gesetzt, sonst NULL)
+
+# Anwendung:
+baum_patienten <- build_tree(cluster_pat)
+
+#### get_order_vector
+Extrahiert die Blatt-Reihenfolge von links nach rechts aus einem Binärbaum. Der resultierende Vektor wird benötigt um das Dendrogram mit der Heatmap auszurichten.
+
+rget_order_vector(tree)
+# Input: tree -> Binärbaum, gebaut mit build_tree()
+
+# Output: Integer-Vektor mit Blatt-IDs in der Reihenfolge von links nach rechts
+
+# Anwendung:
+order_patienten <- get_order_vector(baum_patienten)
+
+#### generate_dendro
+Hauptfunktion für die Dendrogram-Visualisierung. Nimmt Clustering-Ergebnisse entgegen und erzeugt ein eingefärbtes ggplot2-Dendrogram. 
+Wenn class_labels übergeben werden, werden Äste und Blattnamen nach Klasse eingefärbt und eine Legende angezeigt. Ohne class_labels wird alles schwarz gezeichnet.
+
+rgenerate_dendro(cluster_result, tree_result, order_vector, title="", names_vector=NULL, class_labels=NULL)
+
+# Input:
+# cluster_result : Output von hierarchical_clustering ($merge, $matched_at)
+# tree_result    : Binärbaum, gebaut mit build_tree()
+# order_vector   : Blatt-Reihenfolge, gebaut mit get_order_vector()
+# title          : Titel des Plots als String (default: "")
+# names_vector   : Anzeigenamen der Blätter (z.B. Patientennamen) oder NULL
+# class_labels   : Klassenvektor der Beobachtungen (indexiert) oder NULL -> alles schwarz
+
+# Output: ggplot2-Objekt (wird direkt geplottet)
+
+# Anwendung — Patienten mit Klassenfärbung:
+generate_dendro(
+  cluster_result = cluster_pat,
+  tree_result    = baum_patienten,
+  order_vector   = order_patienten,
+  title          = "TCGA Nierenkrebs: Patienten-Clustering",
+  names_vector   = patient_names,
+  class_labels   = class_labels
+)
+
+# Anwendung — Gene ohne Klassenfärbung:
+generate_dendro(
+  cluster_result = cluster_genes,
+  tree_result    = baum_gene,
+  order_vector   = order_gene,
+  title          = "TCGA Nierenkrebs: Gen-Clustering",
+  names_vector   = gene_names,
+  class_labels   = NULL
+)
