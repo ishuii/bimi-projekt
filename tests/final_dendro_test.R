@@ -89,11 +89,11 @@ cluster_genes  <- hierarchical_clustering(dist_mat_genes, "complete")
 # ============================================================
 
 # patients
-baum_patienten  <- build_tree(cluster_pat, cluster_pat$matched_at)
+baum_patienten  <- build_tree(cluster_pat)
 order_patienten <- get_order_vector(baum_patienten)
 
 # genes
-baum_gene  <- build_tree(cluster_genes, cluster_genes$matched_at)
+baum_gene  <- build_tree(cluster_genes)
 order_gene <- get_order_vector(baum_gene)
 
 
