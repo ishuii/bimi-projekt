@@ -1,8 +1,5 @@
 
 source("data/database_functions_v4.r")
-source("R/clustering/prepare_data.R")
-source("R/clustering/normalization_methods.R")
-
 
 # Test dataset with duplicate genes
 
@@ -68,12 +65,11 @@ dataset_kidney_Gene <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA
 dataset_colon_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/colon_vs_pancreas_meta.csv", header = TRUE)
 dataset_SHIPP_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/SHIPP_microarray.csv", header =TRUE)
 dataset_GOLUB_ID <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/GOLUB_microarray.csv", header = TRUE)
-dataset_top_10 <- read.csv("data/TCGA_kidney_unnormalized_TOP10_meta.csv", header =  TRUE)
 
 
 #Funktion, welche als benannte Liste NA Spalten und Zeilen entfernt und zurück gibt wie viele na Werte es gibt
 # und wie viele entfernt wurden 
-preprocess <- preprocess_general(dataset_kidney_Gene)
+preprocess <- preprocess_general(dataset_GOLUB_ID)
 data_preprocessed <- preprocess$dataset_preprocessed
 na_rows <- preprocess$number_na_genes
 na_cols <- preprocess$number_na_patients
@@ -113,6 +109,5 @@ gene_vektor <- result$gene_vector
 gene_name <- result$gene_names
 
 
-df <- prepare_data(gefilteterDatensatz)
-df_2 <- normalization(df, 1)
+
 

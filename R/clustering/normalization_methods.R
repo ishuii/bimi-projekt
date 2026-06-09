@@ -2,7 +2,7 @@
 normalization <- function(df, norm_method) {
   # 1 == normalize_log_zscore
   # 2 == normalize_log_only
-  # 3 == normalize_log_median_centering
+  # 3 == get_correlation_distance
   # 4 == normalize_log_mad
   
 #--------------    
@@ -36,32 +36,16 @@ normalization <- function(df, norm_method) {
   
 #--------------  
   
-  #if (norm_method == 3) {
+  if (norm_method == 3) {
 
-  #    df_log <- log2(df + 1)
-  #    cor_mat <- cor(t(df_log))     #transpose the dataset so it works for rows instead of cols
-  #    dist_mat <- as.dist(1 - cor_mat)
-  #    return(dist_mat)
-  #}
+      df_log <- log2(df + 1)
+      cor_mat <- cor(t(df_log))     #transpose the dataset so it works for rows instead of cols
+      dist_mat <- as.dist(1 - cor_mat)
+      return(dist_mat)
+  }
   # (4) correlation based method (very good for clustering)
   # what it does:  measures similarities of patterns
   # very good for: Gene-expression-clustering, often better than euclidian
-
-  if (norm_method == 3) {
-
-    df_log <- log2(df + 1)
-
-    df_norm <- t(apply(df_log, 1, function(x) {
-      x - median(x)
-    }))
-
-    return(df_norm)
-}
-# (3) Log + Median-Centering
-# Centers each gene (row) around its median.
-# Preserves differences in variability between genes.
-# Useful when comparing expression patterns while
-# retaining information about regulation strength.
   
 #--------------  
   
