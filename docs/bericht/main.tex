@@ -1,0 +1,123 @@
+\documentclass[12pt]{article}
+
+\usepackage[a4paper,top=2cm,bottom=2cm,left=2cm,right=2cm,marginparwidth=1.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\usepackage[german]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{pdfpages}
+\usepackage{fancyhdr}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\title{Bericht}
+\author{Alisa Pesteritz, Saliha Altan, Wiktoria Cholewa, \\ 
+	Dominik Falk, Andreas Kasarinow, Johanna Kleidorfer, \\
+	Adrika Narasimhan, Rosina Röckseisen}
+
+\begin{document}
+
+\newpage
+\maketitle
+
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Alle}
+\section{Einleitung}
+\label{einleitung}
+
+\section{Grundlagen}
+\label{grundlagen}
+
+\subsubsection{Biologische Grundlagen}
+\label{bio-grundlagen}
+Was ist Genexpression und -regulation?
+
+Was sind Pathways (KEGG)?
+
+\subsubsection{Medizinische Grundlagen}
+\label{medizin-grundlagen}
+Warum sind Ärzte an der Analyse von Genexpression und -regulation interessiert?
+
+Was ist ein Tumorboard?
+
+\subsubsection{Informatische Grundlagen}
+\label{info-grundlagen}
+Was ist eine explorative Datenanalyse?
+
+Was ist Clustering?
+
+
+\section{Arbeitseinteilung (oder sowas)}
+\label{arbeitseinteilung}
+% TODO: wer hat was gemacht und warum?
+% Datenfluss (von Johanna) einfügen? (oder zumindest beschreiben?)
+
+% ----------------------------------------------------------------------------------------------
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Alisa}
+\section{Pathways und Dateneinlesen}
+\label{pathways}
+
+% ----------------------------------------------------------------------------------------------
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Rosina \& Wiki}
+\section{Normalisierung}
+\label{normalisierung}
+
+
+\section{Clusteranalyse}
+\label{clusteranalyse}
+% TODO: theoretische Erklärung des Algorithmus
+% TODO: Tabelle : wer hat welche Aufgaben beim Codieren übernommen + wie lange hat das gedauert
+
+
+\subsection{Single Linkage}
+\label{single-linkage}
+
+\subsection{Average Linkage}
+\label{average-linkage}
+
+\subsection{Complete Linkage}
+\label{complete-linkage}
+
+% ----------------------------------------------------------------------------------------------
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Saliha \& Domi}
+\section{Visualisierung}
+\label{visualisierung}
+
+\subsection{Heatmap}
+\label{heatmap}
+
+\subsection{Dendrogramm}
+\label{dendrogramm}
+
+% ----------------------------------------------------------------------------------------------
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Adrika \& Andreas}
+\section{GUI}
+\label{gui}
+
+\subsection{Serverlogik}
+\label{serverlogik}
+
+% etc...
+
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Johanna}
+\subsection{Farben}
+
+
+\end{document}

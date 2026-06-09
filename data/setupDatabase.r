@@ -2,6 +2,15 @@
 #Install Packages if not installed, otherwise just load them 
 if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 
+# Wir zwingen R auf 20 Minuten (1200 Sekunden)
+options(timeout = 1200)
+
+# Wir versuchen es mit einer Methode, die auf Macs oft stabiler ist ("libcurl")
+install.packages("https://bioconductor.org/packages/3.20/data/annotation/src/contrib/org.Hs.eg.db_3.20.0.tar.gz", 
+                 repos = NULL, 
+                 type = "source",
+                 method = "libcurl")
+
 
 library(RSQLite)
 library(DBI)
@@ -46,7 +55,9 @@ dbExecute(con, "
   )
 ")
 
-
+dbExecute(con, "DELETE FROM Lookup_Gene_Pathway")  # zuerst wegen Foreign Keys!
+dbExecute(con, "DELETE FROM Gene")
+dbExecute(con, "DELETE FROM Pathway")
 
 
 #-------------------------------
@@ -76,6 +87,7 @@ colnames(gene_pathways) <- c("Entrez_ID", "Pathway_ID")
 # remove hsa: and path: in columns 
 gene_pathways$Entrez_ID <- gsub("hsa:", "", gene_pathways$Entrez_ID)
 gene_pathways$Pathway_ID <- gsub("path:", "", gene_pathways$Pathway_ID)
+gene_pathways$Entrez_ID <- as.integer(gene_pathways$Entrez_ID)
 
 
 
@@ -83,12 +95,17 @@ gene_pathways$Pathway_ID <- gsub("path:", "", gene_pathways$Pathway_ID)
 #Gene
 #--------------
 #get all the unique genes which are present in the pathways
-gene_id <- unique(gene_pathways$Entrez_ID)
+gene_id <- unique(as.character(gene_pathways$Entrez_ID))
 
 gen_id_name_symbol <- AnnotationDbi::select(org.Hs.eg.db, 
                                             keys = gene_id, 
                                             columns = c("GENENAME","SYMBOL"), 
                                             keytype = "ENTREZID")
+
+any(duplicated(gen_id_name_symbol$ENTREZID))
+
+
+
 
 #Change datatype from character to integer
 gen_id_name_symbol$ENTREZID <- as.integer(gen_id_name_symbol$ENTREZID)
@@ -100,4 +117,3 @@ dbWriteTable(con, "Pathway", pathway_names, append = TRUE)
 dbWriteTable(con, "Lookup_Gene_Pathway", gene_pathways, append = TRUE)
 
 
-#eventuell case insensitive???

@@ -2,6 +2,7 @@
 library(RSQLite)
 library(DBI)
 
+
 # ============================================================
 # HILFSFUNKTIONEN
 # ============================================================
@@ -48,7 +49,7 @@ preprocess_dataset <- function(data) {
 #########################################################
 #Preprocess dataset with meta data and ID as first column 
 #########################################################
-# it searches the index of the row Meta_labels
+# it searches the index of the row Meta_labels ==> it has to be the first one 
 # and get all indices from that index till the last row of the dataset
 # it renames the first column as Entrez_ID which equals the name in the database
 # it changes the Datatype of the ID to integer
@@ -59,17 +60,18 @@ preprocess_dataset <- function(data) {
 # Named list with meta data and pure data 
 
 
+
 preprocess_dataset_meta <- function(data) {
   
-  data_labels_index <- which(data[, 1] == "Meta_labels")
-  meta_indices <- data_labels_index : nrow(data)
+  meta_indices <- grep("Meta", data[, 1], ignore.case = TRUE, perl = FALSE)
+  # split dataset 
+  data_withoutmeta <- data[-meta_indices, ]
   
+
   #dataframe with meta information as row name 
   data_meta <- data[meta_indices, ]
   rownames(data_meta) <- data_meta[, 1]
   data_meta <- data_meta[, -1]
-  
-  data_withoutmeta <- data[-meta_indices, ]
   
   # First column: Entrez_ID and integer
   data_withoutmeta[[1]] <- as.integer(data_withoutmeta[[1]])
@@ -163,6 +165,7 @@ get_chosen_IDs_from_database <- function(con, gene_names) {
 # database connection object
 # Return: 
 # Character vector of pathway names
+
 get_pathwaynames_from_database <- function(con) {
   
   query    <- "SELECT Name FROM Pathway"
@@ -170,6 +173,20 @@ get_pathwaynames_from_database <- function(con) {
   
   return(pathways[[1]])
 }
+
+
+#get all gennames from the database
+get_all_genes_from_database <- function(con){
+
+
+  query    <- "SELECT Genname FROM Gene"
+  genes <- dbGetQuery(con, query)
+  
+  return(genes[[1]])
+
+
+}
+
 
 ######################################################################
 # returns all entrez ids which belong to the chosen pathway(s)
@@ -204,6 +221,7 @@ get_genes_for_pathways <- function(chosen_pathways, con) {
 # originally processed dataframe without meta data but which adjusted first column 
 # Return: 
 # filtered dataset
+
 extract_relevant_genes <- function(extracted_genes, original_data) {
   
   extracted_dataset <- original_data[original_data$Entrez_ID %in% extracted_genes, ]
@@ -268,8 +286,7 @@ run_data_integration <- function(dataset, chosen_pathways, con, dataset_type) {
   # Ids which correspond to the chosen pathway(s)
   relevant_ids <- get_genes_for_pathways(chosen_pathways, con)
   
-  
-  
+
   #filtered dataset
   filtered <- extract_relevant_genes(relevant_ids, data_clean)
   
@@ -311,12 +328,12 @@ library(RSQLite)
 library(DBI)
 
 con     <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
-dataset <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
-meta_csv2 <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/colon_vs_pancreas_meta.csv", header = TRUE)
+dataset_meta1 <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
+dataset_meta2 <- read.csv("/Users/alisa/Desktop/Bimi6/R_Projekt_Tests/colon_vs_pancreas_meta.csv", header = TRUE)
 
 pathway_names <- get_pathwaynames_from_database(con = con)
 result  <- run_data_integration(
-  dataset          = meta_csv2,
+  dataset          = dataset_meta1,
   chosen_pathways  = c("Fatty acid metabolism"),
   con              = con,
   dataset_type     = "Entrez ID"
@@ -327,4 +344,14 @@ gene_vec <- result$gene_vector
 filtered_data <- result$filtered_dataset
 gene_names <- result$gene_names
 
+#TODO
+#return genes which were not in the dataset but corresponding to the pathway ???
+#Database disconnection ???
+#empty values 
 
+test1<- preprocess_dataset_meta(dataset_meta1)
+
+test2 <- test1$data_withoutmeta
+
+head(test2$Entrez_ID)
+class(test2$Entrez_ID)
