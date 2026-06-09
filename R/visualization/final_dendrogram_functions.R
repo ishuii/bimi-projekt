@@ -1,75 +1,70 @@
-#####===========================================================================
-# This script contains functions to:
-# 1. Calculate precise X and Y coordinates for tree nodes
-# 2. Traverse a binary tree recursively to collect line segments and labels
-# 3. Render a clean, publication-ready dendrogram using ggplot2
+####===========================================================================
+# This script contains the core functions for rendering the dendrogram.
+#
+# - calculate_coords() : calculates x/y coordinates for each node in the tree
+# - draw_segments()    : traverses the tree and collects all line segments and leaf metadata
+# - plot_dendro()      : takes the collected data and renders the final ggplot2 object
 #####===========================================================================
 
-#####===========================================================================
-#                         CALCULATE_COORDS FUNCTION
-#
-# Recursively calculates the (x, y) coordinates for any given node in the tree
-# - For leaves: x is determined by its position in the order vector, y is 0
-# - For internal nodes: x is the mean x-position of its left and right children, 
-#   y is determined by the merge height
-#
-# @return      : A list containing:
-#                - $x : Numeric x-coordinate on the plot axis
-#                - $y : Numeric y-coordinate representing the cluster distance
-####============================================================================
+library(ggplot2)
 
-calculate_coords <- function(tree, order, height){
+
+#####===========================================================================
+#                         CALCULATE_COORDS
+#
+# Figures out where each node should sit on the plot.
+# Leaves always sit at y=0, internal nodes sit at their merge height.
+# The x position of an internal node is the midpoint between its children.
+#####===========================================================================
+
+calculate_coords <- function(tree, order, height) {
   
-  ### Check if tree is available ###############################################
-  if(is.null(tree)) return(NULL)
+  # no tree => nothing to calculate
+  if (is.null(tree)) return(NULL)
   
-  ### Caculating Coords ########################################################
-  
-  ## Case 1: Leaf Node (tree$id is present) -------------------------------------
-  if(!is.null(tree$id)){
+  ## leaf node => no children, so x comes directly from its position in the order vector
+  if (!is.null(tree$id)) {
     
-    # x-position = index in the ordered leaf vector
-    x = which(tree$id == order)
-    
-    # y-position for original observations is always ground level (0)
-    y = 0
-    
-    return(list(x=x,y=y))
+    return(list(
+      x = which(tree$id == order),
+      y = 0
+    ))
   }
   
-  ## Case 2: Internal Node / Cluster -------------------------------------------
-  else {
-    
-    # x-position is the center (mean) between left and right child coordinates
-    left_coord= calculate_coords(tree$left, order, height)
-    right_coord= calculate_coords(tree$right, order, height)
-    x = mean(c(left_coord$x,right_coord$x))
-    
-    # y-position represents the distance at which this specific merge happened
+  ## internal node — x is the midpoint between children, y is where this merge happened
+  left_coord  <- calculate_coords(tree$left,  order, height)
+  right_coord <- calculate_coords(tree$right, order, height)
+  
+  # returning midpoint as x and merge height as y for this internal node
+  return(list(
+    x = mean(c(left_coord$x, right_coord$x)),
     y = tree$height
-    
-    return(list(x=x,y=y))
-  }
+  ))
 }
 
-#####===========================================================================
+####===========================================================================
 #                         DRAW_SEGMENTS
 #
-# Traverses the binary tree recursively and collects:
-#   - Segment coordinates (geometry for ggplot lines)
-#   - Leaf metadata: id, x-position, class (for coloring)
+# Traverses the entire tree recursively and collects two things:
+# the line segments that make up the dendrogram, and the leaf metadata
+# (id, position, class) needed for coloring and labeling later.
 #
-# NOTE: Display names are NOT assigned here.
-#       The leaf id is passed through so plot_dendro can resolve
-#       names_vector[id] at render time.
+# The horizontal connector between two children is split into two halves —
+# each half gets the color of its respective child. This way mixed-class
+# branches are still colored as far down as the classes agree.
+#
+# Note: display names are not resolved here. The leaf id is passed through
+# so plot_dendro can look up names_vector[id] when drawing the labels.
 #####===========================================================================
 
 draw_segments <- function(node_coords, tree, order, height, class_labels) {
   
-  ##### BASE CASE: Leaf node ####################################################
+  ##### LEAF NODE ##############################################################
   
   if (is.null(tree$left) && is.null(tree$right)) {
     
+    # no children => this is a leaf, looking up its class for coloring
+    # falling back to "Default" if the class is missing or NA
     classlabel <- if (!is.null(class_labels)) as.character(class_labels[tree$id]) else "Default"
     leaf_class <- if (is.na(classlabel) || length(classlabel) == 0) "Default" else classlabel
     
@@ -85,42 +80,37 @@ draw_segments <- function(node_coords, tree, order, height, class_labels) {
     ))
   }
   
-  ##### INTERNAL NODE: calculate child coordinates #############################
+  ##### INTERNAL NODE ##########################################################
   
+  # not a leaf => calculating child coordinates to draw the connector lines
   left_coords  <- calculate_coords(tree$left,  order, height)
   right_coords <- calculate_coords(tree$right, order, height)
   
-  ##### RECURSIVE STEP #########################################################
-  
+  # recursing into both subtrees to collect their segments and labels
   left_result  <- draw_segments(left_coords,  tree$left,  order, height, class_labels)
   right_result <- draw_segments(right_coords, tree$right, order, height, class_labels)
   
-  ##### DETERMINE PARENT CLASS (bubble up for branch coloring) #################
-  
+  # both sides got the same class => color the branch, otherwise fall back to Default
   parent_class <- if (left_result$current_class == right_result$current_class) {
     left_result$current_class
   } else {
     "Default"
   }
   
-  ##### BUILD SEGMENT DATA FRAME ###############################################
-  # Row 1: horizontal bar connecting left and right child
-  # Row 2: vertical bar down to left child
-  # Row 3: vertical bar down to right child
-  
+  # splitting horizontal bar into two halves, each colored by its child
+  # adding vertical drops down to each child
   mid_x <- node_coords$x
   
   segments_df <- data.frame(
-    x0    = c(mid_x,           left_coords$x,  mid_x,           right_coords$x),
-    y0    = c(node_coords$y,   node_coords$y,  node_coords$y,   node_coords$y),
-    x1    = c(left_coords$x,   left_coords$x,  right_coords$x,  right_coords$x),
-    y1    = c(node_coords$y,   left_coords$y,  node_coords$y,   right_coords$y),
-    class = c(left_result$current_class, left_result$current_class,
+    x0    = c(mid_x,                      left_coords$x,       mid_x,                       right_coords$x),
+    y0    = c(node_coords$y,              node_coords$y,       node_coords$y,               node_coords$y),
+    x1    = c(left_coords$x,              left_coords$x,       right_coords$x,              right_coords$x),
+    y1    = c(node_coords$y,              left_coords$y,       node_coords$y,               right_coords$y),
+    class = c(left_result$current_class,  left_result$current_class,
               right_result$current_class, right_result$current_class)
   )
   
-  ##### AGGREGATE AND RETURN ###################################################
-  
+  # merging segments and labels from both subtrees and passing the parent class upward
   return(list(
     segments      = rbind(segments_df, left_result$segments, right_result$segments),
     labels        = rbind(left_result$labels, right_result$labels),
@@ -128,48 +118,59 @@ draw_segments <- function(node_coords, tree, order, height, class_labels) {
   ))
 }
 
-
 #####===========================================================================
 #                         PLOT_DENDRO
 #
-# Renders the final ggplot2 dendrogram.
-# Resolves leaf display names from names_vector here.
+# Takes the collected segments and labels and turns them into a ggplot object.
+# Display names are resolved here from names_vector using the leaf ids.
+# If no palette is given, everything is drawn in black.
+# The legend is only shown when class labels were provided.
 #####===========================================================================
 
 plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_vector=NULL, show_legend=TRUE) {
   
-  # 1. Tabellen entpacken
+  # unpacking segments and labels from draw_segments output
   segments_df <- draw_result$segments
   labels_df   <- draw_result$labels
   
-  # 2. Display names auflösen
+  # resolving display names => falling back to raw id if no names provided
   labels_df$label <- if (!is.null(names_vector)) {
     names_vector[labels_df$id]
   } else {
     as.character(labels_df$id)
   }
   
-  # 3. Namen direkt unter die Blattlinien setzen
+  # pushing labels just below the leaf lines
   labels_df$y <- -0.1
   
-  # 4. Alle vorhandenen Klassen sammeln (für schwarzen Fallback)
+  # collecting all classes for the fallback palette
   all_classes <- unique(c(segments_df$class, labels_df$class))
   
-  # 5. Palette festlegen
+  # setting palette => mapping everything to black if none provided
   if (!is.null(palette)) {
     if (!"Default" %in% names(palette)) palette["Default"] <- "black"
   } else {
     palette <- setNames(rep("black", length(all_classes)), all_classes)
   }
   
-  # 6. Plot
+  # generate the empty plot and build layer by layer 
   plot <- ggplot() +
+    
+    # layer 1: drawing all branch segments, colored by class
     geom_segment(data = segments_df, aes(x=x0, y=y0, xend=x1, yend=y1, color=class)) +
+    
+    # layer 2: drawing leaf labels rotated 90 degrees, colored by class
     geom_text(data = labels_df, aes(x=x, y=y, label=label, color=class), angle=90, hjust=1, size=2.5) +
+    
+    # layer 3: applying the color palette to both segments and labels
     scale_color_manual(values = palette) +
+    
+    # layer 4: setting y range — leaving enough space below for the rotated labels
     ylim(c(-8, max_height)) +
-    labs(y = "Distanz", x = "") +
+    labs(y = "Distance", x = "") +
     ggtitle(title) +
+    
+    # layer 5: clean white background, removing grid, axis lines and x ticks
     theme_classic() +
     theme(
       panel.grid   = element_blank(),
@@ -178,10 +179,11 @@ plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_v
       axis.text.x  = element_blank()
     )
   
-  # 7. Legende ausblenden wenn nicht gewünscht
+  # legend logic
   if (!show_legend) {
     plot <- plot + theme(legend.position = "none")
   }
   
   return(plot)
 }
+
