@@ -168,12 +168,12 @@ output: Matrix die normalisiert worden ist
 ```
 
 ### Dendrogram Visualisierung
+
 #### build_tree()
 Wandelt den Output von hierarchical_clustering in eine verschachtelte Binärbaum-Struktur um, die rekursiv traversiert werden kann.
-
-rbuild_tree(cluster_result)
+```
+build_tree(cluster_result)
 # Input: cluster_result -> Output von hierarchical_clustering
-
 # Output: verschachtelte Liste (Binärbaum), jeder Knoten enthält:
 # ... $left    : linker Kindknoten (NULL bei Blättern)
 # ... $right   : rechter Kindknoten (NULL bei Blättern)
@@ -182,24 +182,24 @@ rbuild_tree(cluster_result)
 
 # Anwendung:
 baum_patienten <- build_tree(cluster_pat)
+```
 
 #### get_order_vector
 Extrahiert die Blatt-Reihenfolge von links nach rechts aus einem Binärbaum. Der resultierende Vektor wird benötigt um das Dendrogram mit der Heatmap auszurichten.
-
-rget_order_vector(tree)
+```
+get_order_vector(tree)
 # Input: tree -> Binärbaum, gebaut mit build_tree()
-
 # Output: Integer-Vektor mit Blatt-IDs in der Reihenfolge von links nach rechts
 
 # Anwendung:
 order_patienten <- get_order_vector(baum_patienten)
+```
 
 #### generate_dendro
 Hauptfunktion für die Dendrogram-Visualisierung. Nimmt Clustering-Ergebnisse entgegen und erzeugt ein eingefärbtes ggplot2-Dendrogram. 
 Wenn class_labels übergeben werden, werden Äste und Blattnamen nach Klasse eingefärbt und eine Legende angezeigt. Ohne class_labels wird alles schwarz gezeichnet.
-
-rgenerate_dendro(cluster_result, tree_result, order_vector, title="", names_vector=NULL, class_labels=NULL)
-
+```
+generate_dendro(cluster_result, tree_result, order_vector, title="", names_vector=NULL, class_labels=NULL)
 # Input:
 # cluster_result : Output von hierarchical_clustering ($merge, $matched_at)
 # tree_result    : Binärbaum, gebaut mit build_tree()
@@ -229,3 +229,4 @@ generate_dendro(
   names_vector   = gene_names,
   class_labels   = NULL
 )
+```
