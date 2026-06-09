@@ -1,9 +1,9 @@
-# ============================================================
-# ZIEL:
-# Testdatei für das Patienten- und Gen-Dendrogram
-# Es reicht diese eine Datei zu sourcen, da final_dendrogram.R
-# alle weiteren Abhängigkeiten automatisch lädt.
-# ============================================================
+#####===========================================================================
+# Test file for the dendrogram visualization.
+#
+# - Patient dendrogram : colored by class labels, legend shown
+# - Gene dendrogram    : no class labels, everything in black
+#####===========================================================================
 
 library(ggplot2)
 library(distRcpp)
@@ -12,27 +12,34 @@ library(DBI)
 library(reshape2)
 
 # ============================================================
-# SOURCE
+# SOURCES
 # ============================================================
 
-source("R/visualization/final_dendrogram.R")
+source("data/database_functions_v4.r")
+source("R/clustering/normalization_methods.R")
+source("R/clustering/prepare_data.R")
+source("R/clustering/hierarchical_clustering.R")
+source("R/visualization/final_dendrogram.R") # Sourcing this file is enough => final_dendrogram.R loads all dependencies
+source("R/visualization/heatmap.R")
+
 
 # ============================================================
-# DATENBANK UND DATENSATZ
+# DATABASE AND DATASET
 # ============================================================
 
 con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 
-# Anmerkung: Datensatz immer unter data/... ablegen
+# dataset always placed under data/ so this path works for everyone
 dataset_kidney_meta <- read.csv("data/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
 
+
 # ============================================================
-# PATHWAYS UND INTEGRATION
+# PATHWAY SELECTION AND DATA INTEGRATION
 # ============================================================
 
-# diese Auswahl ist hier hart codiert, wird normalerweise in der GUI ausgewählt
+# hardcoded here for testing — normally selected via the GUI
 meine_pathways <- c("Biosynthesis of amino acids")
-message("Nutze Pathway für den Nieren-Test: ", meine_pathways)
+message("Using pathway for kidney test: ", meine_pathways)
 
 preprocess        <- preprocess_general(dataset_kidney_meta)
 data_preprocessed <- preprocess$dataset_preprocessed
@@ -45,63 +52,71 @@ result <- run_data_integration(
 
 dbDisconnect(con)
 
+
 # ============================================================
-# PREPARE DATA UND NORMALISIERUNG
+# PREPARE AND NORMALIZE
 # ============================================================
 
 df_prepared   <- prepare_data(result$filtered_dataset)
 df_normalized <- normalization(df_prepared, 1)
 
+
 # ============================================================
-# NAMEN UND KLASSENLABELS
+# NAMES AND CLASS LABELS
 # ============================================================
 
 patient_names <- colnames(result$meta_data)
 gene_names    <- result$gene_names
 class_labels  <- as.character(result$meta_data["Meta_labels", ])
 
+
 # ============================================================
-# DISTANZMATRIX UND CLUSTERING
+# DISTANCE MATRICES AND CLUSTERING
 # ============================================================
 
-# PATIENTEN
+# patients — transposed so columns (patients) are clustered
 dist_mat_pat <- dist_cpp(t(df_normalized), "euclidean")
 cluster_pat  <- hierarchical_clustering(dist_mat_pat, "complete")
 
-# GENE
+# genes
 dist_mat_genes <- dist_cpp(df_normalized, "euclidean")
 cluster_genes  <- hierarchical_clustering(dist_mat_genes, "complete")
 
+
 # ============================================================
-# BAUMSTRUKTUREN
+# BUILD TREES
+# cluster result contains the merge matrix and heights — both needed for build_tree
 # ============================================================
 
-baum_patienten  <- build_tree(cluster_pat$merge, cluster_pat$matched_at)
+# patients
+baum_patienten  <- build_tree(cluster_pat, cluster_pat$matched_at)
 order_patienten <- get_order_vector(baum_patienten)
 
-baum_gene  <- build_tree(cluster_genes$merge, cluster_genes$matched_at)
+# genes
+baum_gene  <- build_tree(cluster_genes, cluster_genes$matched_at)
 order_gene <- get_order_vector(baum_gene)
 
+
 # ============================================================
-# DENDROGRAMME
+# DENDROGRAMS
 # ============================================================
 
-# PATIENTEN — mit Klassenfärbung
+# patients — colored by class labels, legend shown
 generate_dendro(
   cluster_result = cluster_pat,
   tree_result    = baum_patienten,
   order_vector   = order_patienten,
-  title          = "TCGA Nierenkrebs: Patienten-Clustering",
+  title          = "TCGA Kidney Cancer: Patient Clustering",
   names_vector   = patient_names,
   class_labels   = class_labels
 )
 
-# GENE — ohne Klassenfärbung
+# genes — no class labels, everything black, no legend
 generate_dendro(
   cluster_result = cluster_genes,
   tree_result    = baum_gene,
   order_vector   = order_gene,
-  title          = "TCGA Nierenkrebs: Gen-Clustering",
+  title          = "TCGA Kidney Cancer: Gene Clustering",
   names_vector   = gene_names,
   class_labels   = NULL
 )
