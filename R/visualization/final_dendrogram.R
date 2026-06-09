@@ -41,7 +41,7 @@ generate_dendro <- function(cluster_result, tree_result, order_vector,
   if (!is.null(class_labels)) {
     detected_classes <- unique(class_labels)
     detected_classes <- detected_classes[!is.na(detected_classes) & detected_classes != ""]
-    default_colors   <- c("red", "blue", "orange", "green", "purple", "yellow", "pink", "cyan")
+    default_colors   <- c("cyan", "orange","purple", "green", "pink", "yellow", "blue", "red")
     colors           <- if (length(detected_classes) <= length(default_colors)) default_colors[1:length(detected_classes)] else rainbow(n)
     built_palette    <- c(setNames(colors, detected_classes), "Default" = "gray")
   }

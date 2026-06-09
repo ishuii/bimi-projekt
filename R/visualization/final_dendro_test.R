@@ -32,7 +32,7 @@ dataset_kidney_meta <- read.csv("data/TCGA_kidney_unnormalized_meta.csv", header
 
 # diese Auswahl ist hier hart codiert, wird normalerweise in der GUI ausgewählt
 meine_pathways <- c("Biosynthesis of amino acids")
-message("Nutze Pathway für den Nieren-Test: ", NULL)
+message("Nutze Pathway für den Nieren-Test: ", meine_pathways)
 
 preprocess        <- preprocess_general(dataset_kidney_meta)
 data_preprocessed <- preprocess$dataset_preprocessed
