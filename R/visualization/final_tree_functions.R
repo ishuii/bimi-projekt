@@ -17,8 +17,10 @@
 
 build_tree <- function(cluster_result) {
   
-  # extracting mergematrix of cluster result
+  # extracting mergematrix from cluster result
   mergematrix <- cluster_result$merge
+
+  # extracting height from cluster result
   height <- cluster_result$matched_at
   
   # initializing list to store each node as the tree is built step by step
