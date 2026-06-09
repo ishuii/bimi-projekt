@@ -20,9 +20,9 @@ library(DBI)
 source("R/clustering/single_linkage.R")
 source("R/clustering/average_linkage.R")
 source("R/clustering/complete_linkage.R")
-source("tests/heatmap_tests.R")
 source("R/clustering/normalization_methods.R")
-source("data/database_functions_v2.r")
+source("tests/heatmap_tests.R")
+
 
 
 
@@ -54,7 +54,7 @@ ui <- dashboardPage(
             
             
             selectInput(inputId = "normalisierung", label = "Normalisierungs Verfahren auswählen", 
-                        choices = c("Standard", "Normalize Log Only", "Correlation-based Normalization", "Logarithm with MAD")),
+                        choices = c("normalize_log_zscore", "normalize_log_only", "normalize_log_median_centering", "normalize_log_mad")),
             
             
             selectInput(inputId="distanzmatrix", label = "Distanz Matrix auswählen", 
@@ -147,15 +147,20 @@ ui <- dashboardPage(
         
         tags$style(HTML("
              .main-header {position:fixed; width:100%;}
-             .content-wrapper{padding-top; 50px !important;}            ")),
+             .content-wrapper{padding-top: 50px !important;}            ")),
       
         
         tags$style(HTML("
       /* Main header */
       .main-header .logo {
         background-color: #ECECEC !important;
-        color: #ECECEC !important;
+        color: #000000 !important;
       }
+      
+      .main-header .logo:hover {
+      background-color: #ECECEC !important;
+      color: black !important;
+    }
 
       .main-header .navbar {
         background-color: #ECECEC !important;
@@ -165,17 +170,24 @@ ui <- dashboardPage(
       .main-sidebar {
         background-color: #ECECEC !important;
       }
-
-      /* Sidebar menu hover */
-      .sidebar-menu > li:hover > a {
-        background-color: #000000 !important;
-      }
-
-      /* Active tab */
-      .sidebar-menu > li.active > a {
-        background-color: #000000 !important;
-        color: black !important;
-      }
+      
+      /* All sidebar text */
+    .sidebar-menu > li > a {
+      color: black !important;
+    }
+     
+     /* Active menu item */
+    .sidebar-menu > li.active > a {
+      background-color: #ECECEC !important;
+      color: black !important;
+    }
+      
+       /* Treeview arrows/icons */
+    .sidebar-menu li a .fa,
+    .sidebar-menu li a .glyphicon {
+      color: black !important;
+    }
+    
     "))
       ),
       
@@ -236,7 +248,12 @@ ui <- dashboardPage(
                       multiple = TRUE
                     )
                 
-                  )
+                  ),
+                  tableOutput("coverage_table")
+                ),
+                actionButton(
+                  "confirm_pathways",
+                  "Weiter mit diesen Pathways"
                 ),
                 
                 actionButton('switchtab', 'Parametern Wählen'),
@@ -324,7 +341,7 @@ ui <- dashboardPage(
                     
                     
                     selectInput(inputId = "normalisierung", label = "Normalisierungs Verfahren auswählen", 
-                                choices = c("Standard", "Normalize Log Only", "Correlation-based Normalization", "Logarithm with MAD")),
+                                choices = c("normalize_log_zscore", "normalize_log_only", "normalize_log_median_centering", "normalize_log_mad")),
                     
                     
                     selectInput(inputId="distanzmatrix", label = "Distanz Matrix auswählen", 
@@ -967,14 +984,54 @@ server <- function(input, output, session) {
       shinyjs::disable("run")
     }
   })
-  session$onFlushed(function() {
-    refresh_presets()
-  }, once = TRUE)
   
+ # session$onFlushed(function() {
+  #  refresh_presets()
+#  }, once = TRUE)
+  
+  
+#  observeEvent(input$analyse_pathways, {
+ #   result <- analyze_pathways_coverage(
+  #    chosen_pathways = input$pathways,
+   #   dataset_cleaned = daten_aktuel(),
+    #  con = con
+    #)
+    
+    #coverage_result(result)
+    
+  #})
+  
+  #Gives the matrix after pathways has been selected
+ # output$coverage_table <- renderTable({
+    
+  #  req(coverage_result())
+    
+   # as.data.frame(coverage_result())
+#  }, rownames = TRUE)
+  
+  
+ # observeEvent(input$confirm_pathways, {
+    
+  #  showModal(
+   #   modalDialog(
+    #    title = "Pathways auswahl bestätigen",
+        
+     #     "Möchten Sie mit dem ausgewählten Pathways fortfahren",
+        
+      #   modalButton("Ja"),
+          
+       #   actionButton("confirm_run", "Andere Pathways auswählen")
+        #)
+      #)
+    #)
+#  })
   
   
 }  
 shinyApp(ui, server)
 }
+
+
   
+
 
