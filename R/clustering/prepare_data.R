@@ -1,7 +1,7 @@
 # data preparation
 # we only normalize and cluster the rest of the data
 
-prepare_data <- function(df, is_normalized) {
+prepare_data <- function(df, is_normalized = FALSE) {
   
   # check if dataset is empty
   if (is.null(df) || nrow(df) == 0 || ncol(df) == 0) {
