@@ -10,6 +10,10 @@ normalization <- function(df, norm_method) {
   if (norm_method == 1) {
     
       df_log <- log2(df + 1)
+      
+      if(any(apply(df_log, 1, sd, na.rm=TRUE) == 0)){
+        warning("Fehler: Zeilen mit Standardabweichung 0 gefunden. Diese Normalisierungsmethode ist nicht passend.")
+      }
       df_norm <- t(scale(t(df_log)))
       return(df_norm)
   }
@@ -36,16 +40,6 @@ normalization <- function(df, norm_method) {
   
 #--------------  
   
-  #if (norm_method == 3) {
-
-  #    df_log <- log2(df + 1)
-  #    cor_mat <- cor(t(df_log))     #transpose the dataset so it works for rows instead of cols
-  #    dist_mat <- as.dist(1 - cor_mat)
-  #    return(dist_mat)
-  #}
-  # (4) correlation based method (very good for clustering)
-  # what it does:  measures similarities of patterns
-  # very good for: Gene-expression-clustering, often better than euclidian
 
   if (norm_method == 3) {
 
