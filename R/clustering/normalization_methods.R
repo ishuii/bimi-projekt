@@ -33,7 +33,7 @@ normalization <- function(df, norm_method) {
       return(log2(df + 1))
     
   }
-  # (3) just Log (if absolut differences are important)
+  # (2) just Log (if absolut differences are important)
   # works on each element of the dataset
   # only does transformation
   # disadvantage: genes with high variation dominate
@@ -59,7 +59,6 @@ normalization <- function(df, norm_method) {
   
 #--------------  
   
-  # logarithmn with mad(median absolut deviation)
   if (norm_method == 4) {
 
       df_log <- log2(df + 1)
@@ -68,8 +67,7 @@ normalization <- function(df, norm_method) {
       }))
       return(df_norm)
   }
-  # logarithmn with mad(median absolut deviation)
+  # (4) Log + mad(median absolut deviation)
   # Each gene (row) is centered on its median and normalized by a robust measure of spread (MAD)
-  
 }
 
