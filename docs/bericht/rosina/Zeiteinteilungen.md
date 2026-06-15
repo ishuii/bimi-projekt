@@ -17,5 +17,6 @@ normalisierungs-function:
 Testing:
 4 Stunden 
 
-
+Bericht:
+3 Stunden(gesucht wie man code referenziert und einfügt, immer noch nicht richtig )
 
