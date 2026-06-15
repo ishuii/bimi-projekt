@@ -1,5 +1,3 @@
-# data preparation
-# we only normalize and cluster the rest of the data
 
 prepare_data <- function(df, is_normalized = FALSE) {
   
@@ -14,7 +12,7 @@ prepare_data <- function(df, is_normalized = FALSE) {
   }
   if (is_normalized == FALSE) {
     
-    # prüfen, ob Werte kleiner als -1 vorhanden sind
+    # check if value is already normalized or not
     if (any(df < -1, na.rm = TRUE)) {
       stop(
           "Fehler: Der Datensatz enthält Werte kleiner als -1. 
