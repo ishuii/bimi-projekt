@@ -15,7 +15,7 @@ normalisierungs-function:
 30min - Alle Funktionen in eine zusammenfügen
 
 Testing:
-3 Stunden 
+4 Stunden 
 
 
 
