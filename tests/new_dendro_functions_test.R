@@ -5,8 +5,9 @@ library(distRcpp)
 
 df <- read.csv("data/TCGA_kidney_unnormalized_TOP10.csv", row.names = 1)
 source("R/clustering/normalization_methods.R")
+source("R/clustering/prepare_data.R")
 df           <- prepare_data(df)[[1]]
-df_normalized <- normalize_log_zscore(df)
+df_normalized <- normalization(df,1)
 df_small     <- df_normalized[, 1:250]
 df_small <- df_small[-nrow(df_small), ]
 

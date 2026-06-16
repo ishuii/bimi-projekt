@@ -10,6 +10,10 @@ normalization <- function(df, norm_method) {
   if (norm_method == 1) {
     
       df_log <- log2(df + 1)
+      
+      if(any(apply(df_log, 1, sd, na.rm=TRUE) == 0)){
+        warning("Fehler: Zeilen mit Standardabweichung 0 gefunden. Diese Normalisierungsmethode ist nicht passend.")
+      }
       df_norm <- t(scale(t(df_log)))
       return(df_norm)
   }
@@ -29,23 +33,13 @@ normalization <- function(df, norm_method) {
       return(log2(df + 1))
     
   }
-  # (3) just Log (if absolut differences are important)
+  # (2) just Log (if absolut differences are important)
   # works on each element of the dataset
   # only does transformation
   # disadvantage: genes with high variation dominate
   
 #--------------  
   
-  #if (norm_method == 3) {
-
-  #    df_log <- log2(df + 1)
-  #    cor_mat <- cor(t(df_log))     #transpose the dataset so it works for rows instead of cols
-  #    dist_mat <- as.dist(1 - cor_mat)
-  #    return(dist_mat)
-  #}
-  # (4) correlation based method (very good for clustering)
-  # what it does:  measures similarities of patterns
-  # very good for: Gene-expression-clustering, often better than euclidian
 
   if (norm_method == 3) {
 
@@ -65,7 +59,6 @@ normalization <- function(df, norm_method) {
   
 #--------------  
   
-  # logarithmn with mad(median absolut deviation)
   if (norm_method == 4) {
 
       df_log <- log2(df + 1)
@@ -74,8 +67,7 @@ normalization <- function(df, norm_method) {
       }))
       return(df_norm)
   }
-  # logarithmn with mad(median absolut deviation)
+  # (4) Log + mad(median absolut deviation)
   # Each gene (row) is centered on its median and normalized by a robust measure of spread (MAD)
-  
 }
 

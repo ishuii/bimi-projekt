@@ -1,96 +1,99 @@
-##### 
-# This script contains functions to:
-# 1. build a binary tree from a merge matrix
-# 2. extract the leaf order (order vector) from that tree
+#####===========================================================================
+# This script contains two functions to prepare the tree structure
+# needed for the dendrogram visualization.
 #
-# The order vector can later be used for dendrogram or heatmap alignment.
-#####
+# - build_tree()       : converts the clustering merge matrix into a binary tree
+# - get_order_vector() : extracts the leaf order from that tree (left to right)
+#####===========================================================================
 
-### This function builds a binary tree based on the merge steps ###
-build_tree <- function(mergematrix,height){         ##parameter mergematrix needs to be updated -> clust_object             
+
+#####===========================================================================
+#                         BUILD_TREE
+#
+# Takes the merge matrix from hierarchical clustering and converts it into
+# a nested binary tree. Each node stores its left/right children and the
+# height at which the merge happened. Leaves store their original observation ID.
+#####===========================================================================
+
+build_tree <- function(cluster_result) {
   
-  ### initialize a data structure to store nodes / subtrees
+  # extracting mergematrix from cluster result
+  mergematrix <- cluster_result$merge
+
+  # extracting height from cluster result
+  height <- cluster_result$matched_at
+  
+  # initializing list to store each node as the tree is built step by step
   nodes <- list()
   
-  ###   # iterate over each merge step (row of the merge matrix)
-  for (i in 1:nrow(mergematrix)){
+  for (i in 1:nrow(mergematrix)) {
     
-    # extract left and right indices for current merge
-    left_index  <- mergematrix[i,1]
-    right_index <- mergematrix[i,2]
+    left_index  <- mergematrix[i, 1]
+    right_index <- mergematrix[i, 2]
     
     ## --- LEFT NODE ---
-    # negative index → leaf node (original observation)
+    # negative index means this is a leaf (original observation)
     if (left_index < 0) {
-      
       left_node <- list(
-        left = NULL,
-        right = NULL,
+        left   = NULL,
+        right  = NULL,
         height = 0,
-        id = abs(left_index)    ###IDs of observation
+        id     = abs(left_index)
       )
-    } 
-    
-    # positive index → reference to a previously created node
-    else {
+    } else {
+      # positive index means this subtree was already built earlier
       left_node <- nodes[[left_index]]
     }
     
     ## --- RIGHT NODE ---
     if (right_index < 0) {
-      
-      # same logic as for left node: create leaf node
       right_node <- list(
-        left = NULL,
-        right = NULL,
+        left   = NULL,
+        right  = NULL,
         height = 0,
-        id = abs(right_index)
+        id     = abs(right_index)
       )
-    } 
-    
-    # reference existing subtree
-    else {
+    } else {
       right_node <- nodes[[right_index]]
     }
     
-    
-    ## --- CREATE NEW INTERNAL NODE ---
-    # combine left and right child into a new subtree
+    ## --- MERGE INTO NEW INTERNAL NODE ---
+    # internal nodes have no id 
     new_node <- list(
-      left = left_node,
-      right = right_node,
-      height=height[i],   
-      id=NULL 
+      left   = left_node,
+      right  = right_node,
+      height = height[i],
+      id     = NULL
     )
     
-    # store newly created node
     nodes[[i]] <- new_node
   }
   
-  # return root node (last merge step)
+  # returning root node => last merge step is always the root
   return(nodes[[nrow(mergematrix)]])
 }
 
-####This function extracts the order of leaf nodes from a binary tree that was built
-get_order_vector <- function(tree){
+
+#####===========================================================================
+#                         GET_ORDER_VECTOR
+#
+# Does an in-order traversal of the tree to collect the leaf IDs from
+# left to right. The resulting vector tells us in which order the observations
+# should appear on the x-axis of the dendrogram.
+#####===========================================================================
+
+get_order_vector <- function(tree) {
   
-  # Base case 1:
-  # if the node is NULL → nothing to return
-  if(is.null(tree)) return(NULL)
+  # no tree => nothing to return
+  if (is.null(tree)) return(NULL)
   
-  # Base case 2:
-  # if the node is a leaf → return its label
-  if(!is.null(tree$id)){
-    return(tree$id)
-  }
+  # leaf reached => this is the id we want, returning it
+  if (!is.null(tree$id)) return(tree$id)
   
-  # Recursive step:
-  # traverse left subtree first to preserve left-to-right order -> in order traversal   
+  # internal node => going left first to preserve left-to-right order, then right
   left_value  <- get_order_vector(tree$left)
-  
-  # Then recursively traverse right subtree
   right_value <- get_order_vector(tree$right)
   
-  # combine both results into final order vector
+  # combine left and right value
   return(c(left_value, right_value))
 }

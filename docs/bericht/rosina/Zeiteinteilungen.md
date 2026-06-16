@@ -15,7 +15,8 @@ normalisierungs-function:
 30min - Alle Funktionen in eine zusammenfügen
 
 Testing:
-3 Stunden 
+4 Stunden 
 
-
+Bericht:
+3 Stunden(gesucht wie man code referenziert und einfügt, immer noch nicht richtig )
 

@@ -1,7 +1,5 @@
-# data preparation
-# we only normalize and cluster the rest of the data
 
-prepare_data <- function(df) {
+prepare_data <- function(df, is_normalized = FALSE) {
   
   # check if dataset is empty
   if (is.null(df) || nrow(df) == 0 || ncol(df) == 0) {
@@ -11,6 +9,17 @@ prepare_data <- function(df) {
   # at least 2 rows necessary
   if (nrow(df) < 2) {
     stop("Fehler: Zu wenige Zeilen für Clustering.")
+  }
+  if (is_normalized == FALSE) {
+    
+    # check if value is already normalized or not
+    if (any(df < -1, na.rm = TRUE)) {
+      stop(
+          "Fehler: Der Datensatz enthält Werte kleiner als -1. 
+          Eine Normalisierung ist dadurch möglicherweise nicht sinnvoll. 
+          Prüfen Sie, ob der Datensatz bereits normalisiert oder anderweitig skaliert wurde."
+      )
+    }
   }
   
   # convert to matrix
