@@ -19,10 +19,13 @@ source("data/database_functions_v4.r")
 source("R/clustering/normalization_methods.R")
 source("R/clustering/prepare_data.R")
 source("R/clustering/hierarchical_clustering.R")
-source("R/visualization/tree_functions.R") 
-source("R/visualization/dendro_functions_V2.R") 
-source("R/visualization/dendro_functions.R")
+#source("R/visualization/tree_functions.R") 
+#source("R/visualization/dendro_functions_V2.R") 
+#source("R/visualization/dendro_functions.R")
 source("R/visualization/heatmap.R")
+source("R/visualization/final_dendrogram_functions.R")
+source("R/visualization/final_dendrogram.R")
+source("R/visualization/final_tree_functions.R")
 
 # ============================================================
 # DATENBANK und DATENSATZ
@@ -31,7 +34,7 @@ source("R/visualization/heatmap.R")
 con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 
 # Anmerkung: Datensatz immer unter data/... ablegen, damit dieser Aufruf für alle reproduzierbar ist!
-dataset_kidney_meta <- read.csv("data/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
+dataset_golub <- read.csv("data/GOLUB_microarray.csv", header = TRUE)
 
 # ============================================================
 # PATHWAYS und INTEGRATION
@@ -41,7 +44,7 @@ dataset_kidney_meta <- read.csv("data/TCGA_kidney_unnormalized_meta.csv", header
 meine_pathways <- c("Biosynthesis of amino acids")
 message("Nutze Pathway für den Nieren-Test: ", meine_pathways)
 
-preprocess        <- preprocess_general(dataset_kidney_meta)
+preprocess        <- preprocess_general(dataset_golub)
 data_preprocessed <- preprocess$dataset_preprocessed
 
 result <- run_data_integration(
@@ -82,18 +85,14 @@ cluster_genes  <- hierarchical_clustering(dist_mat_genes, "complete")
 # ============================================================
 
 # PATIENTEN
-tree_pat   <- build_tree(cluster_pat$merge, cluster_pat$matched_at)
+tree_pat   <- build_tree(cluster_pat)
 order_pat  <- get_order_vector(tree_pat)
-coords_pat <- calculate_coords(order_pat, cluster_pat$matched_at, tree_pat)
-
-plot_dendro_V2(coords_pat, tree_pat, order_pat, cluster_pat$matched_at, NULL, colnames(df_normalized), "Patienten")
+generate_dendro(cluster_pat, tree_pat, order_pat, title="Patienten", names_vector=NULL, class_labels=NULL)
 
 # GENE
-tree_genes   <- build_tree(cluster_genes$merge, cluster_genes$matched_at)
+tree_genes   <- build_tree(cluster_genes)
 order_genes  <- get_order_vector(tree_genes)
-coords_genes <- calculate_coords(order_genes, cluster_genes$matched_at, tree_genes)
-
-plot_dendro_V2(coords_genes, tree_genes, order_genes, cluster_genes$matched_at, NULL, rownames(df_normalized), "Gene")
+generate_dendro(cluster_genes, tree_genes, order_genes, title="Gene", names_vector=NULL, class_labels=NULL)
 
 # ============================================================
 # HEATMAP
