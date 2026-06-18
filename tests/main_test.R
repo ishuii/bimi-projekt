@@ -35,6 +35,7 @@ con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 
 # Anmerkung: Datensatz immer unter data/... ablegen, damit dieser Aufruf für alle reproduzierbar ist!
 dataset_golub <- read.csv("data/GOLUB_microarray.csv", header = TRUE)
+dataset_kidney <- read.csv("data/TCGA_kidney_unnormalized_meta.csv")
 
 # ============================================================
 # PATHWAYS und INTEGRATION
@@ -44,7 +45,7 @@ dataset_golub <- read.csv("data/GOLUB_microarray.csv", header = TRUE)
 meine_pathways <- c("Biosynthesis of amino acids")
 message("Nutze Pathway für den Nieren-Test: ", meine_pathways)
 
-preprocess        <- preprocess_general(dataset_golub)
+preprocess        <- preprocess_general(dataset_kidney)
 data_preprocessed <- preprocess$dataset_preprocessed
 
 result <- run_data_integration(
@@ -87,7 +88,7 @@ cluster_genes  <- hierarchical_clustering(dist_mat_genes, "complete")
 # PATIENTEN
 tree_pat   <- build_tree(cluster_pat)
 order_pat  <- get_order_vector(tree_pat)
-generate_dendro(cluster_pat, tree_pat, order_pat, title="Patienten", names_vector=NULL, class_labels=NULL)
+generate_dendro(cluster_pat, tree_pat, order_pat, title="Patienten", names_vector=patient_names, class_labels=class_labels)
 
 # GENE
 tree_genes   <- build_tree(cluster_genes)
