@@ -12,10 +12,8 @@ library(bsicons)
 library(shinyBS)
 library(RSQLite)
 library(DBI)
+library(plotly)
 
-source("R/clustering/single_linkage.R")
-source("R/clustering/average_linkage.R")
-source("R/clustering/complete_linkage.R")
 source("R/clustering/normalization_methods.R")
 source("data/database_functions_v4.r")
 source("R/clustering/hierarchical_clustering.R")
@@ -27,7 +25,7 @@ if(interactive()){
   
   
   ui <- dashboardPage(
-    dashboardHeader(title = "GenexCluster"),
+    dashboardHeader(title = "ClusterIt!"),
     
     dashboardSidebar(
       width = 350,
@@ -35,7 +33,7 @@ if(interactive()){
                   menuItem("Startseite", tabName = "Startseite", icon = icon("home")),
                   menuItem("Datei Hochladen", icon = icon("upload"), tabName = "datei_hochladen"),
                   menuItem("Parametern Wählen", icon = icon("sliders"), tabName = "parameter"),
-                  menuItem("Heatmap", tabName = "heatmap"),
+                  menuItem("Visualisierung", tabName = "heatmap"),
                   
                   conditionalPanel(
                     condition = 'input.tabs == "heatmap"',
@@ -160,22 +158,22 @@ if(interactive()){
         tags$style(HTML("
       /* Main header */
       .main-header .logo {
-        background-color: #ECECEC !important;
+        background-color: #D1D1D1 !important;
         color: #000000 !important;
       }
       
       .main-header .logo:hover {
-      background-color: #ECECEC !important;
+      background-color: #FFFFFF !important;
       color: black !important;
     }
 
       .main-header .navbar {
-        background-color: #ECECEC !important;
+        background-color: #D1D1D1 !important;
       }
 
       /* Sidebar */
       .main-sidebar {
-        background-color: #ECECEC !important;
+        background-color: #D1D1D1 !important;
       }
       
       /* All sidebar text */
@@ -221,14 +219,14 @@ if(interactive()){
     
     /* Overrides SUCCESS box header */
     .box.box-success > .box-header {
-      background-color: #FBEEB9 !important;
+      background-color: #FEFAEC !important;
       color: black !important;
       border-bottom: none;
     }
     
     /* Overrides PRIMARY box header */
     .box.box-primary > .box-header {
-      background-color: #FBEEB9 !important;
+      background-color: #FEFAEC !important;
       color: black !important;
       border-bottom: none;
     }
@@ -341,7 +339,6 @@ if(interactive()){
                     ),
                     
                     
-                    
                     radioButtons(inputId = "farbpaletten", label = "Farbpalette für Heatmaps auswählen", 
                                  choiceNames = list(
                                    
@@ -443,8 +440,12 @@ if(interactive()){
         
         
         tabItem(tabName = "heatmap",
-                h2("Heatmap"),
-                plotOutput("HeatmapPlot"),
+                h2("Visualisierung"),
+                
+                plotlyOutput("patientDendrogram"),
+                plotlyOutput("geneDendrogram"),
+                
+                
                 verbatimTextOutput("debug_matrix"),
                 
                 
@@ -465,7 +466,7 @@ if(interactive()){
                 
                 actionButton('back', 'zurück zum Parametern wählen'),
                 conditionalPanel(condition = "input.distanzmatrix == 'Minkowski-Distanz'",
-                                 )
+                )
         )
         
       )       
@@ -474,10 +475,12 @@ if(interactive()){
   )
   
   
-  
+  # ------------------------------------------------------------------------------------------------
   server <- function(input, output, session) {
     
     cluster_result <- reactiveVal(NULL)
+    
+    cluster_bundle <- reactiveVal(NULL)
     
     d_mat_result <- reactiveVal(NULL)
     
@@ -485,13 +488,30 @@ if(interactive()){
     
     coverage_result <- reactiveVal(NULL)
     
-    dendrogram_result <- reactiveVal(NULL)
+    tree_patient <- reactiveVal(NULL)
+    order_patient <- reactiveVal(NULL)
+    cluster_patient <- reactiveVal(NULL)
+    
+    tree_gene <- reactiveVal(NULL)
+    order_gene <- reactiveVal(NULL)
+    cluster_gene <- reactiveVal(NULL)
+    
+    clust_config <- reactiveValues(
+      method = "Single-Linkage",
+      normalisation = "normalize_log_zscore",
+      distance = "Euklidische Distanz",
+      alpha_a = 0.5,
+      alpha_b = 0.5,
+      beta = 0,
+      gamma = 0,
+      minkowski_p = 1
+    )
     
     output$Beispieltext <- renderText({
       paste("Deine Datei:", input$x)
     })
     preset_values <- reactiveVal(list()) #Create reactive variable list
-    options(shiny.maxRequestSize = 100 * 1024^2)
+    options(shiny.maxRequestSize = 300 * 1024^2)
     # CSV IMPORT BACKEND
     daten_original <- reactiveVal(NULL)
     
@@ -503,14 +523,24 @@ if(interactive()){
       
       req(input$Datei_csv)
       
-      df <- read.csv(
+      df <- read.table(
         input$Datei_csv$datapath,
         header = TRUE,
         stringsAsFactors = FALSE,
-        na.strings = c("", " ", "NA", "NaN", "NULL", "N/A")
+        sep = ",",
+        dec = ".",
+        quote = "\"",
+        na.strings = c("", " ", "NA", "NaN", "NULL", "N/A"),
+        colClasses = NA
       )
-      df[df == ""] <- NA
+      #      df[df == ""] <- NA
       
+      df <- as.data.frame(lapply(df, function(col){
+        converted <- suppressWarnings(as.numeric(as.character(col)))
+        na_before <- sum(is.na(col))
+        na_after <- sum(is.na(converted))
+        if(na_after <= na_before + 0.5 * length(col)) converted else col
+      }))
       
       na_gesamt <- sum(is.na(df))
       
@@ -798,120 +828,202 @@ if(interactive()){
       updateTabItems(session, "tabs", selected = "parameter")
     })
     
-    run_analysis <- function(){    
+    observeEvent(input$clusterverfahren, {
+      clust_config$method <- input$clusterverfahren
+    })
+    
+    observeEvent(input$distanzmatrix, {
+      clust_config$distance <- input$distanzmatrix
+    })
+    
+    observeEvent(input$normalisierung, {
+      clust_config$normalisation <- input$normalisierung
+    })
+    
+    
+    observeEvent(input$clusterverfahren_sidebar, {
+      clust_config$method <- input$clusterverfahren_sidebar
+    })
+    
+    observeEvent(input$distanzmatrix_sidebar, {
+      clust_config$distance <- input$distanzmatrix_sidebar
+    })
+    
+    observeEvent(input$normalisierung_sidebar, {
+      clust_config$normalisation <- input$normalisierung_sidebar
+    })
+    
+    observeEvent(input$alpha_a, {
+      clust_config$alpha_a <- input$alpha_a
+    })
+    
+    observeEvent(input$alpha_b, {
+      clust_config$alpha_b <- input$alpha_b
+    })
+    
+    observeEvent(input$beta, {
+      clust_config$beta <- input$beta
+    })
+    
+    observeEvent(input$gamma, {
+      clust_config$gamma <- input$gamma
+    })
+    
+    
+    observe({
+      updateSelectInput(session, "clusterverfahren",
+                        selected = clust_config$method)
       
-      req(daten())
-      req(input$distanzmatrix)
-      req(input$clusterverfahren)
+      updateSelectInput(session, "clusterverfahren_sidebar",
+                        selected = clust_config$method)
       
-      #calls the updated data
-      data <- daten()
+      updateSelectInput(session, "distanzmatrix",
+                        selected = clust_config$distance)
       
-      #keep numeric only
-      data <- data[sapply(data, is.numeric)]
+      updateSelectInput(session, "distanzmatrix_sidebar",
+                        selected = clust_config$distance)
       
-      #prevents empty numeric matrix crash
-      req(ncol(data) > 0)
+      updateSelectInput(session, "normalisierung",
+                        selected = clust_config$normalisation)
       
-      #placeholder normalization
-      df_normalized <- data
+      updateSelectInput(session, "normalisierung_sidebar",
+                        selected = clust_config$normalisation)
+    })
+    
+    run_analysis <- function(){   
       
-      #transpose
-      data_t <- t(df_normalized)
+      cat("Analysis started\n")
       
-      #user's distance matrix choice
-      method <- switch (input$distanzmatrix,
-                        "Euklidische Distanz" = "euclidean",
-                        "Manhattan-Distanz" = "manhattan",
-                        "Minkowski-Distanz" = "minkowski",
-                        "Canberra-Distanz" = "canberra",
-                        "Pearson-Distanz" = "pearson",
-                        "Winkeldistanz (Angular Seperation)" = "angular"
-      )
-      
-      req(method != "")
-      
-      #calling distanz matrix function
-      d_mat <- dist_cpp(data_t, method = method)
+      tryCatch({
         
-      d_mat_result(d_mat)
-      
-      #user's cluster choices selected
-      if(input$clusterverfahren == "Single-Linkage"){
-        result <- single_linkage(d_mat)
-      }
-      
-      if(input$clusterverfahren == "Average-Linkage"){
-        result <- average_linkage(d_mat)
-      }
-      
-      if(input$clusterverfahren == "Complete-Linkage"){
-        result <- complete_linkage(d_mat)
-      }
-      
-      #store the results
-      cluster_result(result)
-      
-      
-      if(input$clusterverfahren == "Custom-Linkage"){
-        custom_params <- list(
-          alpha_a = input$alpha_a,
-          alpha_b = input$alpha_b,
-          beta = input$beta,
-          gamma = input$gamma
+        req(daten())
+        req(clust_config$distance)
+        req(clust_config$method)
+        req(clust_config$normalisation)
+        
+        #calls the updated data
+        data <- daten()
+        cat("data dims:", nrow(data), ncol(data), "\n")
+        
+        data <- daten()
+        cat("data dims:", nrow(data), ncol(data), "\n")
+        cat("column names:", paste(names(data), collapse=", "), "\n")  # <- ADD THIS
+        cat("column types:", paste(sapply(data, class), collapse=", "), "\n")  # <- AND THIS
+        
+        #filters rows by selected pathways
+        selected_pathways <- input$pathways
+        if(!is.null(selected_pathways)&&length(selected_pathways)>0){
+          gene_ids <- get_geneIDS_for_pathways(chosen_pathways = selected_pathways,con=con)
+          cat("Gene IDs found:", length(gene_ids), "\n")
+          data <- extract_relevant_genes(extracted_genes = gene_ids, original_data = data)
+          cat("Rows after pathways filter:", nrow(data), "\n")
+        }
+        
+        #keep numeric only
+        data <- data[sapply(data, is.numeric)]
+        cat("numeric cols:", ncol(data), "\n")
+        
+        #prevents empty numeric matrix crash
+        req(ncol(data) > 0)
+        cat("ncol check OK\n")
+        
+        #placeholder normalization
+        df_normalized <- switch(clust_config$normalisation,
+                                "normalize_log_zscore" = normalization(data, 1),
+                                "normalize_log_only" = normalization(data,2), 
+                                "normalize_log_median_centering" = normalization(data, 3), 
+                                "normalize_log_mad" = normalization(data,4),
+                                data
         )
         
-        result_custom <- hierarchical_clustering(
-          d_mat,
-          method = "custom",
-          custom_params = custom_params
+        cat("normalisation OK, dims:", nrow(df_normalized), ncol(df_normalized), "\n")
+        
+        method <- switch(clust_config$distance,
+                         "Euklidische Distanz" = "euclidean",
+                         "Manhattan-Distanz" = "manhattan",
+                         "Minkowski-Distanz" = "minkowski",
+                         "Canberra-Distanz" = "canberra",
+                         "Pearson-Distanz" = "pearson",
+                         "Winkeldistanz (Angular Seperation)" = "angular"
         )
-      }else{
-        method_name <- switch (input$clusterverfahren,
+        
+        cat("distance method String:", method, "\n")
+        
+        
+        method_name <- switch (clust_config$method,
                                "Single-Linkage" = "single",
                                "Average-Linkage" = "average",
-                               "Complete-Linkage" = "complete"
+                               "Complete-Linkage" = "complete",
+                               "Custom-Linkage" = "custom"
         )
         
-        result_method <- hierarchical_clustering(
-          d_mat,
-          method = method_name
-        )
-      }
-      
-      if(input$clusterverfahren_sidebar == "Custom-Linkage"){
-        custom_params <- list(
-          alpha_a = input$alpha_a,
-          alpha_b = input$alpha_b,
-          beta = input$beta,
-          gamma = input$gamma
-        )
+        cat("cluster method string:", method_name, "\n")
         
-        result_custom <- hierarchical_clustering(
-          d_mat,
-          method = "custom",
+        custom_params <- if(method_name == "custom"){
+          list(
+            alpha_a = clust_config$alpha_a,
+            alpha_b = clust_config$alpha_b,
+            beta = clust_config$beta,
+            gamma = clust_config$gamma
+          )
+        } else NULL
+        
+        
+        #---------------------Patient data ------------------------
+        data_pat <- t(df_normalized)
+        
+        #calling distanz matrix function
+        d_pat <- dist_cpp(data_pat, method = method)
+        
+        cluster_pat <- hierarchical_clustering(
+          d_pat,
+          method = method_name,
           custom_params = custom_params
         )
-      }else{
-        method_name <- switch (input$clusterverfahren_sidebar,
-                               "Single-Linkage" = "single",
-                               "Average-Linkage" = "average",
-                               "Complete-Linkage" = "complete"
+        
+        tree_pat <- build_tree(cluster_pat)
+        order_pat <- get_order_vector(tree_pat)
+        
+        
+        #------------------Gene data ------------------------------
+        
+        data_gene <- df_normalized
+        
+        d_gene <- dist_cpp(data_gene, method = method)
+        
+        cluster_genes <- hierarchical_clustering(
+          d_gene,
+          method = method_name,
+          custom_params = custom_params
         )
         
-        result_method <- hierarchical_clustering(
-          d_mat,
-          method = method_name
-        )
-      }
-      
-      dendro <- generate_dendro(result)
-      
-      
-      updateTabItems(session, "tabs", selected = "heatmap")
-     
-      print(dim(data))
-      print(method) 
+        tree_genes <- build_tree(cluster_genes)
+        order_genes <- get_order_vector(tree_genes)
+        
+        #---------------------------------------------------------
+        
+        
+        cluster_patient(cluster_pat)
+        tree_patient(tree_pat)
+        order_patient(order_pat)
+        
+        cluster_gene(cluster_genes)
+        tree_gene(tree_genes)
+        order_gene(order_genes)
+        
+        shinyjs::delay(100, {
+          updateTabItems(session, "tabs", selected = "heatmap")
+        })
+        
+        cat("tab switch triggered\n")
+        
+      }, error = function(e){
+        
+        cat("\n=== ERROR after step above ===\n")
+        cat("Message:", conditionMessage(e), "\n")
+        print(traceback())
+        cat("====================\n")
+      })
     }
     
     observeEvent(input$run, {
@@ -990,12 +1102,12 @@ if(interactive()){
       
     })
     
-    output$HeatmapPlot <- renderPlot({
-      req(d_mat_result())
-      print(dim(d_mat_result())) #Debug
-      generate_heatmap(d_mat_result())
-      
-    })
+    #    output$HeatmapPlot <- renderPlot({
+    #      req(d_mat_result())
+    #      print(dim(d_mat_result())) #Debug
+    #      generate_heatmap(d_mat_result())
+    
+    #    })
     
     observe({
       
@@ -1056,6 +1168,8 @@ if(interactive()){
     observeEvent(input$back, {
       updateTabItems(session, "tabs", selected = "parameter")
     })  
+    
+    con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
     
     
     observe({
@@ -1128,7 +1242,7 @@ if(interactive()){
       }
       
       
-        TRUE && mink_valid
+      TRUE && mink_valid
     })
     
     observe({
@@ -1139,11 +1253,6 @@ if(interactive()){
         shinyjs::disable("run")
       }
     })
-    
-    observeEvent(input$run, {
-      print("RUN CLICKED")
-    })
-    
     
     observeEvent(input$analyze_pathways, {
       cov_matrix <- analyze_pathways_coverage(
@@ -1184,11 +1293,36 @@ if(interactive()){
       updateTabItems(
         session,
         "tabs",
-        selected = "paramter"
+        selected = "parameter"
       )
     })
-
-   
+    
+    
+    output$patientDendrogram <- renderPlotly({
+      
+      req(cluster_patient())
+      req(tree_patient())
+      req(order_patient())
+      
+      p <- generate_dendro(cluster_patient(), tree_patient(), order_patient(), title = "Patienten", names_vector = NULL, class_labels = NULL)
+      
+      ggplotly(p) 
+    })
+    
+    
+    output$geneDendrogram <- renderPlotly({
+      
+      req(cluster_gene())
+      req(tree_gene())
+      req(order_gene())
+      
+      p <- generate_dendro(cluster_gene(), tree_gene(), order_gene(), title = "Gene", names_vector = NULL, class_labels = NULL)
+      
+      ggplotly(p) 
+    })
+    
+    
+    
   }  
   shinyApp(ui, server)
 }
