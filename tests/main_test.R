@@ -42,10 +42,10 @@ dataset_kidney <- read.csv("data/TCGA_kidney_unnormalized_meta.csv")
 # ============================================================
 
 # diese Auswahl ist hier hart codiert, wird normalerweise in der GUI ausgewählt
-meine_pathways <- c("Biosynthesis of amino acids")
+meine_pathways <- c("Pathways in cancer")
 message("Nutze Pathway für den Nieren-Test: ", meine_pathways)
 
-preprocess        <- preprocess_general(dataset_kidney)
+preprocess        <- preprocess_general(dataset_golub)
 data_preprocessed <- preprocess$dataset_preprocessed
 
 result <- run_data_integration(
@@ -57,7 +57,7 @@ result <- run_data_integration(
 gefilteterDatensatz <- result$filtered_dataset
 metaDaten_gefiltert <- result$meta_data
 
-dbDisconnect(con)
+# dbDisconnect(con)
 
 # ============================================================
 # PREPARE DATA UND NORMALISIERUNG
