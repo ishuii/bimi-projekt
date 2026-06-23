@@ -22,7 +22,6 @@ source("R/clustering/hierarchical_clustering.R")
 source("R/visualization/final_dendrogram.R") # Sourcing this file is enough => final_dendrogram.R loads all dependencies
 source("R/visualization/heatmap.R")
 
-
 # ============================================================
 # DATABASE AND DATASET
 # ============================================================
@@ -30,8 +29,7 @@ source("R/visualization/heatmap.R")
 con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 
 # dataset always placed under data/ so this path works for everyone
-dataset_kidney_meta <- read.csv("data/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
-
+dataset_kidney_meta <- read.csv("data/GOLUB_microarray.csv", header = TRUE)
 
 # ============================================================
 # PATHWAY SELECTION AND DATA INTEGRATION
@@ -39,7 +37,7 @@ dataset_kidney_meta <- read.csv("data/TCGA_kidney_unnormalized_meta.csv", header
 
 # hardcoded here for testing — normally selected via the GUI
 meine_pathways <- c("Biosynthesis of amino acids")
-message("Using pathway for kidney test: ", meine_pathways)
+message("Using pathway for kidney test: ", NULL)
 
 preprocess        <- preprocess_general(dataset_kidney_meta)
 data_preprocessed <- preprocess$dataset_preprocessed
@@ -74,13 +72,13 @@ class_labels  <- as.character(result$meta_data["Meta_labels", ])
 # DISTANCE MATRICES AND CLUSTERING
 # ============================================================
 
-# patients — transposed so columns (patients) are clustered
+# patients transposed so columns (patients) are clustered
 dist_mat_pat <- dist_cpp(t(df_normalized), "euclidean")
-cluster_pat  <- hierarchical_clustering(dist_mat_pat, "complete")
+cluster_pat  <- hierarchical_clustering(dist_mat_pat, "average")
 
 # genes
 dist_mat_genes <- dist_cpp(df_normalized, "euclidean")
-cluster_genes  <- hierarchical_clustering(dist_mat_genes, "complete")
+cluster_genes  <- hierarchical_clustering(dist_mat_genes, "average")
 
 
 # ============================================================
@@ -96,27 +94,28 @@ order_patienten <- get_order_vector(baum_patienten)
 baum_gene  <- build_tree(cluster_genes)
 order_gene <- get_order_vector(baum_gene)
 
-
 # ============================================================
 # DENDROGRAMS
 # ============================================================
 
 # patients — colored by class labels, legend shown
-generate_dendro(
+print(generate_dendro(
   cluster_result = cluster_pat,
   tree_result    = baum_patienten,
   order_vector   = order_patienten,
   title          = "TCGA Kidney Cancer: Patient Clustering",
   names_vector   = patient_names,
-  class_labels   = class_labels
-)
+  class_labels   = class_labels,
+  palette = "viridis"
+))
 
 # genes — no class labels, everything black, no legend
-generate_dendro(
+print(generate_dendro(
   cluster_result = cluster_genes,
   tree_result    = baum_gene,
   order_vector   = order_gene,
   title          = "TCGA Kidney Cancer: Gene Clustering",
   names_vector   = gene_names,
   class_labels   = NULL
-)
+))
+

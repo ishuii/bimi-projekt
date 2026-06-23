@@ -8,7 +8,6 @@
 
 library(ggplot2)
 
-
 #####===========================================================================
 #                         CALCULATE_COORDS
 #
@@ -127,7 +126,7 @@ draw_segments <- function(node_coords, tree, order, height, class_labels) {
 # The legend is only shown when class labels were provided.
 #####===========================================================================
 
-plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_vector=NULL, show_legend=TRUE) {
+plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_vector=NULL) {
   
   # unpacking segments and labels from draw_segments output
   segments_df <- draw_result$segments
@@ -160,13 +159,16 @@ plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_v
     geom_segment(data = segments_df, aes(x=x0, y=y0, xend=x1, yend=y1, color=class)) +
     
     # layer 2: drawing leaf labels rotated 90 degrees, colored by class
-    geom_text(data = labels_df, aes(x=x, y=y, label=label, color=class), angle=90, hjust=1, size=2.5) +
+    # suppressing legend glyph => geom_text würde sonst ein "a" in der Legende erzeugen
+    geom_text(data = labels_df, aes(x=x, y=y, label=label, color=class),
+              angle=90, hjust=1, size=2, show.legend=FALSE) +
     
     # layer 3: applying the color palette to both segments and labels
     scale_color_manual(values = palette) +
     
-    # layer 4: setting y range — leaving enough space below for the rotated labels
-    ylim(c(-8, max_height)) +
+    # layer 4: setting y range => leaving enough space below for the rotated labels
+    scale_y_continuous(limits = c(-8, max_height), 
+                       breaks = seq(0, max_height, by = 5)) +
     labs(y = "Distance", x = "") +
     ggtitle(title) +
     
@@ -176,7 +178,8 @@ plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_v
       panel.grid   = element_blank(),
       axis.line    = element_blank(),
       axis.ticks.x = element_blank(),
-      axis.text.x  = element_blank()
+      axis.text.x  = element_blank(),
+      axis.ticks.y = element_blank()
     )
   
   # legend logic

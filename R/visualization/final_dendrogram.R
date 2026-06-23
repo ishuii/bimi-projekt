@@ -20,7 +20,7 @@ source("R/visualization/final_dendrogram_functions.R")
 #####===========================================================================
 
 generate_dendro <- function(cluster_result, tree_result, order_vector,
-                            title="", names_vector=NULL, class_labels=NULL) {
+                            title="", names_vector=NULL, class_labels=NULL, palette = NULL, save_path = NULL) {
 
     # extracting merge heights from cluster result — needed for coordinate calculation
     cluster_height <- cluster_result$matched_at
@@ -29,20 +29,43 @@ generate_dendro <- function(cluster_result, tree_result, order_vector,
     show_legend <- !is.null(class_labels)
     
     # building color palette from the detected classes
+    
+    color_vector = NULL
     # if no class labels given, the black fallback is handled in plot_dendro
-    built_palette <- NULL
-    if (!is.null(class_labels)) {
+    if (!is.null(class_labels)){
+      
       detected_classes <- unique(class_labels)
       detected_classes <- detected_classes[!is.na(detected_classes) & detected_classes != ""]
+      n <- length(detected_classes)
       default_colors   <- c("cyan", "orange", "purple", "green", "pink", "yellow", "blue", "red")
       
-      # using rainbow as fallback if there are more classes than default colors
-      colors           <- if (length(detected_classes) <= length(default_colors)) {
-        default_colors[1:length(detected_classes)]
-      } else {
-        rainbow(length(detected_classes))
+      # if palette is given => get color vectors
+      
+      if(!is.null(palette)){
+      colors <- switch(
+        palette,"viridis" = viridis::viridis(n,end = 0.8),
+        "RdYlBu"  = brewer.pal(n, "RdYlBu"),
+        "RdBu"    = brewer.pal(n, "RdBu"),
+        "PRGn"    = brewer.pal(n, "PRGn"),
+        {
+          # if given String doesn't match => warning + use default_colors
+          warning(paste("Unbekannte Palette:", palette, "-> verwende Standardfarben"))
+          default_colors[1:n]
+          }
+      )
       }
-      built_palette <- c(setNames(colors, detected_classes), "Default" = "gray")
+      
+      # if no palette is given => fallback using default colors
+      else {
+        
+        # fallback if more classlabels are detected, then available default colors
+        if (n <= length(default_colors)) {
+          colors <- default_colors[1:n]
+        }
+        else
+          colors <- rainbow(length(detected_classes))
+      }
+      color_vector <- c(setNames(colors, detected_classes), "Default" = "black") 
     }
     
     # calculating root coordinates and collecting all segments and leaf metadata
@@ -61,11 +84,14 @@ generate_dendro <- function(cluster_result, tree_result, order_vector,
       draw_result  = draw_result,
       max_height   = max(cluster_height),
       title        = title,
-      palette      = built_palette,
+      palette      = color_vector,
       names_vector = names_vector,
       show_legend  = show_legend
     )
     
-    print(final_plot)
+    if (!is.null(save_path)) {
+      ggsave(save_path, plot = final_plot, width = 40, height = 10)
+    }
+    
     return(final_plot)
   }
