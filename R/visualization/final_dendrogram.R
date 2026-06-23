@@ -20,7 +20,7 @@ source("R/visualization/final_dendrogram_functions.R")
 #####===========================================================================
 
 generate_dendro <- function(cluster_result, tree_result, order_vector,
-                            title="", names_vector=NULL, class_labels=NULL, palette = NULL, save_path = NULL) {
+                            title="", names_vector=NULL, class_labels=NULL, palette = NULL) {
 
     # extracting merge heights from cluster result — needed for coordinate calculation
     cluster_height <- cluster_result$matched_at
@@ -88,10 +88,6 @@ generate_dendro <- function(cluster_result, tree_result, order_vector,
       names_vector = names_vector,
       show_legend  = show_legend
     )
-    
-    if (!is.null(save_path)) {
-      ggsave(save_path, plot = final_plot, width = 40, height = 10)
-    }
     
     return(final_plot)
   }
