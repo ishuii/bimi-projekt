@@ -126,7 +126,7 @@ draw_segments <- function(node_coords, tree, order, height, class_labels) {
 # The legend is only shown when class labels were provided.
 #####===========================================================================
 
-plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_vector=NULL) {
+plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_vector=NULL, show_legend=FALSE) {
   
   # unpacking segments and labels from draw_segments output
   segments_df <- draw_result$segments
@@ -164,7 +164,7 @@ plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_v
               angle=90, hjust=1, size=2, show.legend=FALSE) +
     
     # layer 3: applying the color palette to both segments and labels
-    scale_color_manual(values = palette) +
+    scale_color_manual(values = palette, breaks = names(palette)[names(palette) != "Default"]) +
     
     # layer 4: setting y range => leaving enough space below for the rotated labels
     scale_y_continuous(limits = c(-8, max_height), 

@@ -20,7 +20,7 @@ source("R/clustering/normalization_methods.R")
 source("R/clustering/prepare_data.R")
 source("R/clustering/hierarchical_clustering.R")
 source("R/visualization/final_dendrogram.R") # Sourcing this file is enough => final_dendrogram.R loads all dependencies
-source("R/visualization/heatmap.R")
+
 
 # ============================================================
 # DATABASE AND DATASET
