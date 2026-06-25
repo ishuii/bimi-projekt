@@ -126,7 +126,7 @@ draw_segments <- function(node_coords, tree, order, height, class_labels) {
 # The legend is only shown when class labels were provided.
 #####===========================================================================
 
-plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_vector=NULL, show_legend=FALSE) {
+plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_vector=NULL, show_legend=FALSE, show_x_axis=TRUE, show_y_axis=TRUE) {
   
   # unpacking segments and labels from draw_segments output
   segments_df <- draw_result$segments
@@ -152,27 +152,22 @@ plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_v
     palette <- setNames(rep("black", length(all_classes)), all_classes)
   }
   
-  # generate the empty plot and build layer by layer 
+  # generate the empty plot and build layer by layer
   plot <- ggplot() +
     
     # layer 1: drawing all branch segments, colored by class
     geom_segment(data = segments_df, aes(x=x0, y=y0, xend=x1, yend=y1, color=class)) +
     
-    # layer 2: drawing leaf labels rotated 90 degrees, colored by class
-    # suppressing legend glyph => geom_text würde sonst ein "a" in der Legende erzeugen
-    geom_text(data = labels_df, aes(x=x, y=y, label=label, color=class),
-              angle=90, hjust=1, size=2, show.legend=FALSE) +
-    
-    # layer 3: applying the color palette to both segments and labels
+    # layer 2: applying the color palette to both segments and labels
     scale_color_manual(values = palette, breaks = names(palette)[names(palette) != "Default"]) +
     
-    # layer 4: setting y range => leaving enough space below for the rotated labels
-    scale_y_continuous(limits = c(-8, max_height), 
+    # layer 3: setting y range => leaving enough space below for the rotated labels
+    scale_y_continuous(limits = c(-8, max_height),
                        breaks = seq(0, max_height, by = 5)) +
     labs(y = "Distance", x = "") +
     ggtitle(title) +
     
-    # layer 5: clean white background, removing grid, axis lines and x ticks
+    # layer 4: clean white background, removing grid, axis lines and x ticks
     theme_classic() +
     theme(
       panel.grid   = element_blank(),
@@ -182,9 +177,17 @@ plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_v
       axis.ticks.y = element_blank()
     )
   
-  # legend logic
+  # geom_text always renders an "a" glyph into the legend — suppressed unconditionally
+  if (show_x_axis) {
+    plot <- plot + geom_text(data = labels_df, aes(x=x, y=y, label=label, color=class),
+                             angle=90, hjust=1, size=2, show.legend=FALSE)
+  }
+  
   if (!show_legend) {
     plot <- plot + theme(legend.position = "none")
+  }
+  if (!show_y_axis) {
+    plot <- plot + theme(axis.text.y = element_blank(), axis.title.y = element_blank())
   }
   
   return(plot)
