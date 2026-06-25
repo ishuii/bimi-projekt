@@ -488,9 +488,12 @@ if(interactive()){
     
     coverage_result <- reactiveVal(NULL)
     
+    
     tree_patient <- reactiveVal(NULL)
     order_patient <- reactiveVal(NULL)
     cluster_patient <- reactiveVal(NULL)
+    patient_names <- reactiveVal(NULL)
+    class_labels <- reactiveVal(NULL)
     
     tree_gene <- reactiveVal(NULL)
     order_gene <- reactiveVal(NULL)
@@ -535,12 +538,16 @@ if(interactive()){
       )
       #      df[df == ""] <- NA
       
-      df <- as.data.frame(lapply(df, function(col){
+      gene_id_col <- as.character(df[,1])
+      
+      df_rest <- as.data.frame(lapply(df[,-1], function(col){
         converted <- suppressWarnings(as.numeric(as.character(col)))
         na_before <- sum(is.na(col))
         na_after <- sum(is.na(converted))
         if(na_after <= na_before + 0.5 * length(col)) converted else col
       }))
+      
+      df <- cbind(setNames(data.frame(gene_id_col), names(df)[1]), df_rest)
       
       na_gesamt <- sum(is.na(df))
       
@@ -905,38 +912,68 @@ if(interactive()){
         data <- daten()
         cat("data dims:", nrow(data), ncol(data), "\n")
         
-        data <- daten()
-        cat("data dims:", nrow(data), ncol(data), "\n")
-        cat("column names:", paste(names(data), collapse=", "), "\n")  # <- ADD THIS
-        cat("column types:", paste(sapply(data, class), collapse=", "), "\n")  # <- AND THIS
+        cat("Your data first column sample:\n")
+        print(head(data[,1]))
+        cat("Your data first column class:", class(data[,1]), "\n")
         
         #filters rows by selected pathways
         selected_pathways <- input$pathways
-        if(!is.null(selected_pathways)&&length(selected_pathways)>0){
-          gene_ids <- get_geneIDS_for_pathways(chosen_pathways = selected_pathways,con=con)
-          cat("Gene IDs found:", length(gene_ids), "\n")
-          data <- extract_relevant_genes(extracted_genes = gene_ids, original_data = data)
-          cat("Rows after pathways filter:", nrow(data), "\n")
-        }
+        req(selected_pathways)
+        req(length(selected_pathways)>0)
         
         #keep numeric only
-        data <- data[sapply(data, is.numeric)]
-        cat("numeric cols:", ncol(data), "\n")
+#        data <- data[sapply(data, is.numeric)]
+#        cat("numeric cols:", ncol(data), "\n")
         
         #prevents empty numeric matrix crash
-        req(ncol(data) > 0)
-        cat("ncol check OK\n")
+#        req(ncol(data) > 0)
+#        cat("ncol check OK\n")
         
-        #placeholder normalization
-        df_normalized <- switch(clust_config$normalisation,
-                                "normalize_log_zscore" = normalization(data, 1),
-                                "normalize_log_only" = normalization(data,2), 
-                                "normalize_log_median_centering" = normalization(data, 3), 
-                                "normalize_log_mad" = normalization(data,4),
-                                data
+        #------------------ PREPROCESS + INTEGRATION OF DATA -------------------
+        
+        preprocess <- preprocess_general(data)
+        data_preprocessed <- preprocess$dataset_preprocessed
+        cat("Preprocessed dims:", nrow(data_preprocessed), ncol(data_preprocessed), "\n")
+        
+        result <- run_data_integration(
+          dataset = data_preprocessed,
+          chosen_pathways = selected_pathways,
+          con = con
         )
         
+        gefilteterDatensatz <- result$filtered_dataset
+        metaDaten_gefiltert <- result$meta_data
+        cat("Filtered dims:", nrow(gefilteterDatensatz), ncol(gefilteterDatensatz), "\n")
+        
+        print(names(metaDaten_gefiltert))
+        
+        #------------------ PREPARE + NORMALIZE DATA ---------------------------
+        df_prepared <- prepare_data(gefilteterDatensatz)
+        cat("Prepared dims:", nrow(df_prepared), ncol(df_prepared), "\n")
+        cat("Prepared column types:", paste(sapply(df_prepared, class), collapse=", "), "\n")
+        str(df_prepared[,1:3])
+        
+        #placeholder normalization
+        cat("About to normalize, df_prepared class:", class(df_prepared), "\n")
+        
+        norm_number <- switch(clust_config$normalisation,
+                                "normalize_log_zscore" = 1,
+                                "normalize_log_only" = 2, 
+                                "normalize_log_median_centering" = 3, 
+                                "normalize_log_mad" = 4,
+                                1
+        )
+        cat("norm_number:", norm_number, "\n")
+        
+        
+        df_normalized <- normalization(df_prepared, norm_number)
         cat("normalisation OK, dims:", nrow(df_normalized), ncol(df_normalized), "\n")
+        
+        patient_names_vec <- colnames(df_normalized)
+        class_labels_vec <- as.character(metaDaten_gefiltert["Meta_labels", patient_names_vec])
+        cat("Class labels:", paste(unique(class_labels_vec), collapse=", "), "\n")
+        
+        #--------------- DISTANCE + CLUSTERING ----------------------------------
         
         method <- switch(clust_config$distance,
                          "Euklidische Distanz" = "euclidean",
@@ -970,42 +1007,30 @@ if(interactive()){
         
         
         #---------------------Patient data ------------------------
-        data_pat <- t(df_normalized)
+        dist_mat_pat <- dist_cpp(t(df_normalized), method)
         
-        #calling distanz matrix function
-        d_pat <- dist_cpp(data_pat, method = method)
+        cluster_pat <- hierarchical_clustering(dist_mat_pat, method_name, custom_params = custom_params)
         
-        cluster_pat <- hierarchical_clustering(
-          d_pat,
-          method = method_name,
-          custom_params = custom_params
-        )
+        #------------------Gene data ------------------------------
+        
+        dist_mat_genes <- dist_cpp(df_normalized, method)
+        
+        cluster_genes <- hierarchical_clustering(dist_mat_genes, method_name, custom_params = custom_params)
+        
+        #---------------------DENDROGRAM PREP ----------------------------------
         
         tree_pat <- build_tree(cluster_pat)
         order_pat <- get_order_vector(tree_pat)
         
-        
-        #------------------Gene data ------------------------------
-        
-        data_gene <- df_normalized
-        
-        d_gene <- dist_cpp(data_gene, method = method)
-        
-        cluster_genes <- hierarchical_clustering(
-          d_gene,
-          method = method_name,
-          custom_params = custom_params
-        )
-        
         tree_genes <- build_tree(cluster_genes)
         order_genes <- get_order_vector(tree_genes)
-        
-        #---------------------------------------------------------
         
         
         cluster_patient(cluster_pat)
         tree_patient(tree_pat)
         order_patient(order_pat)
+        patient_names(patient_names_vec)
+        class_labels(class_labels_vec)
         
         cluster_gene(cluster_genes)
         tree_gene(tree_genes)
@@ -1303,8 +1328,10 @@ if(interactive()){
       req(cluster_patient())
       req(tree_patient())
       req(order_patient())
+      req(patient_names())
+      req(class_labels())
       
-      p <- generate_dendro(cluster_patient(), tree_patient(), order_patient(), title = "Patienten", names_vector = NULL, class_labels = NULL)
+      p <- generate_dendro(cluster_patient(), tree_patient(), order_patient(), title = "Patienten", names_vector = patient_names(), class_labels = class_labels())
       
       ggplotly(p) 
     })
