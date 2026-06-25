@@ -1,11 +1,22 @@
 
 normalization <- function(df, norm_method) {
+  # 0 == no normalization
   # 1 == normalize_log_zscore
   # 2 == normalize_log_only
   # 3 == normalize_log_median_centering
   # 4 == normalize_log_mad
   
 #--------------    
+#no normalization but will keep the name df_norm
+  
+  if (norm_method == 0) {
+    
+    df_norm <- df
+    
+    return(df_norm)
+  }
+  
+#--------------  
   
   if (norm_method == 1) {
     
