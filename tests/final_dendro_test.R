@@ -20,6 +20,7 @@ source("R/clustering/normalization_methods.R")
 source("R/clustering/prepare_data.R")
 source("R/clustering/hierarchical_clustering.R")
 source("R/visualization/final_dendrogram.R") # Sourcing this file is enough => final_dendrogram.R loads all dependencies
+source("R/visualization/saving_functions.R")
 
 
 # ============================================================
@@ -29,7 +30,7 @@ source("R/visualization/final_dendrogram.R") # Sourcing this file is enough => f
 con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 
 # dataset always placed under data/ so this path works for everyone
-dataset_kidney_meta <- read.csv("data/GOLUB_microarray.csv", header = TRUE)
+dataset_kidney_meta <- read.csv("data/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
 
 # ============================================================
 # PATHWAY SELECTION AND DATA INTEGRATION
@@ -65,7 +66,10 @@ df_normalized <- normalization(df_prepared, 1)
 
 patient_names <- colnames(result$meta_data)
 gene_names    <- result$gene_names
-class_labels  <- as.character(result$meta_data["Meta_labels", ])
+
+# Matcht: "labels", "meta_labels", "my_lab", "CLASS_LABEL", etc.
+label_row    <- grep("lab", rownames(result$meta_data), ignore.case = TRUE, value = TRUE)[1]
+class_labels <- if (!is.na(label_row)) as.character(result$meta_data[label_row, ]) else NULL
 
 
 # ============================================================
@@ -99,23 +103,35 @@ order_gene <- get_order_vector(baum_gene)
 # ============================================================
 
 # patients — colored by class labels, legend shown
-print(generate_dendro(
+final_plot_pat <- generate_dendro(
   cluster_result = cluster_pat,
   tree_result    = baum_patienten,
   order_vector   = order_patienten,
   title          = "TCGA Kidney Cancer: Patient Clustering",
   names_vector   = patient_names,
   class_labels   = class_labels,
-  palette = "viridis"
-))
+  palette        = "viridis",
+  show_x_axis    = TRUE,
+  show_y_axis    = TRUE
+)
 
 # genes — no class labels, everything black, no legend
-print(generate_dendro(
+final_plot_den <- generate_dendro(
   cluster_result = cluster_genes,
   tree_result    = baum_gene,
   order_vector   = order_gene,
   title          = "TCGA Kidney Cancer: Gene Clustering",
   names_vector   = gene_names,
-  class_labels   = NULL
-))
+  class_labels   = NULL,
+  show_x_axis    = FALSE,
+  show_y_axis    = FALSE
+)
 
+print(final_plot_pat)
+print(final_plot_den)
+
+export_dendro_pdf(final_plot_pat, filename = "dendro_patients", filepath = "C:/Users/domif/OneDrive/Dokumente/Uni Stuff/6.Semester/CLS - Projekt")
+export_dendro_pdf(final_plot_den, filename = "dendro_genes",    filepath = "C:/Users/domif/OneDrive/Dokumente/Uni Stuff/6.Semester/CLS - Projekt")
+
+svg_obj <- generate_dendro_svg(final_plot_pat, show_names = FALSE)
+cat(svg_obj)
