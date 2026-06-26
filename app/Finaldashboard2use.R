@@ -13,11 +13,16 @@ library(shinyBS)
 library(RSQLite)
 library(DBI)
 library(plotly)
+library(RColorBrewer)
+library(shinycssloaders)
+library(viridisLite)
+library(patchwork)
 
 source("R/clustering/normalization_methods.R")
 source("data/database_functions_v4.r")
 source("R/clustering/hierarchical_clustering.R")
 source("R/visualization/final_dendrogram.R")
+source("R/visualization/Grafikpanel.R")
 
 
 
@@ -51,7 +56,7 @@ if(interactive()){
                       
                       
                       selectInput(inputId = "normalisierung_sidebar", label = "Normalisierungs Verfahren auswählen", 
-                                  choices = c("normalize_log_zscore", "normalize_log_only", "normalize_log_median_centering", "normalize_log_mad")),
+                                  choices = c("Keine Normalisierung","normalize_log_zscore", "normalize_log_only", "normalize_log_median_centering", "normalize_log_mad")),
                       
                       
                       selectInput(inputId="distanzmatrix_sidebar", label = "Distanz Matrix auswählen", 
@@ -132,6 +137,8 @@ if(interactive()){
                       ),
                       
                     ),
+                    
+                    selectizeInput("focus_patient", "Lieblingspatient suchen", choices = NULL)
                     
                   )
                   
@@ -248,6 +255,13 @@ if(interactive()){
     color: black !important;
     }
     
+    .selectize-input,
+    .selectize-input input,
+    .selectize-dropdown,
+    .selectize-dropdown-content {
+    color: black !important;
+    }
+    
     .heatmap-controls h1,
     .heatmap-controls h2,
     .heatmap-controls h3,
@@ -273,6 +287,7 @@ if(interactive()){
                 h2("CSV Datei hochladen"),
                 
                 fancyFileInput("Datei_csv", "CSV Datei hochladen", accept = ".csv"),
+                withSpinner(uiOutput("upload_status"), type = 6, color = "#000000"),
                 
                 fluidRow(
                   box(
@@ -404,7 +419,7 @@ if(interactive()){
                     
                     
                     selectInput(inputId = "normalisierung", label = "Normalisierungs Verfahren auswählen", 
-                                choices = c("normalize_log_zscore", "normalize_log_only", "normalize_log_median_centering", "normalize_log_mad")),
+                                choices = c("Keine Normalisierung","normalize_log_zscore", "normalize_log_only", "normalize_log_median_centering", "normalize_log_mad")),
                     
                     
                     selectInput(inputId="distanzmatrix", label = "Distanz Matrix auswählen", 
@@ -434,7 +449,9 @@ if(interactive()){
                   )
                 ),
                 
+                
                 disabled(actionButton("run", "Run Cluster Analyse", class = "btn-successful")),
+                
                 
         ),
         
@@ -442,8 +459,17 @@ if(interactive()){
         tabItem(tabName = "heatmap",
                 h2("Visualisierung"),
                 
-                plotlyOutput("patientDendrogram"),
-                plotlyOutput("geneDendrogram"),
+                navset_card_underline(
+                  nav_panel("Dendrogram: Patient", withSpinner(plotlyOutput("patientDendrogram", height = "85vh", width = "100%"),
+                                                               type = 6, color = "#000000")),
+                  
+                  nav_panel("Dendrogram: Gene", withSpinner(plotlyOutput("geneDendrogram", height = "85vh", width = "100%")
+                                                            , type = 6, color = "#000000")),
+                  
+                  nav_panel("Grafikpanel", withSpinner(plotOutput("grafikpanel", height = "85vh", width = "100%"), 
+                                                       type = 6, color = "#000000"))
+                ),
+                
                 
                 
                 verbatimTextOutput("debug_matrix"),
@@ -477,6 +503,8 @@ if(interactive()){
   
   # ------------------------------------------------------------------------------------------------
   server <- function(input, output, session) {
+    cat("===== SERVER FUNCTION LOADED =====\n")
+    
     
     cluster_result <- reactiveVal(NULL)
     
@@ -488,21 +516,29 @@ if(interactive()){
     
     coverage_result <- reactiveVal(NULL)
     
+    prepared_data <- reactiveVal(NULL)
+    
     
     tree_patient <- reactiveVal(NULL)
     order_patient <- reactiveVal(NULL)
     cluster_patient <- reactiveVal(NULL)
     patient_names <- reactiveVal(NULL)
     class_labels <- reactiveVal(NULL)
+    selected_patient <- reactiveVal(NULL)
     
     tree_gene <- reactiveVal(NULL)
     order_gene <- reactiveVal(NULL)
     cluster_gene <- reactiveVal(NULL)
     
+    heatmap_store <- reactiveVal(NULL)
+    patient_store <- reactiveVal(NULL)
+    gene_store <- reactiveVal(NULL)
+    
     clust_config <- reactiveValues(
       method = "Single-Linkage",
       normalisation = "normalize_log_zscore",
       distance = "Euklidische Distanz",
+      palette = "RdYlBu",
       alpha_a = 0.5,
       alpha_b = 0.5,
       beta = 0,
@@ -573,8 +609,14 @@ if(interactive()){
         bereits_bereinigt = FALSE
       ))
       
+      output$upload_status <- renderUI({
+        div(style = "font-size: 16px; font-weight: bold; color: #000000; margin-top: 10px;",
+            "Datei erfolgreich hochgeladen")
+      })
       
+      session$sendInputMessage("Datei_csv", list(value = character(0)))
     })
+    
     
     output$na_info <- renderPrint({
       
@@ -839,6 +881,10 @@ if(interactive()){
       clust_config$method <- input$clusterverfahren
     })
     
+    observeEvent(input$farbpaletten, {
+      clust_config$palette <- input$farbpaletten
+    })
+    
     observeEvent(input$distanzmatrix, {
       clust_config$distance <- input$distanzmatrix
     })
@@ -850,6 +896,10 @@ if(interactive()){
     
     observeEvent(input$clusterverfahren_sidebar, {
       clust_config$method <- input$clusterverfahren_sidebar
+    })
+    
+    observeEvent(input$farbpaletten_sidebar, {
+      clust_config$palette <- input$farbpaletten_sidebar
     })
     
     observeEvent(input$distanzmatrix_sidebar, {
@@ -876,6 +926,10 @@ if(interactive()){
       clust_config$gamma <- input$gamma
     })
     
+    observeEvent(input$focus_patient, {
+      selected_patient(input$focus_patient)
+    })
+    
     
     observe({
       updateSelectInput(session, "clusterverfahren",
@@ -895,11 +949,22 @@ if(interactive()){
       
       updateSelectInput(session, "normalisierung_sidebar",
                         selected = clust_config$normalisation)
+      
+      updateRadioButtons(session, "farbpaletten",
+                         selected = clust_config$palette)
+      
+      updateRadioButtons(session, "farbpaletten_sidebar",
+                         selected = clust_config$palette)
     })
+    
+    
     
     run_analysis <- function(){   
       
       cat("Analysis started\n")
+      
+      showNotification(ui = div(style= "font-size: 18px; font-weight: bold; color: #000000;",
+                                "Analyse läuft, bitte warten"), type = "message", duration = NULL, id = "analysis_progress")
       
       tryCatch({
         
@@ -922,12 +987,12 @@ if(interactive()){
         req(length(selected_pathways)>0)
         
         #keep numeric only
-#        data <- data[sapply(data, is.numeric)]
-#        cat("numeric cols:", ncol(data), "\n")
+        #        data <- data[sapply(data, is.numeric)]
+        #        cat("numeric cols:", ncol(data), "\n")
         
         #prevents empty numeric matrix crash
-#        req(ncol(data) > 0)
-#        cat("ncol check OK\n")
+        #        req(ncol(data) > 0)
+        #        cat("ncol check OK\n")
         
         #------------------ PREPROCESS + INTEGRATION OF DATA -------------------
         
@@ -945,31 +1010,31 @@ if(interactive()){
         metaDaten_gefiltert <- result$meta_data
         cat("Filtered dims:", nrow(gefilteterDatensatz), ncol(gefilteterDatensatz), "\n")
         
-        print(names(metaDaten_gefiltert))
         
         #------------------ PREPARE + NORMALIZE DATA ---------------------------
-        df_prepared <- prepare_data(gefilteterDatensatz)
-        cat("Prepared dims:", nrow(df_prepared), ncol(df_prepared), "\n")
-        cat("Prepared column types:", paste(sapply(df_prepared, class), collapse=", "), "\n")
-        str(df_prepared[,1:3])
-        
-        #placeholder normalization
-        cat("About to normalize, df_prepared class:", class(df_prepared), "\n")
-        
+        #str(df_prepared[,1:3])
+
         norm_number <- switch(clust_config$normalisation,
-                                "normalize_log_zscore" = 1,
-                                "normalize_log_only" = 2, 
-                                "normalize_log_median_centering" = 3, 
-                                "normalize_log_mad" = 4,
-                                1
+                              "Keine Normalisierung" = 0,
+                              "normalize_log_zscore" = 1,
+                              "normalize_log_only" = 2, 
+                              "normalize_log_median_centering" = 3, 
+                              "normalize_log_mad" = 4,
+                              0
         )
         cat("norm_number:", norm_number, "\n")
         
+        #---------------- PREPARED DATA ----------------------------------------
+        df_prepared <- prepare_data(gefilteterDatensatz, clust_config$normalisation == "Keine Normalisierung")
         
         df_normalized <- normalization(df_prepared, norm_number)
         cat("normalisation OK, dims:", nrow(df_normalized), ncol(df_normalized), "\n")
         
+        prepared_data(df_prepared)
+        
         patient_names_vec <- colnames(df_normalized)
+        updateSelectizeInput(session, "focus_patient", choices = patient_names_vec, server = TRUE)
+        
         class_labels_vec <- as.character(metaDaten_gefiltert["Meta_labels", patient_names_vec])
         cat("Class labels:", paste(unique(class_labels_vec), collapse=", "), "\n")
         
@@ -1025,6 +1090,33 @@ if(interactive()){
         tree_genes <- build_tree(cluster_genes)
         order_genes <- get_order_vector(tree_genes)
         
+        #--------------------BUILD PLOTS ---------------------------------------
+        
+        heatmap_plot <- generate_heatmap(
+          data_matrix = df_prepared,
+          gene_order = order_genes,
+          patient_order = order_pat
+        )
+        
+        patient_dendro <- generate_dendro(
+          cluster_pat, tree_pat, order_pat,
+          title = "Patienten",
+          names_vector = patient_names_vec,
+          class_labels = class_labels_vec,
+          palette = clust_config$palette
+        )
+        
+        gene_dendro <- generate_dendro(
+          cluster_genes, tree_genes, order_genes,
+          title = "Gene",
+          names_vector = NULL,
+          class_labels = NULL,
+          palette = clust_config$palette
+        )
+        
+        heatmap_store(heatmap_plot)
+        patient_store(patient_dendro)
+        gene_store(gene_dendro)
         
         cluster_patient(cluster_pat)
         tree_patient(tree_pat)
@@ -1041,6 +1133,8 @@ if(interactive()){
         })
         
         cat("tab switch triggered\n")
+        
+        removeNotification(id = "analysis_progress")
         
       }, error = function(e){
         
@@ -1225,21 +1319,21 @@ if(interactive()){
       
     })
     
-    observeEvent(input$back, {
-      
-      showModal(
-        modalDialog(
-          title = "Warnung",
-          "Das Zurückkehren zu den Parametern löscht die aktuelle Heatmap. Möchten Sie fortfahren",
-          
-          footer = tagList(
-            modalButton("Ja"),
-            
-            actionButton("confirm_run", "Nein")
-          )
-        )
-      )
-    })
+    #    observeEvent(input$back, {
+    
+    #      showModal(
+    #        modalDialog(
+    #          title = "Warnung",
+    #          "Das Zurückkehren zu den Parametern löscht die aktuelle Heatmap. Möchten Sie fortfahren",
+    
+    #          footer = tagList(
+    #            modalButton("Ja"),
+    
+    #            actionButton("confirm_run", "Nein")
+    #          )
+    #        )
+    #      )
+    #    })
     
     observeEvent(input$confirm_run,{
       
@@ -1325,15 +1419,20 @@ if(interactive()){
     
     output$patientDendrogram <- renderPlotly({
       
+      
       req(cluster_patient())
       req(tree_patient())
       req(order_patient())
       req(patient_names())
       req(class_labels())
       
-      p <- generate_dendro(cluster_patient(), tree_patient(), order_patient(), title = "Patienten", names_vector = patient_names(), class_labels = class_labels())
+      
+      p <- generate_dendro(cluster_patient(), tree_patient(), order_patient(), title = "Patienten", 
+                           names_vector = patient_names(), class_labels = class_labels(), palette = clust_config$palette)
       
       ggplotly(p) 
+      
+      
     })
     
     
@@ -1343,12 +1442,35 @@ if(interactive()){
       req(tree_gene())
       req(order_gene())
       
-      p <- generate_dendro(cluster_gene(), tree_gene(), order_gene(), title = "Gene", names_vector = NULL, class_labels = NULL)
+      p <- generate_dendro(cluster_gene(), tree_gene(), order_gene(), title = "Gene", 
+                           names_vector = NULL, class_labels = NULL, palette = clust_config$palette)
       
       ggplotly(p) 
+      
     })
     
     
+    
+    output$grafikpanel <- renderPlot({
+      
+      req(heatmap_store(), patient_store(), gene_store())
+      
+      focus <- selected_patient()
+      
+      heatmap <- heatmap_store()
+      patient <- patient_store()
+      gene <- gene_store()
+      
+      if(is.null(focus) || focus ==""){
+        return(grafikpanel(heatmap, patient, gene))
+      }
+      
+      if(focus %in% colnames(heatmap)){
+        heatmap <- heatmap[, c(focus, setdiff(colnames(heatmap), focus)), drop = FALSE]
+      }
+      grafikpanel(heatmap, patient, gene)
+      
+    })
     
   }  
   shinyApp(ui, server)
