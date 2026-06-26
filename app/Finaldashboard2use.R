@@ -551,10 +551,10 @@ if(interactive()){
     
     na_infos <- reactiveVal(NULL)
     
-    # Speichert die dynamischen Input-IDs für die manuelle Spaltenauswahl
+    
     na_column_map <- reactiveVal(NULL)
     
-    # Hilfsfunktion: NA-Status analysieren --------------------------------------
+    
     analyze_na_status <- function(df,
                                   bereits_bereinigt = FALSE,
                                   entfernte_all_na_spalten = character(0),
@@ -564,7 +564,7 @@ if(interactive()){
       
       req(ncol(df) >= 1)
       
-      # Erste Spalte wird immer geschützt und nicht für NA-Entscheidungen genutzt
+      
       id_col <- names(df)[1]
       data_cols <- names(df)[-1]
       
@@ -599,13 +599,13 @@ if(interactive()){
       first_col_values <- as.character(df[[id_col]])
       first_col_values[is.na(first_col_values)] <- ""
       
-      # meta_-Zeilen schützen
+      # ignore meta rows
       meta_rows <- which(grepl("^meta_", first_col_values, ignore.case = TRUE))
       
-      # Zeilen mit mehr als 50% NA suchen
+      # Search for rows with more than 50%
       rows_over_50_na <- which(row_na_ratio > 0.5)
       
-      # meta_-Zeilen werden nicht zum Entfernen vorgeschlagen
+      # remove meta rows from beeing selected
       rows_over_50_na_without_meta <- setdiff(rows_over_50_na, meta_rows)
       
       list(
@@ -665,7 +665,7 @@ if(interactive()){
       )
     }
     
-    # Hilfsfunktion: dynamische Spaltenauswahl aktualisieren --------------------
+    
     refresh_na_column_map <- function(info) {
       cols_with_na <- info$spalten_mit_na
       
@@ -726,7 +726,7 @@ if(interactive()){
       refresh_na_column_map(info)
     })
     
-    # NA-Info ausgeben ----------------------------------------------------------
+    # NA-Info output
     output$na_info <- renderPrint({
       
       info <- na_infos()
@@ -1001,7 +1001,7 @@ if(interactive()){
       if (length(data_cols) > 0) {
         df_data <- df[, data_cols, drop = FALSE]
         
-        # Alle Spalten mit mindestens einem NA entfernen
+        # User input remove Na for all
         na_cols <- names(df_data)[colSums(is.na(df_data)) > 0]
         
         if (length(na_cols) > 0) {
@@ -1029,7 +1029,7 @@ if(interactive()){
       )
     })
     
-    # Schnellfunktion 2: Für alle Zeilen-Mittelwert berechnen -------------------
+    # Quickfunction mean
     observeEvent(input$auto_na_mean, {
       
       req(daten_aktuell())
@@ -1317,7 +1317,7 @@ if(interactive()){
           wrapped_text("Noch keine CSV-Datei hochgeladen.")
         }
         
-        # Seite 2: Parameter ----------------------------------------------------
+        # Site 2 Parameter
         new_page("Analyse-Parameter")
         
         section_title("Gewählte Einstellungen")
@@ -1349,40 +1349,7 @@ if(interactive()){
           list_items("Ausgewählte Pathways", input$pathways, max_items = 20)
         }
         
-        # Seite 3: Datensatz-Vorschau ------------------------------------------
-        if (!is.null(daten_report)) {
-          
-          new_page("Datensatz-Vorschau")
-          
-          section_title("Vorschau der aktuellen Daten")
-          
-          key_value("Anzahl Zeilen", nrow(daten_report))
-          key_value("Anzahl Spalten", ncol(daten_report))
-          
-          y <- y - 0.02
-          
-          preview <- head(
-            daten_report[, seq_len(min(5, ncol(daten_report))), drop = FALSE],
-            10
-          )
-          
-          preview_text <- capture.output(print(preview))
-          
-          rect(0.05, y - 0.48, 0.95, y + 0.015, col = "#FFFFFF", border = "#D5D8DC")
-          
-          y <- y - 0.025
-          
-          for (line in preview_text) {
-            if (y < 0.08) {
-              new_page("Datensatz-Vorschau")
-              rect(0.05, y - 0.48, 0.95, y + 0.015, col = "#FFFFFF", border = "#D5D8DC")
-              y <- y - 0.025
-            }
-            
-            text(0.07, y, line, adj = 0, cex = 0.62, family = "mono", col = "#111111")
-            y <- y - 0.032
-          }
-        }
+        
         
         dev.off()
         
@@ -1452,14 +1419,11 @@ if(interactive()){
         
         # Pathways
         pathways = input$pathways,
-        
-        # optional, falls dieser Input später wieder sichtbar eingebaut wird
-        anzahlcluster = if (!is.null(input$anzahlcluster)) input$anzahlcluster else NULL,
-        
+                
         gespeichert_am = as.character(Sys.time())
       )
       
-      # Dateiname sicher machen
+      # Limit character for name
       safe_name <- gsub("[^A-Za-z0-9_\\-]", "_", input$preset_name)
       pfad <- file.path("presets", paste0(safe_name, ".json"))
       
