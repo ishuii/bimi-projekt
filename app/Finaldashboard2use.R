@@ -13,11 +13,16 @@ library(shinyBS)
 library(RSQLite)
 library(DBI)
 library(plotly)
+library(RColorBrewer)
+library(shinycssloaders)
+library(viridisLite)
+library(patchwork)
 
 source("R/clustering/normalization_methods.R")
 source("data/database_functions_v4.r")
 source("R/clustering/hierarchical_clustering.R")
 source("R/visualization/final_dendrogram.R")
+source("R/visualization/Grafikpanel.R")
 
 
 
@@ -51,7 +56,7 @@ if(interactive()){
                       
                       
                       selectInput(inputId = "normalisierung_sidebar", label = "Normalisierungs Verfahren auswählen", 
-                                  choices = c("normalize_log_zscore", "normalize_log_only", "normalize_log_median_centering", "normalize_log_mad")),
+                                  choices = c("Keine Normalisierung","normalize_log_zscore", "normalize_log_only", "normalize_log_median_centering", "normalize_log_mad")),
                       
                       
                       selectInput(inputId="distanzmatrix_sidebar", label = "Distanz Matrix auswählen", 
@@ -133,6 +138,8 @@ if(interactive()){
                       
                     ),
                     
+                    selectizeInput("focus_patient", "Lieblingspatient suchen", choices = NULL)
+                    
                   )
                   
                   
@@ -145,7 +152,7 @@ if(interactive()){
       )),
     
     dashboardBody(
-      shinyFeedback::useShinyFeedback(),
+      useShinyFeedback(),
       useShinyjs(),
       
       tags$head(
@@ -248,6 +255,13 @@ if(interactive()){
     color: black !important;
     }
     
+    .selectize-input,
+    .selectize-input input,
+    .selectize-dropdown,
+    .selectize-dropdown-content {
+    color: black !important;
+    }
+    
     .heatmap-controls h1,
     .heatmap-controls h2,
     .heatmap-controls h3,
@@ -273,50 +287,19 @@ if(interactive()){
                 h2("CSV Datei hochladen"),
                 
                 fancyFileInput("Datei_csv", "CSV Datei hochladen", accept = ".csv"),
+                withSpinner(uiOutput("upload_status"), type = 6, color = "#000000"),
                 
                 fluidRow(
                   box(
                     width = 12,
                     h4("NA-Fehlerbehandlung"),
-                    
                     verbatimTextOutput("na_info"),
                     
-                    br(),
-                    
-                    fluidRow(
-                      column(
-                        width = 6,
-                        actionButton(
-                          inputId = "auto_na_drop_columns",
-                          label = "Für alle: NA-Spalten entfernen",
-                          class = "btn-danger",
-                          width = "100%"
-                        )
-                      ),
-                      column(
-                        width = 6,
-                        actionButton(
-                          inputId = "auto_na_mean",
-                          label = "Für alle: Zeilen-Mittelwert berechnen",
-                          class = "btn-primary",
-                          width = "100%"
-                        )
-                      )
-                    ),
-                    
-                    br(),
-                    
                     actionButton(
-                      inputId = "apply_na_handling",
-                      label = "Manuelle NA-Behandlung anwenden",
+                      inputId = "drop_na",
+                      label = "NA-Spalten entfernen",
                       class = "btn-warning"
                     ),
-                    
-                    br(),
-                    br(),
-                    
-                    uiOutput("na_column_choices"),
-                    uiOutput("na_row_choice")
                   )
                 ),
                 
@@ -436,7 +419,7 @@ if(interactive()){
                     
                     
                     selectInput(inputId = "normalisierung", label = "Normalisierungs Verfahren auswählen", 
-                                choices = c("normalize_log_zscore", "normalize_log_only", "normalize_log_median_centering", "normalize_log_mad")),
+                                choices = c("Keine Normalisierung","normalize_log_zscore", "normalize_log_only", "normalize_log_median_centering", "normalize_log_mad")),
                     
                     
                     selectInput(inputId="distanzmatrix", label = "Distanz Matrix auswählen", 
@@ -466,7 +449,9 @@ if(interactive()){
                   )
                 ),
                 
+                
                 disabled(actionButton("run", "Run Cluster Analyse", class = "btn-successful")),
+                
                 
         ),
         
@@ -474,8 +459,17 @@ if(interactive()){
         tabItem(tabName = "heatmap",
                 h2("Visualisierung"),
                 
-                plotlyOutput("patientDendrogram"),
-                plotlyOutput("geneDendrogram"),
+                navset_card_underline(
+                  nav_panel("Dendrogram: Patient", withSpinner(plotlyOutput("patientDendrogram", height = "85vh", width = "100%"),
+                                                               type = 6, color = "#000000")),
+                  
+                  nav_panel("Dendrogram: Gene", withSpinner(plotlyOutput("geneDendrogram", height = "85vh", width = "100%")
+                                                            , type = 6, color = "#000000")),
+                  
+                  nav_panel("Grafikpanel", withSpinner(plotOutput("grafikpanel", height = "85vh", width = "100%"), 
+                                                       type = 6, color = "#000000"))
+                ),
+                
                 
                 
                 verbatimTextOutput("debug_matrix"),
@@ -496,7 +490,9 @@ if(interactive()){
                 textOutput("selection_feedback"),
                 
                 
-                actionButton('back', 'zurück zum Parametern wählen')
+                actionButton('back', 'zurück zum Parametern wählen'),
+                conditionalPanel(condition = "input.distanzmatrix == 'Minkowski-Distanz'",
+                )
         )
         
       )       
@@ -507,6 +503,8 @@ if(interactive()){
   
   # ------------------------------------------------------------------------------------------------
   server <- function(input, output, session) {
+    cat("===== SERVER FUNCTION LOADED =====\n")
+    
     
     cluster_result <- reactiveVal(NULL)
     
@@ -518,21 +516,29 @@ if(interactive()){
     
     coverage_result <- reactiveVal(NULL)
     
+    prepared_data <- reactiveVal(NULL)
+    
     
     tree_patient <- reactiveVal(NULL)
     order_patient <- reactiveVal(NULL)
     cluster_patient <- reactiveVal(NULL)
     patient_names <- reactiveVal(NULL)
     class_labels <- reactiveVal(NULL)
+    selected_patient <- reactiveVal(NULL)
     
     tree_gene <- reactiveVal(NULL)
     order_gene <- reactiveVal(NULL)
     cluster_gene <- reactiveVal(NULL)
     
+    heatmap_store <- reactiveVal(NULL)
+    patient_store <- reactiveVal(NULL)
+    gene_store <- reactiveVal(NULL)
+    
     clust_config <- reactiveValues(
       method = "Single-Linkage",
       normalisation = "normalize_log_zscore",
       distance = "Euklidische Distanz",
+      palette = "RdYlBu",
       alpha_a = 0.5,
       alpha_b = 0.5,
       beta = 0,
@@ -543,146 +549,15 @@ if(interactive()){
     output$Beispieltext <- renderText({
       paste("Deine Datei:", input$x)
     })
-    options(shiny.maxRequestSize = 10 * 1024^3)
+    preset_values <- reactiveVal(list()) #Create reactive variable list
+    options(shiny.maxRequestSize = 300 * 1024^2)
     # CSV IMPORT BACKEND
-    
+    daten_original <- reactiveVal(NULL)
     
     daten_aktuell <- reactiveVal(NULL)
     
     na_infos <- reactiveVal(NULL)
     
-    
-    na_column_map <- reactiveVal(NULL)
-    
-    
-    analyze_na_status <- function(df,
-                                  bereits_bereinigt = FALSE,
-                                  entfernte_all_na_spalten = character(0),
-                                  entfernte_user_spalten = character(0),
-                                  imputierte_spalten = character(0),
-                                  entfernte_zeilen = integer(0)) {
-      
-      req(ncol(df) >= 1)
-      
-      
-      id_col <- names(df)[1]
-      data_cols <- names(df)[-1]
-      
-      if (length(data_cols) == 0) {
-        return(list(
-          id_col = id_col,
-          na_gesamt = 0,
-          zeilen_mit_na = 0,
-          zeilen_gesamt = nrow(df),
-          spalten_gesamt = ncol(df),
-          na_pro_spalte = setNames(integer(0), character(0)),
-          spalten_mit_na = character(0),
-          spalten_mit_na_counts = integer(0),
-          rows_over_50_na = integer(0),
-          rows_over_50_na_names = character(0),
-          meta_rows = integer(0),
-          bereits_bereinigt = bereits_bereinigt,
-          entfernte_all_na_spalten = entfernte_all_na_spalten,
-          entfernte_user_spalten = entfernte_user_spalten,
-          imputierte_spalten = imputierte_spalten,
-          entfernte_zeilen = entfernte_zeilen
-        ))
-      }
-      
-      df_data <- df[, data_cols, drop = FALSE]
-      
-      na_pro_spalte <- colSums(is.na(df_data))
-      spalten_mit_na <- names(na_pro_spalte)[na_pro_spalte > 0]
-      
-      row_na_ratio <- rowMeans(is.na(df_data))
-      
-      first_col_values <- as.character(df[[id_col]])
-      first_col_values[is.na(first_col_values)] <- ""
-      
-      # ignore meta rows
-      meta_rows <- which(grepl("^meta_", first_col_values, ignore.case = TRUE))
-      
-      # Search for rows with more than 50%
-      rows_over_50_na <- which(row_na_ratio > 0.5)
-      
-      # remove meta rows from beeing selected
-      rows_over_50_na_without_meta <- setdiff(rows_over_50_na, meta_rows)
-      
-      list(
-        id_col = id_col,
-        na_gesamt = sum(is.na(df_data)),
-        zeilen_mit_na = sum(rowSums(is.na(df_data)) > 0),
-        zeilen_gesamt = nrow(df),
-        spalten_gesamt = ncol(df),
-        na_pro_spalte = na_pro_spalte,
-        spalten_mit_na = spalten_mit_na,
-        spalten_mit_na_counts = na_pro_spalte[spalten_mit_na],
-        rows_over_50_na = rows_over_50_na_without_meta,
-        rows_over_50_na_names = first_col_values[rows_over_50_na_without_meta],
-        meta_rows = meta_rows,
-        bereits_bereinigt = bereits_bereinigt,
-        entfernte_all_na_spalten = entfernte_all_na_spalten,
-        entfernte_user_spalten = entfernte_user_spalten,
-        imputierte_spalten = imputierte_spalten,
-        entfernte_zeilen = entfernte_zeilen
-      )
-    }
-    
-    # Na replace with mean
-    replace_na_with_row_mean <- function(df, target_cols = NULL) {
-      
-      data_cols <- names(df)[-1]
-      
-      for (col in data_cols) {
-        df[[col]] <- as.numeric(df[[col]])
-      }
-      
-      if (is.null(target_cols)) {
-        target_cols <- data_cols
-      }
-      
-      row_means <- rowMeans(df[, data_cols, drop = FALSE], na.rm = TRUE)
-      
-      imputierte_spalten <- character(0)
-      imputierte_werte <- 0
-      
-      for (col in target_cols) {
-        
-        na_idx <- is.na(df[[col]])
-        
-        df[[col]][na_idx] <- row_means[na_idx]
-        
-        if (any(na_idx)) {
-          imputierte_spalten <- c(imputierte_spalten, col)
-          imputierte_werte <- imputierte_werte + sum(na_idx)
-        }
-      }
-      
-      list(
-        df = df,
-        imputierte_spalten = unique(imputierte_spalten),
-        imputierte_werte = imputierte_werte
-      )
-    }
-    
-    
-    refresh_na_column_map <- function(info) {
-      cols_with_na <- info$spalten_mit_na
-      
-      if (length(cols_with_na) > 0) {
-        na_column_map(
-          data.frame(
-            input_id = paste0("na_col_action_", seq_along(cols_with_na)),
-            colname = cols_with_na,
-            stringsAsFactors = FALSE
-          )
-        )
-      } else {
-        na_column_map(NULL)
-      }
-    }
-    
-    # CSV hochladen -------------------------------------------------------------
     observeEvent(input$Datei_csv, {
       
       req(input$Datei_csv)
@@ -694,39 +569,55 @@ if(interactive()){
         sep = ",",
         dec = ".",
         quote = "\"",
-        na.strings = c("", " ", "NA", "NaN", "NULL", "N/A", "n/a"),
+        na.strings = c("", " ", "NA", "NaN", "NULL", "N/A"),
         colClasses = NA
       )
-      req(ncol(df) >= 1)
+      #      df[df == ""] <- NA
       
-      # ignore first collum
-      data_cols <- names(df)[-1]
-      entfernte_all_na_spalten <- character(0)
+      gene_id_col <- as.character(df[,1])
       
-      if (length(data_cols) > 0) {
-        df_data <- df[, data_cols, drop = FALSE]
-        
-        # Spalten, die komplett aus NA bestehen, automatisch entfernen
-        all_na_cols <- names(df_data)[colSums(!is.na(df_data)) == 0]
-        
-        if (length(all_na_cols) > 0) {
-          df <- df[, !names(df) %in% all_na_cols, drop = FALSE]
-          entfernte_all_na_spalten <- all_na_cols
-        }
-      }
+      df_rest <- as.data.frame(lapply(df[,-1], function(col){
+        converted <- suppressWarnings(as.numeric(as.character(col)))
+        na_before <- sum(is.na(col))
+        na_after <- sum(is.na(converted))
+        if(na_after <= na_before + 0.5 * length(col)) converted else col
+      }))
+      
+      df <- cbind(setNames(data.frame(gene_id_col), names(df)[1]), df_rest)
+      
+      na_gesamt <- sum(is.na(df))
+      
+      
+      zeilen_mit_na <- !complete.cases(df)
+      
+      
+      anzahl_zeilen_mit_na <- sum(zeilen_mit_na)
+      
+      
+      na_pro_spalte <- colSums(is.na(df))
+      
+      daten_original(df)
       daten_aktuell(df)
       
-      info <- analyze_na_status(
-        df,
-        bereits_bereinigt = FALSE,
-        entfernte_all_na_spalten = entfernte_all_na_spalten
-      )
       
-      na_infos(info)
-      refresh_na_column_map(info)
+      na_infos(list(
+        na_gesamt = na_gesamt,
+        zeilen_mit_na = anzahl_zeilen_mit_na,
+        zeilen_gesamt = nrow(df),
+        spalten_gesamt = ncol(df),
+        na_pro_spalte = na_pro_spalte,
+        bereits_bereinigt = FALSE
+      ))
+      
+      output$upload_status <- renderUI({
+        div(style = "font-size: 16px; font-weight: bold; color: #000000; margin-top: 10px;",
+            "Datei erfolgreich hochgeladen")
+      })
+      
+      session$sendInputMessage("Datei_csv", list(value = character(0)))
     })
     
-    # NA-Info output
+    
     output$na_info <- renderPrint({
       
       info <- na_infos()
@@ -736,638 +627,202 @@ if(interactive()){
         return(invisible(NULL))
       }
       
-      
       cat("Anzahl aller NA-Werte:", info$na_gesamt, "\n")
       cat("Zeilen mit mindestens einem NA-Wert:", info$zeilen_mit_na, "\n")
-      cat("Spalten mit mindestens einem NA-Wert:", length(info$spalten_mit_na), "\n")
+      cat("Spalten mit mindestens einem NA-Wert:", sum(info$na_pro_spalte > 0), "\n")
       cat("Zeilen gesamt:", info$zeilen_gesamt, "\n")
       cat("Spalten gesamt:", info$spalten_gesamt, "\n\n")
       
-      if (length(info$entfernte_all_na_spalten) > 0) {
-        cat("Automatisch entfernte Spalten, die komplett aus NA bestanden:\n")
-        print(info$entfernte_all_na_spalten)
-        cat("\n")
-      }
-      
-      if (length(info$spalten_mit_na_counts) > 0) {
-        cat("Spalten mit NA-Werten:\n")
-        print(info$spalten_mit_na_counts)
-        cat("\n")
-      } else {
-        cat("Keine Spalten mit NA-Werten vorhanden.\n\n")
-      }
-      
-      if (length(info$rows_over_50_na) > 0) {
-        cat("Zeilen mit mehr als 50% NA-Werten, ohne geschützte meta_-Zeilen:\n")
-        print(data.frame(
-          zeilennummer = info$rows_over_50_na,
-          name = info$rows_over_50_na_names
-        ))
-        cat("\n")
-      } else {
-        cat("Keine Zeilen mit mehr als 50% NA-Werten gefunden.\n\n")
-      }
-      
-      if (length(info$meta_rows) > 0) {
-        cat("Meta-Zeilen:", length(info$meta_rows), "\n")
-        
-      }
       
       if (isTRUE(info$bereits_bereinigt)) {
-        cat("Status: NA-Behandlung wurde angewendet.\n\n")
+        cat("\nStatus: NA-Spalten wurden entfernt.\n")
+        cat("Entfernte Spalten:", info$entfernte_spalten, "\n")
         
-        if (length(info$imputierte_spalten) > 0) {
-          cat("Spalten, bei denen NA durch Zeilen-Mittelwert ersetzt wurde:\n")
-          print(info$imputierte_spalten)
-          cat("\n")
-        }
-        
-        if (length(info$entfernte_user_spalten) > 0) {
-          cat("Vom User entfernte Spalten:\n")
-          print(info$entfernte_user_spalten)
-          cat("\n")
-        }
-        
-        if (length(info$entfernte_zeilen) > 0) {
-          cat("Entfernte Zeilen:\n")
-          print(info$entfernte_zeilen)
-          cat("\n")
+        if (length(info$entfernte_spalten_namen) > 0) {
+          cat("Entfernte Spaltennamen:\n")
+          print(info$entfernte_spalten_namen)
         }
       } else {
-        cat("Status: Datei wurde geprüft. Noch keine User-Entscheidung angewendet.\n")
+        cat("\nStatus: Datei wurde geprüft. Es wurde noch nichts gelöscht.\n")
       }
       
       invisible(NULL)
     })
     
-    # UI manuel collum 
-    output$na_column_choices <- renderUI({
-      
-      info <- na_infos()
-      col_map <- na_column_map()
-      
-      req(info)
-      
-      if (is.null(col_map) || nrow(col_map) == 0) {
-        return(tags$p("Keine Spalten mit NA-Werten vorhanden."))
-      }
-      
-      tagList(
-        tags$hr(),
-        tags$h4("Entscheidung für Spalten mit NA-Werten"),
-        
-        tags$div(
-          style = "
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 15px;
-            align-items: start;
-          ",
-          
-          lapply(seq_len(nrow(col_map)), function(i) {
-            
-            col <- col_map$colname[i]
-            input_id <- col_map$input_id[i]
-            na_count <- info$spalten_mit_na_counts[[col]]
-            
-            is_num <- is.numeric(daten_aktuell()[[col]])
-            
-            choices <- if (is_num) {
-              c(
-                "NA durch Zeilen-Mittelwert ersetzen" = "mean",
-                "Ganze Spalte entfernen" = "drop",
-                "Spalte unverändert behalten" = "keep"
-              )
-            } else {
-              c(
-                "Ganze Spalte entfernen" = "drop",
-                "Spalte unverändert behalten" = "keep"
-              )
-            }
-            
-            selected_choice <- if (is_num) "mean" else "keep"
-            
-            tags$div(
-              style = "
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                padding: 12px;
-                background-color: #fafafa;
-                word-break: break-word;
-              ",
-              
-              radioButtons(
-                inputId = input_id,
-                label = paste0(col, " — ", na_count, " NA-Wert(e)"),
-                choices = choices,
-                selected = selected_choice
-              )
-            )
-          })
-        )
-      )
-    })
-    
-    # UI manuel removal
-    output$na_row_choice <- renderUI({
-      
-      info <- na_infos()
-      req(info)
-      
-      if (length(info$rows_over_50_na) == 0) {
-        return(NULL)
-      }
-      
-      tagList(
-        tags$hr(),
-        tags$h4("Entscheidung für Zeilen mit mehr als 50% NA-Werten"),
-        
-        radioButtons(
-          inputId = "row_na_action",
-          label = paste0(
-            length(info$rows_over_50_na),
-            " Zeile(n) haben mehr als 50% NA-Werte. Was soll passieren?"
-          ),
-          choices = c(
-            "Zeilen behalten" = "keep",
-            "Zeilen entfernen" = "drop"
-          ),
-          selected = "keep"
-        )
-      )
-    })
-    
-    # Manuel Na-remove
-    observeEvent(input$apply_na_handling, {
+    observeEvent(input$drop_na, {
       
       req(daten_aktuell())
       
       df <- daten_aktuell()
-      col_map <- na_column_map()
       
-      entfernte_user_spalten <- character(0)
-      imputierte_spalten <- character(0)
-      entfernte_zeilen <- integer(0)
+      # Colum with at least one NA
+      spalten_mit_na <- colSums(is.na(df)) > 0
       
-      # Spaltenentscheidungen anwenden
-      if (!is.null(col_map) && nrow(col_map) > 0) {
-        
-        for (i in seq_len(nrow(col_map))) {
-          
-          col <- col_map$colname[i]
-          input_id <- col_map$input_id[i]
-          action <- input[[input_id]]
-          
-          if (is.null(action)) next
-          if (!col %in% names(df)) next
-          
-          if (action == "drop") {
-            df[[col]] <- NULL
-            entfernte_user_spalten <- c(entfernte_user_spalten, col)
-          } else if (action == "mean") {
-            
-            if (is.numeric(df[[col]])) {
-              row_mean_result <- replace_na_with_row_mean(
-                df = df,
-                target_cols = col
-              )
-              
-              df <- row_mean_result$df
-              imputierte_spalten <- c(
-                imputierte_spalten,
-                row_mean_result$imputierte_spalten
-              )
-            }
-          }
-        }
-      }
+      # save name of removed colum
+      entfernte_spalten_namen <- names(df)[spalten_mit_na]
       
+      #Remove coloum
+      df_clean <- df[, !spalten_mit_na, drop = FALSE]
       
-      req(ncol(df) >= 1)
+      #Number of removed columns
+      entfernte_spalten <- sum(spalten_mit_na)
       
-      id_col <- names(df)[1]
-      data_cols <- names(df)[-1]
+      #save clean data
+      daten_aktuell(df_clean)
       
-      if (length(data_cols) > 0) {
-        df_data <- df[, data_cols, drop = FALSE]
-        row_na_ratio <- rowMeans(is.na(df_data))
-        
-        first_col_values <- as.character(df[[id_col]])
-        first_col_values[is.na(first_col_values)] <- ""
-        
-        meta_rows <- which(grepl("^meta_", first_col_values, ignore.case = TRUE))
-        rows_over_50_na <- which(row_na_ratio > 0.5)
-        
-        # Ignore meta_ rows
-        removable_rows <- setdiff(rows_over_50_na, meta_rows)
-        
-        if (!is.null(input$row_na_action) && input$row_na_action == "drop") {
-          if (length(removable_rows) > 0) {
-            df <- df[-removable_rows, , drop = FALSE]
-            entfernte_zeilen <- removable_rows
-          }
-        }
-      }
-      
-      daten_aktuell(df)
-      
-      info <- analyze_na_status(
-        df,
+      # refresh na_infos
+      na_infos(list(
+        na_gesamt = sum(is.na(df_clean)),
+        spalten_mit_na = sum(colSums(is.na(df_clean)) > 0),
+        zeilen_mit_na = sum(!complete.cases(df_clean)),
+        zeilen_gesamt = nrow(df_clean),
+        spalten_gesamt = ncol(df_clean),
+        na_pro_spalte = colSums(is.na(df_clean)),
         bereits_bereinigt = TRUE,
-        entfernte_user_spalten = entfernte_user_spalten,
-        imputierte_spalten = imputierte_spalten,
-        entfernte_zeilen = entfernte_zeilen
-      )
-      
-      na_infos(info)
-      refresh_na_column_map(info)
+        entfernte_spalten = entfernte_spalten,
+        entfernte_spalten_namen = entfernte_spalten_namen
+      ))
     })
-    
-    # Quickfunction Remove Na-remove
-    observeEvent(input$auto_na_drop_columns, {
-      
-      req(daten_aktuell())
-      
-      df <- daten_aktuell()
-      req(ncol(df) >= 1)
-      
-      # Ignore first colum
-      data_cols <- names(df)[-1]
-      
-      entfernte_user_spalten <- character(0)
-      imputierte_spalten <- character(0)
-      entfernte_zeilen <- integer(0)
-      
-      if (length(data_cols) > 0) {
-        df_data <- df[, data_cols, drop = FALSE]
-        
-        # User input remove Na for all
-        na_cols <- names(df_data)[colSums(is.na(df_data)) > 0]
-        
-        if (length(na_cols) > 0) {
-          df <- df[, !names(df) %in% na_cols, drop = FALSE]
-          entfernte_user_spalten <- na_cols
-        }
-      }
-      
-      daten_aktuell(df)
-      
-      info <- analyze_na_status(
-        df,
-        bereits_bereinigt = TRUE,
-        entfernte_user_spalten = entfernte_user_spalten,
-        imputierte_spalten = imputierte_spalten,
-        entfernte_zeilen = entfernte_zeilen
-      )
-      
-      na_infos(info)
-      refresh_na_column_map(info)
-      
-      showNotification(
-        paste0(length(entfernte_user_spalten), " Spalte(n) mit NA-Werten entfernt."),
-        type = "message"
-      )
-    })
-    
-    # Quickfunction mean
-    observeEvent(input$auto_na_mean, {
-      
-      req(daten_aktuell())
-      
-      df <- daten_aktuell()
-      req(ncol(df) >= 1)
-      
-      row_mean_result <- replace_na_with_row_mean(df)
-      
-      df <- row_mean_result$df
-      imputierte_spalten <- row_mean_result$imputierte_spalten
-      
-      entfernte_user_spalten <- character(0)
-      entfernte_zeilen <- integer(0)
-      
-      daten_aktuell(df)
-      
-      info <- analyze_na_status(
-        df,
-        bereits_bereinigt = TRUE,
-        entfernte_user_spalten = entfernte_user_spalten,
-        imputierte_spalten = imputierte_spalten,
-        entfernte_zeilen = entfernte_zeilen
-      )
-      
-      na_infos(info)
-      refresh_na_column_map(info)
-      
-      showNotification(
-        paste0(length(imputierte_spalten), " Spalte(n) mit Zeilen-Mittelwert behandelt."),
-        type = "message"
-      )
-    })
-    
     daten <- reactive({
       req(daten_aktuell())
       daten_aktuell()
     })
-    
-    pdf_watch_folder <- "C:/Users/andre/Documents/bimi projekt/bimi-projekt" # COmbine PDf Folder
-    
-    if (!dir.exists(pdf_watch_folder)) {
-      dir.create(pdf_watch_folder, recursive = TRUE)
-    }
-    
-    watched_pdf <- reactivePoll(
-      intervalMillis = 2000,
-      session = session,
-      
-      checkFunc = function() {
-        files <- list.files(
-          pdf_watch_folder,
-          pattern = "\\.pdf$",
-          full.names = TRUE,
-          ignore.case = TRUE
-        )
-        
-        if (length(files) == 0) {
-          return("")
-        }
-        
-        info <- file.info(files)
-        
-        paste(
-          files,
-          info$mtime,
-          info$size,
-          collapse = "|"
-        )
-      },
-      
-      valueFunc = function() {
-        files <- list.files(
-          pdf_watch_folder,
-          pattern = "\\.pdf$",
-          full.names = TRUE,
-          ignore.case = TRUE
-        )
-        
-        if (length(files) == 0) {
-          return(NULL)
-        }
-        
-        info <- file.info(files)
-        files <- files[!is.na(info$size) & info$size > 0]
-        
-        if (length(files) == 0) {
-          return(NULL)
-        }
-        
-        info <- file.info(files)
-        files[order(info$mtime, decreasing = TRUE)][1]
-      }
-    )
-    
     output$download_pdf <- downloadHandler(
       
       filename = function() {
-        paste0("ClusterIt_Report_", Sys.Date(), ".pdf")
+        paste0("cluster_report_", Sys.Date(), ".pdf")
       },
       
       contentType = "application/pdf",
       
       content = function(file) {
         
-        report_pdf <- tempfile(fileext = ".pdf")
-        daten_report <- daten_aktuell()
+        info <- na_infos()
+        daten <- daten_aktuell()
         
-        pdf(report_pdf, width = 8.27, height = 11.69)
+        pdf(file, width = 8.27, height = 11.69)  # A4 ungefähr
         
-        on.exit({
-          try(dev.off(), silent = TRUE)
-        }, add = TRUE)
+        plot.new()
+        par(mar = c(1, 1, 1, 1))
         
-        # Design-Hilfsfunktionen ------------------------------------------------
         y <- 0.95
         
-        safe_len <- function(x) {
-          if (is.null(x)) return(0)
-          length(x)
+        text(0.05, y, "Cluster Analyse Report", adj = 0, cex = 1.6, font = 2)
+        y <- y - 0.08
+        
+        if (!is.null(input$Datei_csv)) {
+          text(0.05, y, paste("Dateiname:", input$Datei_csv$name), adj = 0, cex = 1)
+          y <- y - 0.05
         }
         
-        safe_value <- function(x, fallback = "-") {
-          if (is.null(x) || length(x) == 0) return(fallback)
-          x <- x[1]
-          if (is.na(x)) return(fallback)
-          as.character(x)
-        }
+        text(0.05, y, paste("Erstellt am:", Sys.Date()), adj = 0, cex = 1)
+        y <- y - 0.08
         
-        new_page <- function(title = "ClusterIt Report") {
-          plot.new()
-          par(mar = c(0, 0, 0, 0))
-          
-          #Backround
-          rect(0, 0, 1, 1, col = "#F7F8FA", border = NA)
-          
-          #Head
-          rect(0, 0.90, 1, 1, col = "#2C3E50", border = NA)
-          text(0.05, 0.955, title, adj = 0, cex = 1.6, font = 2, col = "white")
-          text(
-            0.95,
-            0.955,
-            format(Sys.time(), "%d.%m.%Y %H:%M"),
-            adj = 1,
-            cex = 0.8,
-            col = "white"
-          )
-          
-          #Feetzeile
-          rect(0, 0, 1, 0.035, col = "#2C3E50", border = NA)
-          text(0.05, 0.018, "ClusterIt", adj = 0, cex = 0.7, col = "white")
-          text(0.95, 0.018, "Automatisch generierter Analyse-Report", adj = 1, cex = 0.7, col = "white")
-          
-          y <<- 0.86
-        }
+        text(0.05, y, "NA-Fehlerbehandlung", adj = 0, cex = 1.3, font = 2)
+        y <- y - 0.06
         
-        section_title <- function(label) {
-          if (y < 0.13) new_page()
+        if (is.null(info)) {
           
-          rect(0.05, y - 0.045, 0.95, y + 0.012, col = "#FBEEB9", border = "#E2D28A")
-          text(0.07, y - 0.018, label, adj = 0, cex = 1.05, font = 2, col = "#1F2933")
+          text(0.05, y, "Noch keine CSV-Datei hochgeladen.", adj = 0, cex = 1)
           
-          y <<- y - 0.075
-        }
-        
-        key_value <- function(label, value) {
-          if (y < 0.08) new_page()
-          
-          text(0.07, y, paste0(label, ":"), adj = 0, cex = 0.82, font = 2, col = "#34495E")
-          text(0.42, y, safe_value(value), adj = 0, cex = 0.82, col = "#111111")
-          
-          y <<- y - 0.035
-        }
-        
-        wrapped_text <- function(text_value, x = 0.07, width = 95, cex = 0.78, col = "#333333") {
-          lines <- unlist(strwrap(as.character(text_value), width = width))
-          
-          for (line in lines) {
-            if (y < 0.08) new_page()
-            text(x, y, line, adj = 0, cex = cex, col = col)
-            y <<- y - 0.032
-          }
-        }
-        
-        metric_card <- function(x1, x2, title, value, subtitle = "", fill = "#FFFFFF") {
-          rect(x1, y - 0.105, x2, y, col = fill, border = "#D5D8DC")
-          text(x1 + 0.015, y - 0.028, title, adj = 0, cex = 0.72, font = 2, col = "#34495E")
-          text(x1 + 0.015, y - 0.065, safe_value(value), adj = 0, cex = 1.25, font = 2, col = "#111111")
-          
-          if (!is.null(subtitle) && subtitle != "") {
-            text(x1 + 0.015, y - 0.09, subtitle, adj = 0, cex = 0.58, col = "#626567")
-          }
-        }
-        
-        metric_row <- function(cards) {
-          if (y < 0.18) new_page()
-          
-          gap <- 0.015
-          start_x <- 0.05
-          total_width <- 0.90
-          card_width <- (total_width - gap * (length(cards) - 1)) / length(cards)
-          
-          for (i in seq_along(cards)) {
-            x1 <- start_x + (i - 1) * (card_width + gap)
-            x2 <- x1 + card_width
-            
-            metric_card(
-              x1 = x1,
-              x2 = x2,
-              title = cards[[i]]$title,
-              value = cards[[i]]$value,
-              subtitle = cards[[i]]$subtitle,
-              fill = cards[[i]]$fill
-            )
-          }
-          
-          y <<- y - 0.14
-        }
-        
-        list_items <- function(title, values, max_items = 12) {
-          if (is.null(values) || length(values) == 0) return(NULL)
-          
-          if (y < 0.12) new_page()
-          
-          text(0.07, y, title, adj = 0, cex = 0.85, font = 2, col = "#34495E")
-          y <<- y - 0.035
-          
-          show_values <- head(values, max_items)
-          
-          for (v in show_values) {
-            if (y < 0.08) new_page()
-            wrapped_text(paste0("• ", v), x = 0.09, width = 85, cex = 0.72)
-          }
-          
-          if (length(values) > max_items) {
-            wrapped_text(
-              paste0("... weitere ", length(values) - max_items, " Einträge nicht angezeigt."),
-              x = 0.09,
-              width = 85,
-              cex = 0.7,
-              col = "#666666"
-            )
-          }
-          
-          y <<- y - 0.015
-        }
-        
-        #Site 1
-        new_page("ClusterIt Analyse-Report")
-        
-        section_title("Übersicht")
-        
-        key_value("Dateiname", if (!is.null(input$Datei_csv)) input$Datei_csv$name else "Keine CSV hochgeladen")
-        key_value("Erstellt am", format(Sys.time(), "%d.%m.%Y um %H:%M Uhr"))
-        key_value("Report-Typ", "Clusteranalyse")
-        
-        y <- y - 0.02
-        
-        section_title("Datensatz")
-        
-        if (!is.null(daten_report)) {
-          first_col_name <- names(daten_report)[1]
-          
-          metric_row(list(
-            list(
-              title = "Zeilen",
-              value = as.character(nrow(daten_report)),
-              subtitle = "aktueller Datensatz",
-              fill = "#FFFFFF"
-            ),
-            list(
-              title = "Spalten",
-              value = as.character(ncol(daten_report)),
-              subtitle = "aktueller Datensatz",
-              fill = "#FFFFFF"
-            ),
-            list(
-              title = "Geschützte Spalte",
-              value = first_col_name,
-              subtitle = "erste Spalte",
-              fill = "#FFFFFF"
-            )
-          ))
         } else {
-          wrapped_text("Noch keine CSV-Datei hochgeladen.")
-        }
-        
-        # Site 2 Parameter
-        new_page("Analyse-Parameter")
-        
-        section_title("Gewählte Einstellungen")
-        
-        key_value("Clusterverfahren", clust_config$method)
-        key_value("Distanzmatrix", clust_config$distance)
-        key_value("Normalisierung", clust_config$normalisation)
-        key_value("Farbpalette", input$farbpaletten)
-        
-        if (!is.null(clust_config$distance) &&
-            clust_config$distance == "Minkowski-Distanz") {
-          key_value("Minkowski p", input$param_paramtab)
-        }
-        
-        if (!is.null(clust_config$method) &&
-            clust_config$method == "Custom-Linkage") {
           
-          y <- y - 0.02
-          section_title("Custom-Linkage Parameter")
+          text(0.05, y, paste("Anzahl aller NA-Werte:", info$na_gesamt), adj = 0, cex = 1)
+          y <- y - 0.045
           
-          key_value("alpha_a", clust_config$alpha_a)
-          key_value("alpha_b", clust_config$alpha_b)
-          key_value("beta", clust_config$beta)
-          key_value("gamma", clust_config$gamma)
+          text(0.05, y, paste("Zeilen mit mindestens einem NA-Wert:", info$zeilen_mit_na), adj = 0, cex = 1)
+          y <- y - 0.045
+          
+          text(0.05, y, paste("Zeilen gesamt:", info$zeilen_gesamt), adj = 0, cex = 1)
+          y <- y - 0.045
+          
+          text(0.05, y, paste("Spalten gesamt:", info$spalten_gesamt), adj = 0, cex = 1)
+          y <- y - 0.06
+          
+          if (isTRUE(info$bereits_bereinigt)) {
+            text(0.05, y, "Status: NA-Spalten wurden entfernt.", adj = 0, cex = 1)
+            y <- y - 0.045
+            
+            if (!is.null(info$entfernte_spalten)) {
+              text(0.05, y, paste("Entfernte Spalten:", info$entfernte_spalten), adj = 0, cex = 1)
+              y <- y - 0.045
+            }
+          } else {
+            text(0.05, y, "Status: Datei wurde geprüft. Es wurde noch nichts gelöscht.", adj = 0, cex = 1)
+            y <- y - 0.045
+          }
         }
         
-        if (!is.null(input$pathways) && length(input$pathways) > 0) {
-          y <- y - 0.02
-          list_items("Ausgewählte Pathways", input$pathways, max_items = 20)
+        y <- y - 0.06
+        
+        text(0.05, y, "Gewählte Parameter", adj = 0, cex = 1.3, font = 2)
+        y <- y - 0.06
+        
+        text(0.05, y, paste("Clusterverfahren:", input$clusterverfahren), adj = 0, cex = 1)
+        y <- y - 0.045
+        
+        text(0.05, y, paste("Distanzmatrix:", input$distanzmatrix), adj = 0, cex = 1)
+        y <- y - 0.045
+        
+        text(0.05, y, paste("Normalisierung:", input$normalisierung), adj = 0, cex = 1)
+        y <- y - 0.045
+        
+        text(0.05, y, paste("Anzahl Cluster:", input$anzahlcluster), adj = 0, cex = 1)
+        
+        if (!is.null(daten)) {
+          
+          plot.new()
+          par(mar = c(1, 1, 1, 1))
+          
+          text(0.05, 0.95, "Datensatz-Vorschau", adj = 0, cex = 1.4, font = 2)
+          
+          preview <- head(daten[, seq_len(min(5, ncol(daten))), drop = FALSE], 10)
+          preview_text <- capture.output(print(preview))
+          
+          y <- 0.88
+          
+          for (line in preview_text) {
+            text(0.05, y, line, adj = 0, cex = 0.75, family = "mono")
+            y <- y - 0.04
+          }
         }
-        
-        
         
         dev.off()
-        
-        #Pdf combine function
-        external_pdf <- watched_pdf()
-        
-        
-          
-          qpdf::pdf_combine(
-            input = c(report_pdf, external_pdf),
-            output = file
-          )
       }
     )
     
-    #Preset 
-    refresh_presets <- function() {
+    observeEvent(input$anzahlcluster, {   # Save User Choice Cluster
+      tmp <- preset_values()
+      tmp$anzahlcluster <- input$anzahlcluster
+      preset_values(tmp)
+    })  
+    
+    observeEvent(input$clusterverfahren, { #Save User Choice Clusterfunction
+      tmp <- preset_values()
+      tmp$clusterverfahren <- input$clusterverfahren
+      preset_values(tmp)
+    })  
+    
+    observeEvent(input$distanzmatrix, { #Save User Choice distance
+      tmp <- preset_values()
+      tmp$distanzmatrix <- input$distanzmatrix
+      preset_values(tmp)
       
+    })
+    
+    observeEvent(input$normalisierung, { #Save User Choice Normalisierung
+      tmp <- preset_values()
+      tmp$normalisierung <- input$normalisierung
+      preset_values(tmp)
+    })
+    observeEvent(input$farbpaletten, { #Save User Choice Color
+      tmp <- preset_values()
+      tmp$farbpaletten <- input$farbpaletten
+      preset_values(tmp)
+    })
+    
+    
+    refresh_presets <- function() { # Refresh Preset Dropdown
       if (!dir.exists("presets")) {
         dir.create("presets")
       }
@@ -1378,161 +833,40 @@ if(interactive()){
         full.names = TRUE
       )
       
-      choices <- c(
-        "Bitte Preset auswählen" = "",
-        setNames(dateien, basename(dateien))
-      )
-      
       updateSelectInput(
         session,
         "preset_datei",
-        choices = choices,
-        selected = ""
+        choices = setNames(dateien, basename(dateien))
       )
     }
     
-    refresh_presets()
     
-    observeEvent(input$save_preset, {
+    observeEvent(input$load_preset, { #Load Preset after user choice
+      req(input$preset_datei)
       
-      req(input$preset_name)
+      preset <- jsonlite::fromJSON(input$preset_datei)
       
-      if (!dir.exists("presets")) {
-        dir.create("presets")
+      if (!is.null(preset$anzahlcluster)) {
+        updateNumericInput(session, "anzahlcluster", value = preset$anzahlcluster)
       }
       
-      preset <- list(
-        clusterverfahren = clust_config$method,
-        normalisierung = clust_config$normalisation,
-        distanzmatrix = clust_config$distance,
-        farbpaletten = input$farbpaletten,
-        
-        # Minkowski-Parameter
-        param_paramtab = input$param_paramtab,
-        param_heatmap = input$param_heatmap,
-        
-        # Custom-Linkage-Parameter
-        alpha_a = clust_config$alpha_a,
-        alpha_b = clust_config$alpha_b,
-        beta = clust_config$beta,
-        gamma = clust_config$gamma,
-        
-        # Pathways
-        pathways = input$pathways,
-                
-        gespeichert_am = as.character(Sys.time())
-      )
-      
-      # Limit character for name
-      safe_name <- gsub("[^A-Za-z0-9_\\-]", "_", input$preset_name)
-      pfad <- file.path("presets", paste0(safe_name, ".json"))
-      
-      jsonlite::write_json(
-        preset,
-        path = pfad,
-        auto_unbox = TRUE,
-        pretty = TRUE
-      )
-      
-      showNotification(
-        paste("Preset gespeichert unter:", pfad),
-        type = "message"
-      )
-      
-      refresh_presets()
-    })
-    
-    observeEvent(input$load_preset, {
-      
-      req(input$preset_datei)
-      req(nzchar(input$preset_datei))
-      
-      preset <- jsonlite::fromJSON(
-        input$preset_datei,
-        simplifyVector = FALSE
-      )
-      
       if (!is.null(preset$clusterverfahren)) {
-        clust_config$method <- preset$clusterverfahren
         updateSelectInput(session, "clusterverfahren", selected = preset$clusterverfahren)
-        updateSelectInput(session, "clusterverfahren_sidebar", selected = preset$clusterverfahren)
       }
       
       if (!is.null(preset$normalisierung)) {
-        clust_config$normalisation <- preset$normalisierung
         updateSelectInput(session, "normalisierung", selected = preset$normalisierung)
-        updateSelectInput(session, "normalisierung_sidebar", selected = preset$normalisierung)
-      }
-      
-      if (!is.null(preset$distanzmatrix)) {
-        clust_config$distance <- preset$distanzmatrix
-        updateSelectInput(session, "distanzmatrix", selected = preset$distanzmatrix)
-        updateSelectInput(session, "distanzmatrix_sidebar", selected = preset$distanzmatrix)
       }
       
       if (!is.null(preset$farbpaletten)) {
         updateRadioButtons(session, "farbpaletten", selected = preset$farbpaletten)
-        updateRadioButtons(session, "farbpaletten_sidebar", selected = preset$farbpaletten)
       }
       
-      if (!is.null(preset$param_paramtab)) {
-        updateNumericInput(session, "param_paramtab", value = preset$param_paramtab)
+      if (!is.null(preset$distanzmatrix)) {
+        updateSelectInput(session, "distanzmatrix", selected = preset$distanzmatrix)
       }
-      
-      if (!is.null(preset$param_heatmap)) {
-        updateNumericInput(session, "param_heatmap", value = preset$param_heatmap)
-      }
-      
-      if (!is.null(preset$alpha_a)) {
-        clust_config$alpha_a <- preset$alpha_a
-        updateNumericInput(session, "alpha_a", value = preset$alpha_a)
-      }
-      
-      if (!is.null(preset$alpha_b)) {
-        clust_config$alpha_b <- preset$alpha_b
-        updateNumericInput(session, "alpha_b", value = preset$alpha_b)
-      }
-      
-      if (!is.null(preset$beta)) {
-        clust_config$beta <- preset$beta
-        updateNumericInput(session, "beta", value = preset$beta)
-      }
-      
-      if (!is.null(preset$gamma)) {
-        clust_config$gamma <- preset$gamma
-        updateNumericInput(session, "gamma", value = preset$gamma)
-      }
-      
-      if (!is.null(preset$pathways)) {
-        selected_pathways <- unlist(preset$pathways)
-        
-        if (!is.null(pathway_list())) {
-          updateSelectizeInput(
-            session,
-            "pathways",
-            choices = pathway_list(),
-            selected = selected_pathways,
-            server = TRUE
-          )
-        } else {
-          updateSelectizeInput(
-            session,
-            "pathways",
-            selected = selected_pathways,
-            server = TRUE
-          )
-        }
-      }
-      
-      if (!is.null(preset$anzahlcluster) && "anzahlcluster" %in% names(input)) {
-        updateNumericInput(session, "anzahlcluster", value = preset$anzahlcluster)
-      }
-      
-      showNotification(
-        paste("Preset geladen:", basename(input$preset_datei)),
-        type = "message"
-      )
     })
+    
     
     observeEvent(input$nextpage, {
       updateTabItems(session, "tabs", selected = "datei_hochladen")
@@ -1547,6 +881,10 @@ if(interactive()){
       clust_config$method <- input$clusterverfahren
     })
     
+    observeEvent(input$farbpaletten, {
+      clust_config$palette <- input$farbpaletten
+    })
+    
     observeEvent(input$distanzmatrix, {
       clust_config$distance <- input$distanzmatrix
     })
@@ -1558,6 +896,10 @@ if(interactive()){
     
     observeEvent(input$clusterverfahren_sidebar, {
       clust_config$method <- input$clusterverfahren_sidebar
+    })
+    
+    observeEvent(input$farbpaletten_sidebar, {
+      clust_config$palette <- input$farbpaletten_sidebar
     })
     
     observeEvent(input$distanzmatrix_sidebar, {
@@ -1584,6 +926,10 @@ if(interactive()){
       clust_config$gamma <- input$gamma
     })
     
+    observeEvent(input$focus_patient, {
+      selected_patient(input$focus_patient)
+    })
+    
     
     observe({
       updateSelectInput(session, "clusterverfahren",
@@ -1603,11 +949,22 @@ if(interactive()){
       
       updateSelectInput(session, "normalisierung_sidebar",
                         selected = clust_config$normalisation)
+      
+      updateRadioButtons(session, "farbpaletten",
+                         selected = clust_config$palette)
+      
+      updateRadioButtons(session, "farbpaletten_sidebar",
+                         selected = clust_config$palette)
     })
+    
+    
     
     run_analysis <- function(){   
       
       cat("Analysis started\n")
+      
+      showNotification(ui = div(style= "font-size: 18px; font-weight: bold; color: #000000;",
+                                "Analyse läuft, bitte warten"), type = "message", duration = NULL, id = "analysis_progress")
       
       tryCatch({
         
@@ -1630,12 +987,12 @@ if(interactive()){
         req(length(selected_pathways)>0)
         
         #keep numeric only
-#        data <- data[sapply(data, is.numeric)]
-#        cat("numeric cols:", ncol(data), "\n")
+        #        data <- data[sapply(data, is.numeric)]
+        #        cat("numeric cols:", ncol(data), "\n")
         
         #prevents empty numeric matrix crash
-#        req(ncol(data) > 0)
-#        cat("ncol check OK\n")
+        #        req(ncol(data) > 0)
+        #        cat("ncol check OK\n")
         
         #------------------ PREPROCESS + INTEGRATION OF DATA -------------------
         
@@ -1653,31 +1010,31 @@ if(interactive()){
         metaDaten_gefiltert <- result$meta_data
         cat("Filtered dims:", nrow(gefilteterDatensatz), ncol(gefilteterDatensatz), "\n")
         
-        print(names(metaDaten_gefiltert))
         
         #------------------ PREPARE + NORMALIZE DATA ---------------------------
-        df_prepared <- prepare_data(gefilteterDatensatz)
-        cat("Prepared dims:", nrow(df_prepared), ncol(df_prepared), "\n")
-        cat("Prepared column types:", paste(sapply(df_prepared, class), collapse=", "), "\n")
-        str(df_prepared[,1:3])
-        
-        #placeholder normalization
-        cat("About to normalize, df_prepared class:", class(df_prepared), "\n")
-        
+        #str(df_prepared[,1:3])
+
         norm_number <- switch(clust_config$normalisation,
-                                "normalize_log_zscore" = 1,
-                                "normalize_log_only" = 2, 
-                                "normalize_log_median_centering" = 3, 
-                                "normalize_log_mad" = 4,
-                                1
+                              "Keine Normalisierung" = 0,
+                              "normalize_log_zscore" = 1,
+                              "normalize_log_only" = 2, 
+                              "normalize_log_median_centering" = 3, 
+                              "normalize_log_mad" = 4,
+                              0
         )
         cat("norm_number:", norm_number, "\n")
         
+        #---------------- PREPARED DATA ----------------------------------------
+        df_prepared <- prepare_data(gefilteterDatensatz, clust_config$normalisation == "Keine Normalisierung")
         
         df_normalized <- normalization(df_prepared, norm_number)
         cat("normalisation OK, dims:", nrow(df_normalized), ncol(df_normalized), "\n")
         
+        prepared_data(df_prepared)
+        
         patient_names_vec <- colnames(df_normalized)
+        updateSelectizeInput(session, "focus_patient", choices = patient_names_vec, server = TRUE)
+        
         class_labels_vec <- as.character(metaDaten_gefiltert["Meta_labels", patient_names_vec])
         cat("Class labels:", paste(unique(class_labels_vec), collapse=", "), "\n")
         
@@ -1733,6 +1090,33 @@ if(interactive()){
         tree_genes <- build_tree(cluster_genes)
         order_genes <- get_order_vector(tree_genes)
         
+        #--------------------BUILD PLOTS ---------------------------------------
+        
+        heatmap_plot <- generate_heatmap(
+          data_matrix = df_prepared,
+          gene_order = order_genes,
+          patient_order = order_pat
+        )
+        
+        patient_dendro <- generate_dendro(
+          cluster_pat, tree_pat, order_pat,
+          title = "Patienten",
+          names_vector = patient_names_vec,
+          class_labels = class_labels_vec,
+          palette = clust_config$palette
+        )
+        
+        gene_dendro <- generate_dendro(
+          cluster_genes, tree_genes, order_genes,
+          title = "Gene",
+          names_vector = NULL,
+          class_labels = NULL,
+          palette = clust_config$palette
+        )
+        
+        heatmap_store(heatmap_plot)
+        patient_store(patient_dendro)
+        gene_store(gene_dendro)
         
         cluster_patient(cluster_pat)
         tree_patient(tree_pat)
@@ -1749,6 +1133,8 @@ if(interactive()){
         })
         
         cat("tab switch triggered\n")
+        
+        removeNotification(id = "analysis_progress")
         
       }, error = function(e){
         
@@ -1802,6 +1188,24 @@ if(interactive()){
       removeModal()
       
       run_analysis()
+    })
+    
+    
+    
+    observeEvent(input$save_preset, { #Save Preset in Json
+      req(input$preset_name)
+      if (!dir.exists("presets")) {
+        dir.create("presets")
+      }
+      pfad <- file.path("presets", paste0(input$preset_name, ".json"))
+      jsonlite::write_json(
+        preset_values(),
+        path = pfad,
+        auto_unbox = TRUE,
+        pretty = TRUE
+      )
+      showNotification(paste("Preset gespeichert unter:", pfad), type = "message")
+      refresh_presets()
     })
     
     
@@ -1915,21 +1319,21 @@ if(interactive()){
       
     })
     
-    observeEvent(input$back, {
-      
-      showModal(
-        modalDialog(
-          title = "Warnung",
-          "Das Zurückkehren zu den Parametern löscht die aktuelle Heatmap. Möchten Sie fortfahren",
-          
-          footer = tagList(
-            modalButton("Ja"),
-            
-            actionButton("confirm_run", "Nein")
-          )
-        )
-      )
-    })
+    #    observeEvent(input$back, {
+    
+    #      showModal(
+    #        modalDialog(
+    #          title = "Warnung",
+    #          "Das Zurückkehren zu den Parametern löscht die aktuelle Heatmap. Möchten Sie fortfahren",
+    
+    #          footer = tagList(
+    #            modalButton("Ja"),
+    
+    #            actionButton("confirm_run", "Nein")
+    #          )
+    #        )
+    #      )
+    #    })
     
     observeEvent(input$confirm_run,{
       
@@ -2015,15 +1419,20 @@ if(interactive()){
     
     output$patientDendrogram <- renderPlotly({
       
+      
       req(cluster_patient())
       req(tree_patient())
       req(order_patient())
       req(patient_names())
       req(class_labels())
       
-      p <- generate_dendro(cluster_patient(), tree_patient(), order_patient(), title = "Patienten", names_vector = patient_names(), class_labels = class_labels())
+      
+      p <- generate_dendro(cluster_patient(), tree_patient(), order_patient(), title = "Patienten", 
+                           names_vector = patient_names(), class_labels = class_labels(), palette = clust_config$palette)
       
       ggplotly(p) 
+      
+      
     })
     
     
@@ -2033,12 +1442,35 @@ if(interactive()){
       req(tree_gene())
       req(order_gene())
       
-      p <- generate_dendro(cluster_gene(), tree_gene(), order_gene(), title = "Gene", names_vector = NULL, class_labels = NULL)
+      p <- generate_dendro(cluster_gene(), tree_gene(), order_gene(), title = "Gene", 
+                           names_vector = NULL, class_labels = NULL, palette = clust_config$palette)
       
       ggplotly(p) 
+      
     })
     
     
+    
+    output$grafikpanel <- renderPlot({
+      
+      req(heatmap_store(), patient_store(), gene_store())
+      
+      focus <- selected_patient()
+      
+      heatmap <- heatmap_store()
+      patient <- patient_store()
+      gene <- gene_store()
+      
+      if(is.null(focus) || focus ==""){
+        return(grafikpanel(heatmap, patient, gene))
+      }
+      
+      if(focus %in% colnames(heatmap)){
+        heatmap <- heatmap[, c(focus, setdiff(colnames(heatmap), focus)), drop = FALSE]
+      }
+      grafikpanel(heatmap, patient, gene)
+      
+    })
     
   }  
   shinyApp(ui, server)
