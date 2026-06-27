@@ -1,34 +1,792 @@
-# Server logic
-
-library(shiny)
-
-options(shiny.maxRequestSize = 100 * 1024^2) # increase upload limit
-
-#Server ---------------------
-server <- function(input, output) {
+server <- function(input, output, session) {
+  cat("===== SERVER FUNCTION LOADED =====\n")
+  
+  cluster_result <- reactiveVal(NULL)
+  cluster_bundle <- reactiveVal(NULL)
+  d_mat_result <- reactiveVal(NULL)
+  pathway_list <- reactiveVal()
+  coverage_result <- reactiveVal(NULL)
+  prepared_data <- reactiveVal(NULL)
+  
+  tree_patient <- reactiveVal(NULL)
+  order_patient <- reactiveVal(NULL)
+  cluster_patient <- reactiveVal(NULL)
+  patient_names <- reactiveVal(NULL)
+  class_labels <- reactiveVal(NULL)
+  selected_patient <- reactiveVal(NULL)
+  
+  tree_gene <- reactiveVal(NULL)
+  order_gene <- reactiveVal(NULL)
+  cluster_gene <- reactiveVal(NULL)
+  
+  heatmap_store <- reactiveVal(NULL)
+  patient_store <- reactiveVal(NULL)
+  gene_store <- reactiveVal(NULL)
+  
+  clust_config <- reactiveValues(
+    method = "Single-Linkage",
+    normalisation = "normalize_log_zscore",
+    distance = "Euklidische Distanz",
+    palette = "RdYlBu",
+    alpha_a = 0.5,
+    alpha_b = 0.5,
+    beta = 0,
+    gamma = 0,
+    minkowski_p = 1
+  )
+  
   output$Beispieltext <- renderText({
-    paste("Deine Zahl:", input$x)
+    paste("Deine Datei:", input$x)
+  })
+  preset_values <- reactiveVal(list()) #Create reactive variable list
+  options(shiny.maxRequestSize = 300 * 1024^2)
+  
+  # CSV IMPORT BACKEND
+  daten_original <- reactiveVal(NULL)
+  daten_aktuell <- reactiveVal(NULL)
+  na_infos <- reactiveVal(NULL)
+  
+  observeEvent(input$Datei_csv, {
+    req(input$Datei_csv)
+    
+    df <- read.table(
+      input$Datei_csv$datapath,
+      header = TRUE,
+      stringsAsFactors = FALSE,
+      sep = ",",
+      dec = ".",
+      quote = "\"",
+      na.strings = c("", " ", "NA", "NaN", "NULL", "N/A"),
+      colClasses = NA
+    )
+    
+    gene_id_col <- as.character(df[, 1])
+    
+    df_rest <- as.data.frame(lapply(df[, -1], function(col) {
+      converted <- suppressWarnings(as.numeric(as.character(col)))
+      na_before <- sum(is.na(col))
+      na_after <- sum(is.na(converted))
+      if (na_after <= na_before + 0.5 * length(col))
+        converted
+      else
+        col
+    }))
+    
+    df <- cbind(setNames(data.frame(gene_id_col), names(df)[1]), df_rest)
+    
+    na_gesamt <- sum(is.na(df))
+    zeilen_mit_na <- !complete.cases(df)
+    anzahl_zeilen_mit_na <- sum(zeilen_mit_na)
+    na_pro_spalte <- colSums(is.na(df))
+    
+    daten_original(df)
+    daten_aktuell(df)
+    
+    na_infos(
+      list(
+        na_gesamt = na_gesamt,
+        zeilen_mit_na = anzahl_zeilen_mit_na,
+        zeilen_gesamt = nrow(df),
+        spalten_gesamt = ncol(df),
+        na_pro_spalte = na_pro_spalte,
+        bereits_bereinigt = FALSE
+      )
+    )
+    
+    output$upload_status <- renderUI({
+      div(style = "font-size: 16px; font-weight: bold; color: #000000; margin-top: 10px;", "Datei erfolgreich hochgeladen")
+    })
+    
+    session$sendInputMessage("Datei_csv", list(value = character(0)))
   })
   
   
-  # CSV IMPORT BACKEND
-  daten <- reactive({      # for dynamic processing
-    req(input$Datei_csv)   # upload check
-    read.csv(input$Datei_csv$datapath)
+  output$na_info <- renderPrint({
+    info <- na_infos()
+    
+    if (is.null(info)) {
+      cat("Noch keine CSV-Datei hochgeladen.")
+      return(invisible(NULL))
+    }
+    
+    cat("Anzahl aller NA-Werte:", info$na_gesamt, "\n")
+    cat("Zeilen mit mindestens einem NA-Wert:",
+        info$zeilen_mit_na,
+        "\n")
+    cat("Spalten mit mindestens einem NA-Wert:",
+        sum(info$na_pro_spalte > 0),
+        "\n")
+    cat("Zeilen gesamt:", info$zeilen_gesamt, "\n")
+    cat("Spalten gesamt:", info$spalten_gesamt, "\n\n")
+    
+    
+    if (isTRUE(info$bereits_bereinigt)) {
+      cat("\nStatus: NA-Spalten wurden entfernt.\n")
+      cat("Entfernte Spalten:", info$entfernte_spalten, "\n")
+      
+      if (length(info$entfernte_spalten_namen) > 0) {
+        cat("Entfernte Spaltennamen:\n")
+        print(info$entfernte_spalten_namen)
+      }
+    } else {
+      cat("\nStatus: Datei wurde geprüft. Es wurde noch nichts gelöscht.\n")
+    }
+    
+    invisible(NULL)
+  })
+  
+  observeEvent(input$drop_na, {
+    req(daten_aktuell())
+    
+    df <- daten_aktuell()
+    
+    # Colum with at least one NA
+    spalten_mit_na <- colSums(is.na(df)) > 0
+    
+    # save name of removed colum
+    entfernte_spalten_namen <- names(df)[spalten_mit_na]
+    
+    #Remove coloum
+    df_clean <- df[, !spalten_mit_na, drop = FALSE]
+    
+    #Number of removed columns
+    entfernte_spalten <- sum(spalten_mit_na)
+    
+    #save clean data
+    daten_aktuell(df_clean)
+    
+    # refresh na_infos
+    na_infos(
+      list(
+        na_gesamt = sum(is.na(df_clean)),
+        spalten_mit_na = sum(colSums(is.na(df_clean)) > 0),
+        zeilen_mit_na = sum(!complete.cases(df_clean)),
+        zeilen_gesamt = nrow(df_clean),
+        spalten_gesamt = ncol(df_clean),
+        na_pro_spalte = colSums(is.na(df_clean)),
+        bereits_bereinigt = TRUE,
+        entfernte_spalten = entfernte_spalten,
+        entfernte_spalten_namen = entfernte_spalten_namen
+      )
+    )
+  })
+  
+  ##############################################################################
+  # PDF EXPORT 
+  ##############################################################################
+  
+  daten <- reactive({
+    req(daten_aktuell())
+    daten_aktuell()
+  })
+  
+  produced_pdfs <- "tests/produced_pdfs"
+  
+  if (!dir.exists(produced_pdfs)) {
+    dir.create(produced_pdfs, recursive = TRUE)
+  }
+  
+  watched_pdf <- reactivePoll(intervalMillis = 2000, session = session, 
+                              checkFunc = function () pdf_check(produced_pdfs), valueFunc = function() pdf_value(produced_pdfs))
+  
+  output$download_pdf <- downloadHandler(
+    filename = paste0("ClusterIt_Report_", Sys.Date(), ".pdf"),
+    contentType = "application/pdf",
+    content = function(file) {pdf_content(file, watched_pdf, daten_aktuell, input, clust_config)} 
+  )
+
+  ##############################################################################
+  # PDF EXPORT ENDE
+  ##############################################################################
+  
+  observeEvent(input$anzahlcluster, {
+    # Save User Choice Cluster
+    tmp <- preset_values()
+    tmp$anzahlcluster <- input$anzahlcluster
+    preset_values(tmp)
+  })
+  
+  observeEvent(input$clusterverfahren, {
+    #Save User Choice Clusterfunction
+    tmp <- preset_values()
+    tmp$clusterverfahren <- input$clusterverfahren
+    preset_values(tmp)
+  })
+  
+  observeEvent(input$distanzmatrix, {
+    #Save User Choice distance
+    tmp <- preset_values()
+    tmp$distanzmatrix <- input$distanzmatrix
+    preset_values(tmp)
     
   })
   
-  #CSV PROCESSING
-  output$Spalten <- renderText({
-    paste0("Der Datensatz hat ",nrow(daten())-1, " Messwerte", "\n",
-   "Der Datensatz hat ",ncol(daten()), " Samples")
+  observeEvent(input$normalisierung, {
+    #Save User Choice Normalisierung
+    tmp <- preset_values()
+    tmp$normalisierung <- input$normalisierung
+    preset_values(tmp)
+  })
+  observeEvent(input$farbpaletten, {
+    #Save User Choice Color
+    tmp <- preset_values()
+    tmp$farbpaletten <- input$farbpaletten
+    preset_values(tmp)
+  })
+  
+  observeEvent(input$load_preset, {
+    #Load Preset after user choice
+    req(input$preset_datei)
+    
+    preset <- jsonlite::fromJSON(input$preset_datei)
+    
+    if (!is.null(preset$anzahlcluster)) {
+      updateNumericInput(session, "anzahlcluster", value = preset$anzahlcluster)
+    }
+    
+    if (!is.null(preset$clusterverfahren)) {
+      updateSelectInput(session,
+                        "clusterverfahren",
+                        selected = preset$clusterverfahren)
+    }
+    
+    if (!is.null(preset$normalisierung)) {
+      updateSelectInput(session, "normalisierung", selected = preset$normalisierung)
+    }
+    
+    if (!is.null(preset$farbpaletten)) {
+      updateRadioButtons(session, "farbpaletten", selected = preset$farbpaletten)
+    }
+    
+    if (!is.null(preset$distanzmatrix)) {
+      updateSelectInput(session, "distanzmatrix", selected = preset$distanzmatrix)
+    }
+  })
+  
+  observeEvent(input$nextpage, {
+    updateTabItems(session, "tabs", selected = "datei_hochladen")
+  })
+  
+  observeEvent(input$switchtab, {
+    updateTabItems(session, "tabs", selected = "parameter")
+  })
+  
+  observeEvent(input$clusterverfahren, {
+    clust_config$method <- input$clusterverfahren
+  })
+  
+  observeEvent(input$farbpaletten, {
+    clust_config$palette <- input$farbpaletten
+  })
+  
+  observeEvent(input$distanzmatrix, {
+    clust_config$distance <- input$distanzmatrix
+  })
+  
+  observeEvent(input$normalisierung, {
+    clust_config$normalisation <- input$normalisierung
+  })
+  
+  
+  observeEvent(input$clusterverfahren_sidebar, {
+    clust_config$method <- input$clusterverfahren_sidebar
+  })
+  
+  observeEvent(input$farbpaletten_sidebar, {
+    clust_config$palette <- input$farbpaletten_sidebar
+  })
+  
+  observeEvent(input$distanzmatrix_sidebar, {
+    clust_config$distance <- input$distanzmatrix_sidebar
+  })
+  
+  observeEvent(input$normalisierung_sidebar, {
+    clust_config$normalisation <- input$normalisierung_sidebar
+  })
+  
+  observeEvent(input$alpha_a, {
+    clust_config$alpha_a <- input$alpha_a
+  })
+  
+  observeEvent(input$alpha_b, {
+    clust_config$alpha_b <- input$alpha_b
+  })
+  
+  observeEvent(input$beta, {
+    clust_config$beta <- input$beta
+  })
+  
+  observeEvent(input$gamma, {
+    clust_config$gamma <- input$gamma
+  })
+  
+  observeEvent(input$focus_patient, {
+    selected_patient(input$focus_patient)
+  })
+  
+  
+  observe({
+    updateSelectInput(session, "clusterverfahren", selected = clust_config$method)
+    
+    updateSelectInput(session, "clusterverfahren_sidebar", selected = clust_config$method)
+    
+    updateSelectInput(session, "distanzmatrix", selected = clust_config$distance)
+    
+    updateSelectInput(session, "distanzmatrix_sidebar", selected = clust_config$distance)
+    
+    updateSelectInput(session, "normalisierung", selected = clust_config$normalisation)
+    
+    updateSelectInput(session,
+                      "normalisierung_sidebar",
+                      selected = clust_config$normalisation)
+    
+    updateRadioButtons(session, "farbpaletten", selected = clust_config$palette)
+    
+    updateRadioButtons(session, "farbpaletten_sidebar", selected = clust_config$palette)
+  })
+  
+  run_analysis <- function() {
+    cat("Analysis started\n")
+    
+    showNotification(
+      ui = div(style = "font-size: 18px; font-weight: bold; color: #000000;", "Analyse läuft, bitte warten"),
+      type = "message",
+      duration = NULL,
+      id = "analysis_progress"
+    )
+    
+    tryCatch({
+      req(daten())
+      req(clust_config$distance)
+      req(clust_config$method)
+      req(clust_config$normalisation)
+      
+      #calls the updated data
+      data <- daten()
+      cat("data dims:", nrow(data), ncol(data), "\n")
+      
+      cat("Your data first column sample:\n")
+      print(head(data[, 1]))
+      cat("Your data first column class:", class(data[, 1]), "\n")
+      
+      #filters rows by selected pathways
+      selected_pathways <- input$pathways
+      req(selected_pathways)
+      req(length(selected_pathways) > 0)
+      
+      #------------------ PREPROCESS + INTEGRATION OF DATA -------------------
+      
+      preprocess <- preprocess_general(data)
+      data_preprocessed <- preprocess$dataset_preprocessed
+      cat("Preprocessed dims:", nrow(data_preprocessed), ncol(data_preprocessed), "\n")
+      
+      result <- run_data_integration(dataset = data_preprocessed,
+                                     chosen_pathways = selected_pathways,
+                                     con = con)
+      
+      gefilteterDatensatz <- result$filtered_dataset
+      metaDaten_gefiltert <- result$meta_data
+      cat("Filtered dims:", nrow(gefilteterDatensatz), ncol(gefilteterDatensatz), "\n")
+      
+      #------------------ PREPARE + NORMALIZE DATA ---------------------------
+      #str(df_prepared[,1:3])
+      
+      norm_number <- switch(
+        clust_config$normalisation,
+        "Keine Normalisierung" = 0,
+        "normalize_log_zscore" = 1,
+        "normalize_log_only" = 2,
+        "normalize_log_median_centering" = 3,
+        "normalize_log_mad" = 4,
+        0
+      )
+      cat("norm_number:", norm_number, "\n")
+      
+      #---------------- PREPARED DATA ----------------------------------------
+      df_prepared <- prepare_data(gefilteterDatensatz, clust_config$normalisation == "Keine Normalisierung")
+      
+      df_normalized <- normalization(df_prepared, norm_number)
+      cat("normalisation OK, dims:", nrow(df_normalized), ncol(df_normalized), "\n")
+      
+      prepared_data(df_prepared)
+      
+      patient_names_vec <- colnames(df_normalized)
+      updateSelectizeInput(session, "focus_patient", choices = patient_names_vec, server = TRUE)
+      
+      class_labels_vec <- as.character(metaDaten_gefiltert["Meta_labels", patient_names_vec])
+      cat("Class labels:", paste(unique(class_labels_vec), collapse = ", "), "\n")
+      
+      #--------------- DISTANCE + CLUSTERING ----------------------------------
+      
+      method <- switch(
+        clust_config$distance,
+        "Euklidische Distanz" = "euclidean",
+        "Manhattan-Distanz" = "manhattan",
+        "Minkowski-Distanz" = "minkowski",
+        "Canberra-Distanz" = "canberra",
+        "Pearson-Distanz" = "pearson",
+        "Winkeldistanz (Angular Seperation)" = "angular"
+      )
+      
+      cat("distance method String:", method, "\n")
+      
+      method_name <- switch (
+        clust_config$method,
+        "Single-Linkage" = "single",
+        "Average-Linkage" = "average",
+        "Complete-Linkage" = "complete",
+        "Custom-Linkage" = "custom"
+      )
+      
+      cat("cluster method string:", method_name, "\n")
+      
+      custom_params <- if (method_name == "custom") {
+        list(
+          alpha_a = clust_config$alpha_a,
+          alpha_b = clust_config$alpha_b,
+          beta = clust_config$beta,
+          gamma = clust_config$gamma
+        )
+      } else
+        NULL
+      
+      #---------------------Patient data ------------------------
+      dist_mat_pat <- dist_cpp(t(df_normalized), method)
+      
+      cluster_pat <- hierarchical_clustering(dist_mat_pat, method_name, custom_params = custom_params)
+      
+      #------------------Gene data ------------------------------
+      
+      dist_mat_genes <- dist_cpp(df_normalized, method)
+      
+      cluster_genes <- hierarchical_clustering(dist_mat_genes, method_name, custom_params = custom_params)
+      
+      #---------------------DENDROGRAM PREP ----------------------------------
+      
+      tree_pat <- build_tree(cluster_pat)
+      order_pat <- get_order_vector(tree_pat)
+      
+      tree_genes <- build_tree(cluster_genes)
+      order_genes <- get_order_vector(tree_genes)
+      
+      #--------------------BUILD PLOTS ---------------------------------------
+      
+      heatmap_plot <- generate_heatmap(
+        data_matrix = df_prepared,
+        gene_order = order_genes,
+        patient_order = order_pat
+      )
+      
+      patient_dendro <- generate_dendro(
+        cluster_pat,
+        tree_pat,
+        order_pat,
+        title = "Patienten",
+        names_vector = patient_names_vec,
+        class_labels = class_labels_vec,
+        palette = clust_config$palette
+      )
+      
+      gene_dendro <- generate_dendro(
+        cluster_genes,
+        tree_genes,
+        order_genes,
+        title = "Gene",
+        names_vector = NULL,
+        class_labels = NULL,
+        palette = clust_config$palette
+      )
+      
+      heatmap_store(heatmap_plot)
+      patient_store(patient_dendro)
+      gene_store(gene_dendro)
+      
+      cluster_patient(cluster_pat)
+      tree_patient(tree_pat)
+      order_patient(order_pat)
+      patient_names(patient_names_vec)
+      class_labels(class_labels_vec)
+      
+      cluster_gene(cluster_genes)
+      tree_gene(tree_genes)
+      order_gene(order_genes)
+      
+      shinyjs::delay(100, {
+        updateTabItems(session, "tabs", selected = "heatmap")
+      })
+      
+      cat("tab switch triggered\n")
+      
+      removeNotification(id = "analysis_progress")
+      
+    }, error = function(e) {
+      cat("\n=== ERROR after step above ===\n")
+      cat("Message:", conditionMessage(e), "\n")
+      print(traceback())
+      cat("====================\n")
     })
+  }
+  
+  observeEvent(input$run, {
+    req(inputs_valid())
+    
+    if (input$distanzmatrix == "Minkowski-Distanz" &&
+        input$param_paramtab == 1) {
+      showModal(
+        modalDialog(
+          title = "Warnung",
+          "hier wird mit Manhattan-Distanz statt Minkowski-Distanz berechnet. Möchten Sie fortfahren?",
+          
+          footer = tagList(
+            modalButton("Abbrechen"),
+            
+            actionButton("confirm_run", "Ja")
+          )
+        )
+      )
+    } else if (input$distanzmatrix == "Minkowski-Distanz" &&
+               input$param_paramtab == 2) {
+      showModal(
+        modalDialog(
+          title = "Warnung",
+          "hier wird mit Euklidische Distanz statt Minkowski-Distanz berechnet. Möchten Sie fortfahren?",
+          
+          footer = tagList(modalButton("Nein"), actionButton("confirm_run", "Ja"))
+        )
+      )
+    } else{
+      run_analysis()
+    }
+  })
+  
+  observeEvent(input$confirm_run, {
+    removeModal()
+    
+    run_analysis()
+  })
+  
+  observeEvent(input$save_preset, {
+    #Save Preset in Json
+    req(input$preset_name)
+    if (!dir.exists("presets")) {
+      dir.create("presets")
+    }
+    pfad <- file.path("presets", paste0(input$preset_name, ".json"))
+    jsonlite::write_json(
+      preset_values(),
+      path = pfad,
+      auto_unbox = TRUE,
+      pretty = TRUE
+    )
+    showNotification(paste("Preset gespeichert unter:", pfad), type = "message")
+    refresh_presets(session)
+  })
+  
+  output$debug_matrix <- renderPrint({
+    cat("Distanz Matrix: ", input$distanzmatrix, "\n")
+    cat("Cluster Methode: ", input$clusterverfahren, "\n")
+    
+    req(d_mat_result())
+    
+    print(d_mat_result())
+    
+  })
+  
+  observe({
+    if (input$distanzmatrix != "Minkowski-Distanz") {
+      shinyFeedback::hideFeedback("param_paramtab")
+      return()
+    }
+    
+    val <- input$param_paramtab
+    msg <- NULL
+    
+    #error message: p has to be a number
+    if (is.null(val) ||
+        is.na(val)) {
+      #error message: p has to be a number
+      msg <- "Bitte eine Zahl eingeben"
+    } else if (val <= 0) {
+      #if p<0, error msg: p has to be greater than 0
+      msg <- "Falsche eingabe: bitte ein Zahl größer als 0 eingeben"
+    } else if (val > 10000) {
+      msg <- "Maximale eingabe Zahl ist 10000"
+    } else if (val %% 1 != 0) {
+      msg <- "Falsche eingabe: bitte ein Integer eingeben"
+    }
+    shinyFeedback::feedbackDanger("param_paramtab", !is.null(msg), msg)
+    
+  })
+  
+  observe({
+    if (input$distanzmatrix_sidebar != "Minkowski-Distanz") {
+      shinyFeedback::hideFeedback("param_heatmap")
+      return()
+    }
+    
+    val <- input$param_heatmap
+    msg <- NULL
+    
+    #error message: p has to be a number
+    if (is.null(val) ||
+        is.na(val)) {
+      #error message: p has to be a number
+      msg <- "Bitte eine Zahl eingeben"
+    } else if (val <= 0) {
+      #if p<0, error msg: p has to be greater than 0
+      msg <- "Falsche eingabe: bitte ein Zahl größer als 0 eingeben"
+    } else if (val > 10000) {
+      msg <- "Maximale eingabe Zahl ist 10000"
+    } else if (val %% 1 != 0) {
+      msg <- "Falsche eingabe: bitte ein Integer eingeben"
+    }
+    shinyFeedback::feedbackDanger("param_heatmap", !is.null(msg), msg)
+  })
+  
+  observeEvent(input$back, {
+    updateTabItems(session, "tabs", selected = "parameter")
+  })
+  
+  con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
+  
+  observe({
+    req(con)
+    pw <- get_pathwaynames_from_database(con)
+    pathway_list(pw)
+  })
+  
+  observe({
+    req(pathway_list())
+    
+    updateSelectizeInput(session, "pathways", choices = pathway_list(), server = TRUE)
+  })
+  
+  observeEvent(input$switchtab, {
+    selected_pathways <- input$pathways
+    print(selected_pathways)
+  })
+  
+  observeEvent(input$confirm_run, {
+    removeModal()
+  })
+  
+  inputs_valid <- reactive({
+    req(input$clusterverfahren)
+    req(input$normalisierung)
+    req(input$distanzmatrix)
+    
+    req(!is.null(input$farbpaletten))
+    
+    mink_valid <- TRUE
+    
+    if (input$distanzmatrix == "Minkowski-Distanz") {
+      mink_valid <- !is.null(input$param_paramtab) &&
+        !is.na(input$param_paramtab) &&
+        input$param_paramtab > 0 &&
+        input$param_paramtab <= 10000 &&
+        input$param_paramtab == as.integer(input$param_paramtab)
+    }
+    
+    TRUE && mink_valid
+  })
+  
+  observe({
+    if (isTRUE(inputs_valid())) {
+      shinyjs::enable("run")
+    } else{
+      shinyjs::disable("run")
+    }
+  })
+  
+  observeEvent(input$analyze_pathways, {
+    cov_matrix <- analyze_pathways_coverage(daten(), input$pathways)
+    
+    coverage_result(cov_matrix)
+  })
+  
+  output$coverage_table <- renderTable({
+    req(coverage_result())
+    
+    as.data.frame(coverage_result())
+  }, rownames = TRUE)
+  
+  observeEvent(input$confirm_button, {
+    showModal(
+      modalDialog(
+        title = "Warnung",
+        "Einige Gene in den ausgewählten Pathways wurden entfernt. Möchten Sie trotzdem mit den ausgewählten Pathways fortfahren?",
+        
+        footer = tagList(
+          modalButton("Andere Pathways auswählen"),
+          
+          actionButton("continue_analysis", "Ja")
+        )
+      )
+    )
+  })
+  
+  observeEvent(input$continue_analysis, {
+    removeModal()
+    
+    updateTabItems(session, "tabs", selected = "parameter")
+  })
+  
+  output$patientDendrogram <- renderPlotly({
+    req(cluster_patient())
+    req(tree_patient())
+    req(order_patient())
+    req(patient_names())
+    req(class_labels())
+    
+    p <- generate_dendro(
+      cluster_patient(),
+      tree_patient(),
+      order_patient(),
+      title = "Patienten",
+      names_vector = patient_names(),
+      class_labels = class_labels(),
+      palette = clust_config$palette
+    )
+    
+    ggplotly(p)
+  })
+  
+  output$geneDendrogram <- renderPlotly({
+    req(cluster_gene())
+    req(tree_gene())
+    req(order_gene())
+    
+    p <- generate_dendro(
+      cluster_gene(),
+      tree_gene(),
+      order_gene(),
+      title = "Gene",
+      names_vector = NULL,
+      class_labels = NULL,
+      palette = clust_config$palette
+    )
+    
+    ggplotly(p)
+  })
+
+  output$grafikpanel <- renderPlot({
+    req(heatmap_store(), patient_store(), gene_store())
+    
+    focus <- selected_patient()
+    
+    heatmap <- heatmap_store()
+    patient <- patient_store()
+    gene <- gene_store()
+    
+    if (is.null(focus) || focus == "") {
+      return(grafikpanel(heatmap, patient, gene))
+    }
+    
+    if (focus %in% colnames(heatmap)) {
+      heatmap <- heatmap[, c(focus, setdiff(colnames(heatmap), focus)), drop = FALSE]
+    }
+    grafikpanel(heatmap, patient, gene)
+    
+  })
   
 }
-
-  
-  
-  
-  
-  
-

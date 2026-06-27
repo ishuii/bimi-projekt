@@ -1,0 +1,6 @@
+{
+  "clusterverfahren": "Complete-Linkage",
+  "distanzmatrix": "Winkeldistanz (Angular Seperation)",
+  "normalisierung": "normalize_log_median_centering",
+  "farbpaletten": "RdBu"
+}

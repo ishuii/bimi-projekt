@@ -1,9 +1,32 @@
 library(shiny)
+library(dipsaus)
+library(shinydashboard)
+library(jsonlite)
+library(devtools)
+library(distRcpp)
+library(shinyFeedback)
+library(shinyjs)
+library(bslib)
+library(bsicons)
+library(shinyBS)
+library(RSQLite)
+library(DBI)
+library(plotly)
+library(RColorBrewer)
+library(shinycssloaders)
+library(viridisLite)
+library(patchwork)
 
-# Aufruf der UI-Funktion
-# ui <- ... 
+source("R/clustering/normalization_methods.R")
+source("data/database_functions_v4.r")
+source("R/clustering/hierarchical_clustering.R")
+source("R/visualization/final_dendrogram.R")
+source("R/visualization/Grafikpanel.R")
 
-# Aufruf der Server-Funktion
-# server <- ...
+source("R/utils/presets.R")
+source("R/utils/pdf_export.R")
+
+source("app/ui.R")
+source("app/server.R")
 
 shinyApp(ui = ui, server = server)
