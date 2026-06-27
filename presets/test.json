@@ -1,0 +1,6 @@
+{
+  "clusterverfahren": "Single-Linkage",
+  "distanzmatrix": "Manhattan-Distanz",
+  "normalisierung": "normalize_log_only",
+  "farbpaletten": "RdYlBu"
+}

@@ -1,0 +1,7 @@
+{
+  "anzahlcluster": 502,
+  "clusterverfahren": "Average-Linkage",
+  "distanzmatrix": "Euklidische Distanz",
+  "normalisierung": "b",
+  "farbpaletten": "2"
+}
