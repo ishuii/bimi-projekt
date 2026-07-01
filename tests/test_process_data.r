@@ -76,9 +76,27 @@ na_cols <- preprocess$number_na_patients
 removed_rows <- preprocess$rows_removed
 removed_columns <- preprocess$columns_removed
 
+#wenn es mehr als 50% NA werte pro row gibt, werden hier die indices gespeichert
+fifty_percent_indices <- preprocess$indices_fity_percent
+
+# User fragen, ob man diese löschen möchte wenn es überhaupt indizes gibt
+# wenn User ja sagt, dann lösche diesen aus dem Datensatz 
+if (length(fifty_percent_indices) > 0 ){
+
+  userinput <- TRUE 
+
+  if (userinput == TRUE) {
+    
+    data_preprocessed <- data_preprocessed[-fifty_percent_indices, ]
+    
+  }
+
+}
 pathway_names <- get_pathwaynames_from_database(con = con)
 
-# Coverage Analyse nur relevant für Adrika, Saliha und Domi nein 
+# Coverage Analyse nur relevant für Adrika
+# gibt neben der Matrix auch einen Vektor mit den IDs zurück , die nicht abgedeckt wurden im Datensatz
+
 coverage_list <- analyze_pathways_coverage(c("Biosynthesis of amino acids", "Pentose and glucuronate interconversions"),data_preprocessed, con)
 matrix_unused_per_pathway <- coverage_list$matrix_unused
 ids_unused <- coverage_list$missing_ids
