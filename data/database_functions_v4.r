@@ -11,29 +11,31 @@ library(DBI)
 #####################################################################################################
 
 #input
-#the chosen dataset by the use
+#the chosen dataset by the user
 #return
-#a list of: amount of rows removed, amount of columns removed, amount of na
-#and the dataset which does not include anymore the rows and columns which are n
+#a list of: amount of rows removed, amount of columns removed, amount of NA values for genes (row), and NA Values for Patient (column)
+#indices of the rows which contain more than 50 % NA values
+#and the dataset which does not include anymore the rows and columns which are NA
 
 preprocess_general <- function(data){
-
 
   #######
   #rows
   ######
-  # amount of rows which do not have any value ==> no ID or Gen corresponding
+  # amount of rows which are NA 
   amount_na_values_genes <- sum(is.na(data[ ,1]))
  
-
-  # indices of the rows which are na
+  #indices of the rows which are NA
   indices_na <- which(is.na(data[,1]))
  
-
-  # vector which stores the amount of na values per row 
+  # vector which stores the amount of NA values per row 
   na_vec_rows <- apply(data, 1, function(x) {
     sum(is.na(x))
   })
+
+  # vector which stores the indices of rows where the amount of NA value is more than 50 % 
+  fifty_percent_indices <- c()
+  fifty_percent_indices <- which(na_vec_rows > (ncol(data) / 2))
 
   # indices where the whole row is just NA
   na_whole_row <- which(na_vec_rows == ncol(data))
@@ -48,15 +50,21 @@ preprocess_general <- function(data){
       data_cleaned <- data
   }
 
-  #column => remove column if the whole column is na
-  #vector which stores the amount of na values per column
+  ########
+  #column 
+  ########
+  #remove column if the whole column is NA, or the patient is NA
+  #vector which stores the amount of NA values per column
   na_vec_cols <- apply(data_cleaned, 2, function(x) {
     sum(is.na(x))
   })
+
   # indices where the whole column is just NA
   na_whole_column <- which(na_vec_cols == nrow(data_cleaned))
+  # indices of the patients which are NA
   na_patients <- which(is.na(colnames(data)))
 
+  # all indices of columns which should be removed
   indices_remove_column <- c(na_whole_column, na_patients)
 
   # if there are na values for the whole column, remove them 
@@ -65,12 +73,15 @@ preprocess_general <- function(data){
   }
 
 
+
   return (list(number_na_genes = amount_na_values_genes,
-                number_na_patients = na_patients, 
+               number_na_patients = na_patients, 
                rows_removed = length(indices_remove_row), 
                columns_removed = length(indices_remove_column),
+               indices_fity_percent = fifty_percent_indices,
                dataset_preprocessed = data_cleaned))
 }
+
 
 
 #########################################################
