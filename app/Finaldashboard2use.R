@@ -136,10 +136,11 @@ if(interactive()){
                                    choiceValues = list("RdYlBu", "Viridis", "RdBu","PRGn")
                       ),
                       
-                    ),
-                    
-                    selectizeInput("focus_patient", "Lieblingspatient suchen", choices = NULL)
-                    
+                      selectizeInput("focus_patient", "Patient suchen", choices = NULL)
+                      
+                      
+                    )
+
                   )
                   
                   
@@ -158,9 +159,34 @@ if(interactive()){
       tags$head(
         
         tags$style(HTML("
-             .main-header {position:fixed; width:100%;}
-             .content-wrapper{padding-top: 50px !important;}            ")),
+             html, body {
+             height: 100%;
+             }
+             
+             .wrapper{
+             min-height: 100vh !important;
+             }
+             
+             .main-sidebar{
+             min-height: 100vh !important;
+             }
         
+             body{
+             background-color: #FFFFFF !important;
+             color: #000000 !important;
+             }
+             
+             .main-header {position:fixed; width:100%;}
+             
+             .content-wrapper{
+             background-color: #FFFFFF !important;
+             padding-top: 60px !important; 
+             margin-top:0px !important;}
+                        
+             .wrapper{
+             background-color: #FFFFFF !important;}           
+                        
+                        ")),
         
         tags$style(HTML("
       /* Main header */
@@ -193,6 +219,12 @@ if(interactive()){
       background-color: #ECECEC !important;
       color: black !important;
     }
+    
+    /* Sidebar hover */
+    .sidebar-menu > li:hover > a {
+     background-color: #ECECEC !important;
+     color: #000000 !important;
+    }
       
        /* Treeview arrows/icons */
     .sidebar-menu li a .fa,
@@ -200,6 +232,17 @@ if(interactive()){
       color: black !important;
     }
     
+    .sidebar-toggle,
+    .main-header .sidebar-toggle,
+    .main-header .navbar .sidebar-toggle {
+    color: #000000 !important;
+    }
+    
+    /* Sometimes it's rendered as icon inside */
+    .sidebar-toggle .fa,
+    .main-header .sidebar-toggle .fa {
+    color: #000000 !important;
+    }
     .custom-box .box-header{
     background-color: #FBEEB9 !important;
     }
@@ -224,18 +267,23 @@ if(interactive()){
     color: black !important;
     }
     
+    .box {
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    }
+    
     /* Overrides SUCCESS box header */
     .box.box-success > .box-header {
       background-color: #FEFAEC !important;
       color: black !important;
-      border-bottom: none;
+      border-bottom: 1px solid #000000 !important;
     }
     
     /* Overrides PRIMARY box header */
     .box.box-primary > .box-header {
       background-color: #FEFAEC !important;
       color: black !important;
-      border-bottom: none;
+      border-bottom: 1px solid #000000 !important;
     }
     
     #changes text in sidebar to black
@@ -251,26 +299,14 @@ if(interactive()){
     color: black !important;
     }
     
+    .heatmap-controls .form-group label{
+    color: black !important;
+    }
+    
     #heatmap .radio label{
     color: black !important;
     }
-    
-    .selectize-input,
-    .selectize-input input,
-    .selectize-dropdown,
-    .selectize-dropdown-content {
-    color: black !important;
-    }
-    
-    .heatmap-controls h1,
-    .heatmap-controls h2,
-    .heatmap-controls h3,
-    .heatmap-controls h4,
-    .heatmap-controls h5,
-    .heatmap-controls h6 {
-    color: black !important;
-    }
-    
+  
     "))
       ),
       
