@@ -6,9 +6,9 @@ library(viridis)
 library(RColorBrewer)
 library(stringr)
 
-source("R/clustering/normalization_methods.R")
-source("R/clustering/prepare_data.R") 
-source("data/database_functions_v4.r")
+#source("R/clustering/normalization_methods.R")
+#source("R/clustering/prepare_data.R") 
+#source("data/database_functions_v4.r")
 
 # List of colours
 viridis <- viridis::viridis(100)
@@ -53,7 +53,7 @@ generate_heatmap <- function(data_matrix,
     geom_tile(color = "grey85") +
     
     scale_fill_gradientn(
-      colours = RdYlBu,
+      colours = PRGn,
       name = "Expression",
       limits = range(df_plot$Expression, na.rm = TRUE)
     ) +

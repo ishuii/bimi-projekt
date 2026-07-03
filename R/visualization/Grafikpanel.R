@@ -1,8 +1,8 @@
 library(patchwork)
 library(ggplot2)
 
-source("R/visualization/heatmap_final.R")
-source("R/visualization/final_dendrogram.R")
+#source("R/visualization/heatmap_final.R")
+#source("R/visualization/final_dendrogram.R")
 
 grafikpanel <- function(
     heatmap_plot,

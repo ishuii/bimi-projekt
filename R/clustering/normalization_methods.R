@@ -57,7 +57,7 @@ normalization <- function(df, norm_method) {
     df_log <- log2(df + 1)
 
     df_norm <- t(apply(df_log, 1, function(x) {
-      x - median(x)
+      (x - median(x)) / (max(x) - min(x))
     }))
 
     return(df_norm)
