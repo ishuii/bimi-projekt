@@ -22,10 +22,11 @@ source("R/clustering/hierarchical_clustering.R")
 #source("R/visualization/tree_functions.R") 
 #source("R/visualization/dendro_functions_V2.R") 
 #source("R/visualization/dendro_functions.R")
-source("R/visualization/heatmap.R")
+source("R/visualization/heatmap_final.R")
 source("R/visualization/final_dendrogram_functions.R")
 source("R/visualization/final_dendrogram.R")
 source("R/visualization/final_tree_functions.R")
+source("R/visualization/Grafikpanel.R")
 
 # ============================================================
 # DATENBANK und DATENSATZ
@@ -36,6 +37,7 @@ con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 # Anmerkung: Datensatz immer unter data/... ablegen, damit dieser Aufruf für alle reproduzierbar ist!
 dataset_golub <- read.csv("data/GOLUB_microarray.csv", header = TRUE)
 dataset_kidney <- read.csv("data/TCGA_kidney_unnormalized_meta.csv")
+dataset_ship <- read.csv("data/SHIPP_microarray.csv")
 
 # ============================================================
 # PATHWAYS und INTEGRATION
@@ -45,7 +47,7 @@ dataset_kidney <- read.csv("data/TCGA_kidney_unnormalized_meta.csv")
 meine_pathways <- c("Pathways in cancer")
 message("Nutze Pathway für den Nieren-Test: ", meine_pathways)
 
-preprocess        <- preprocess_general(dataset_golub)
+preprocess        <- preprocess_general(dataset_ship)
 data_preprocessed <- preprocess$dataset_preprocessed
 
 result <- run_data_integration(
@@ -64,7 +66,7 @@ metaDaten_gefiltert <- result$meta_data
 # ============================================================
 
 df_prepared   <- prepare_data(gefilteterDatensatz)
-df_normalized <- normalization(df_prepared, 1)
+df_normalized <- normalization(df_prepared, 3)
 
 patient_names <- colnames(df_normalized)
 class_labels  <- as.character(metaDaten_gefiltert["Meta_labels", patient_names])
@@ -88,12 +90,12 @@ cluster_genes  <- hierarchical_clustering(dist_mat_genes, "complete")
 # PATIENTEN
 tree_pat   <- build_tree(cluster_pat)
 order_pat  <- get_order_vector(tree_pat)
-generate_dendro(cluster_pat, tree_pat, order_pat, title="Patienten", names_vector=patient_names, class_labels=class_labels)
+patient_dendro <- generate_dendro(cluster_pat, tree_pat, order_pat, title="Patienten", names_vector=patient_names, class_labels=class_labels)
 
 # GENE
 tree_genes   <- build_tree(cluster_genes)
 order_genes  <- get_order_vector(tree_genes)
-generate_dendro(cluster_genes, tree_genes, order_genes, title="Gene", names_vector=NULL, class_labels=NULL)
+gene_dendro <- generate_dendro(cluster_genes, tree_genes, order_genes, title="Gene", names_vector=NULL, class_labels=NULL)
 
 # ============================================================
 # HEATMAP
@@ -104,9 +106,9 @@ RdYlBu <- brewer.pal(11, "RdYlBu")
 RdBu <- brewer.pal(11, "RdBu") 
 PRGn <- brewer.pal(11, "PRGn") 
 
-generate_heatmap(df_normalized, order_genes, order_pat)
+heatmap1 <- generate_heatmap(df_normalized, order_genes, order_pat)
+grafikpanel(heatmap1, patient_dendro, gene_dendro)
 
-# funktioniert nicht wirklich:
-heatmap_fields <- create_heatmap_field_data(data_matrix = df_normalized, 
-                                            metadata_df = metaDaten_gefiltert)
+# zum Vergleichen
+stats::heatmap(df_normalized)
 

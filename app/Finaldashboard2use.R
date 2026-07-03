@@ -1129,7 +1129,7 @@ if(interactive()){
         #--------------------BUILD PLOTS ---------------------------------------
         
         heatmap_plot <- generate_heatmap(
-          data_matrix = df_prepared,
+          data_matrix = df_normalized,
           gene_order = order_genes,
           patient_order = order_pat
         )

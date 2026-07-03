@@ -1,0 +1,6 @@
+{
+  "clusterverfahren": "Single-Linkage",
+  "distanzmatrix": "Winkeldistanz (Angular Seperation)",
+  "normalisierung": "normalize_log_zscore",
+  "farbpaletten": "RdYlBu"
+}

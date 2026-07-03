@@ -22,6 +22,8 @@ source("data/database_functions_v4.r")
 source("R/clustering/hierarchical_clustering.R")
 source("R/visualization/final_dendrogram.R")
 source("R/visualization/Grafikpanel.R")
+source("R/clustering/prepare_data.R")
+source("R/visualization/heatmap_final.R")
 
 source("R/utils/presets.R")
 source("R/utils/pdf_export.R")
