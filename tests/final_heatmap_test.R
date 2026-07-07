@@ -30,8 +30,7 @@ source("R/visualization/final_dendrogram.R")
 con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 
 # dataset always placed under data/ so this path works for everyone
-dataset_kidney_meta <- read.csv("data/GOLUB_microarray.csv", header = TRUE)
-
+dataset_golub <- read.csv("data/GOLUB_microarray.csv", header = TRUE)
 
 # ============================================================
 # PATHWAY SELECTION AND DATA INTEGRATION
@@ -41,7 +40,7 @@ dataset_kidney_meta <- read.csv("data/GOLUB_microarray.csv", header = TRUE)
 meine_pathways <- c("Metabolic pathways")
 message("Using pathway for kidney test: ", meine_pathways)
 
-preprocess        <- preprocess_general(dataset_kidney_meta)
+preprocess        <- preprocess_general(dataset_golub)
 
 data_preprocessed <- preprocess$dataset_preprocessed
 
@@ -51,7 +50,7 @@ result <- run_data_integration(
   con             = con
 )
 
-dbDisconnect(con)
+# dbDisconnect(con)
 
 
 # ============================================================
