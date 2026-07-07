@@ -132,17 +132,17 @@ final_plot_den <- generate_dendro(
 print(final_plot_pat)
 print(final_plot_den)
 
-## --- COUPLING CALLS WITH MULTI-PAGE EXPORT ---
+
 export_dendro_pdf(
   plot     = final_plot_pat, 
   filename = "dendro_patients", 
-  filepath = "C:/Users/domif/Desktop"                      # <--- Schneidet die Patienten auf 3 Seiten
+  filepath = "C:/Users/domif/Desktop"                     
 )
 
 export_dendro_pdf(
   plot     = final_plot_den, 
   filename = "dendro_genes",    
-  filepath = "C:/Users/domif/Desktop"                       # <--- Belässt die Gene auf einer einzigen Seite
+  filepath = "C:/Users/domif/Desktop"                       
 )
 
 # ============================================================
@@ -177,11 +177,5 @@ plotly_gen <- generate_dendro_plotly(
 plotly_pat
 plotly_gen
 
-# temporary debug — checking color consistency
-text_layer_i <- which(sapply(final_plot_pat$layers, function(l) inherits(l$geom, "GeomText")))
-text_data    <- layer_data(final_plot_pat, text_layer_i)
-print(unique(text_data$colour))
 
-built <- plotly_build(ggplotly(final_plot_pat, tooltip = FALSE))
-print(sapply(built$x$data, function(t) list(name = t$name, color = t$line$color)))
 
