@@ -10,6 +10,7 @@ library(distRcpp)
 library(RSQLite)
 library(DBI)
 library(reshape2)
+library(plotly)
 
 # ============================================================
 # SOURCES
@@ -21,6 +22,7 @@ source("R/clustering/prepare_data.R")
 source("R/clustering/hierarchical_clustering.R")
 source("R/visualization/final_dendrogram.R") # Sourcing this file is enough => final_dendrogram.R loads all dependencies
 source("R/visualization/saving_functions.R")
+source("R/visualization/wrapper_functions.R")
 
 
 # ============================================================
@@ -78,11 +80,11 @@ class_labels <- if (!is.na(label_row)) as.character(result$meta_data[label_row, 
 
 # patients transposed so columns (patients) are clustered
 dist_mat_pat <- dist_cpp(t(df_normalized), "euclidean")
-cluster_pat  <- hierarchical_clustering(dist_mat_pat, "average")
+cluster_pat  <- hierarchical_clustering(dist_mat_pat, "complete")
 
 # genes
 dist_mat_genes <- dist_cpp(df_normalized, "euclidean")
-cluster_genes  <- hierarchical_clustering(dist_mat_genes, "average")
+cluster_genes  <- hierarchical_clustering(dist_mat_genes, "complete")
 
 
 # ============================================================
@@ -123,15 +125,63 @@ final_plot_den <- generate_dendro(
   title          = "TCGA Kidney Cancer: Gene Clustering",
   names_vector   = gene_names,
   class_labels   = NULL,
-  show_x_axis    = FALSE,
-  show_y_axis    = FALSE
+  show_x_axis    = TRUE,
+  show_y_axis    = TRUE
 )
 
 print(final_plot_pat)
 print(final_plot_den)
 
-export_dendro_pdf(final_plot_pat, filename = "dendro_patients", filepath = "C:/Users/domif/OneDrive/Dokumente/Uni Stuff/6.Semester/CLS - Projekt")
-export_dendro_pdf(final_plot_den, filename = "dendro_genes",    filepath = "C:/Users/domif/OneDrive/Dokumente/Uni Stuff/6.Semester/CLS - Projekt")
+## --- COUPLING CALLS WITH MULTI-PAGE EXPORT ---
+export_dendro_pdf(
+  plot     = final_plot_pat, 
+  filename = "dendro_patients", 
+  filepath = "C:/Users/domif/Desktop"                      # <--- Schneidet die Patienten auf 3 Seiten
+)
 
-svg_obj <- generate_dendro_svg(final_plot_pat, show_names = FALSE)
-cat(svg_obj)
+export_dendro_pdf(
+  plot     = final_plot_den, 
+  filename = "dendro_genes",    
+  filepath = "C:/Users/domif/Desktop"                       # <--- Belässt die Gene auf einer einzigen Seite
+)
+
+# ============================================================
+# PLOTLY WRAPPER TEST
+# ============================================================
+
+# patients — plotly version
+plotly_pat <- generate_dendro_plotly(
+  cluster_result = cluster_pat,
+  tree_result    = baum_patienten,
+  order_vector   = order_patienten,
+  title          = "TCGA Kidney Cancer: Patient Clustering",
+  names_vector   = patient_names,
+  class_labels   = class_labels,
+  palette        = "viridis",
+  show_x_axis    = TRUE,
+  show_y_axis    = TRUE
+)
+
+# genes — plotly version
+plotly_gen <- generate_dendro_plotly(
+  cluster_result = cluster_genes,
+  tree_result    = baum_gene,
+  order_vector   = order_gene,
+  title          = "TCGA Kidney Cancer: Gene Clustering",
+  names_vector   = gene_names,
+  class_labels   = NULL,
+  show_x_axis    = TRUE,
+  show_y_axis    = TRUE
+)
+
+plotly_pat
+plotly_gen
+
+# temporary debug — checking color consistency
+text_layer_i <- which(sapply(final_plot_pat$layers, function(l) inherits(l$geom, "GeomText")))
+text_data    <- layer_data(final_plot_pat, text_layer_i)
+print(unique(text_data$colour))
+
+built <- plotly_build(ggplotly(final_plot_pat, tooltip = FALSE))
+print(sapply(built$x$data, function(t) list(name = t$name, color = t$line$color)))
+

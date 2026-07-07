@@ -156,7 +156,7 @@ plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_v
   plot <- ggplot() +
     
     # layer 1: drawing all branch segments, colored by class
-    geom_segment(data = segments_df, aes(x=x0, y=y0, xend=x1, yend=y1, color=class)) +
+    geom_segment(data = segments_df, aes(x=x0, y=y0, xend=x1, yend=y1, color=class),linewidth = 0.2) +
     
     # layer 2: applying the color palette to both segments and labels
     scale_color_manual(values = palette, breaks = names(palette)[names(palette) != "Default"]) +
@@ -179,8 +179,20 @@ plot_dendro <- function(draw_result, max_height, title="", palette=NULL, names_v
   
   # geom_text always renders an "a" glyph into the legend — suppressed unconditionally
   if (show_x_axis) {
-    plot <- plot + geom_text(data = labels_df, aes(x=x, y=y, label=label, color=class),
-                             angle=90, hjust=1, size=2, show.legend=FALSE)
+    
+    n_patients <- nrow(labels_df)
+ 
+    font_size <- max(1.2, min(3.5, 120 / n_patients))
+    
+    plot <- plot + geom_text(
+      data        = labels_df, 
+      aes(x = x, y = y, label = label, color = class), 
+      angle       = 90, 
+      hjust       = 1, 
+      vjust       = 0.5, 
+      size        = font_size,    
+      show.legend = FALSE
+    )
   }
   
   if (!show_legend) {

@@ -1,34 +1,34 @@
-### This script contains functions for saving dendrogram as pdf and svg
-library(svglite)
-library(ggplot2)
-
-export_dendro_pdf <- function(plot, filename = "dendro", filepath = getwd(), landscape = TRUE, show_names = TRUE) {
+export_dendro_pdf <- function(plot, filename = "dendro", filepath = getwd(), landscape = TRUE) {
+  
+  ## --- 1. SET STANDARD DINA4 DIMENSIONS ---
   if (landscape) {
-    width <- 297; height <- 210
+    width  <- 297  # mm (A4 Landscape)
+    height <- 210  # mm
   } else {
-    width <- 210; height <- 297
+    width  <- 210  # mm (A4 Portrait)
+    height <- 297  # mm
   }
-
-  if (!show_names) {
-    plot$layers <- Filter(function(l) !inherits(l$geom, "GeomText"), plot$layers)
+  
+  ## --- 2. CLEAN UP LINES FOR THE PDF ---
+  ## To fix the "lines are too thick" problem without changing your main script,
+  ## we look for the segment layer and set a finer linewidth (e.g., 0.35).
+  for (i in seq_along(plot$layers)) {
+    if (inherits(plot$layers[[i]]$geom, "GeomSegment")) {
+      plot$layers[[i]]$aes_params$linewidth <- 0.15
+    }
   }
-
+  
+  ## --- 3. CONSTRUCT FULL FILE PATH ---
   full_path <- file.path(filepath, paste0(filename, ".pdf"))
-
-  ggsave(full_path, plot = plot,
-         width = width, height = height, units = "mm",
-         device = "pdf")
-}
-
-generate_dendro_svg <- function(plot, show_names = TRUE) {
-
-  if (!show_names) {
-    plot$layers <- Filter(function(l) !inherits(l$geom, "GeomText"), plot$layers)
-  }
-
-  svg_string <- svgstring()
-  print(plot)
-  dev.off()
-
-  return(svg_string())
+  
+  ## --- 4. SAVE VIA GGSIZE (GOLD STANDARD) ---
+  ## This is the safest way in ggplot2 to generate a single-page vector PDF.
+  ggsave(
+    filename = full_path,
+    plot     = plot,
+    width    = width,
+    height   = height,
+    units    = "mm",
+    device   = "pdf"
+  )
 }
