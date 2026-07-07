@@ -75,9 +75,9 @@ Was ist Clustering?
 \label{clusteranalyse}
 % TODO: theoretische Erklärung des Algorithmus
 
-\subsubsection{Arbeitsverteilung}
+\subsection{Arbeitsverteilung}
 \label{cluster-arbeitsverteilung}
-Die Arbeitsverteilung im Programmieren 
+Der Bereich der Clusteranalyse unterteilt sich in mehrere Unteraufgaben. Zunächst wurden die Daten auf die Weiterverarbeitung vorbereitet mit Hilfe einer Preprocessing-Funktion. Der Datensatz wurde daraufhin normalisiert, wobei unterschiedliche Normalisierungsfunktionen zur Auswahl standen. Aus dem normalisierten Datensatz wurde eine Distanzmatrix berechnet und anschließend ein Linkage-Verfahren angewendet. Dementsprechend mussten neben der Preprocessing-Funktion auch die Normalisierungs-, Distanz- und Linkage-Funktionen implementiert werden. 
 
 \begin{table}[]
 	\begin{tabular}{l|l|l}
@@ -89,19 +89,28 @@ Die Arbeitsverteilung im Programmieren
 		Single-Linkage                & Wiktoria  & 6 Stunden    \\ 
 		Complete-Linkage              & Rosina    &                \\ 
 		Average-Linkage               & Rosina    &                \\ 
-		Linkagefunktionen - allgemein & Wiktoria  & 4 Stunden      \\ 
+		Linkagefunktionen allgemein & Wiktoria  & 4 Stunden      \\ 
 	\end{tabular}
 \end{table}
 
 
-\subsection{Single Linkage}
+\subsection{Distanzfunktionen}
+\label{distanzfunktionen}
+Für die Clusteranalyse muss eine Distanzmatrix aus dem Datensatz berechnet werden. Es wird jeweils eine Distanzmatrix für die Patienten sowie für die Gene berechnet. Insgesamt wurden sechs Distanzfunktionen implementiert, die aus dem Buch "Cluster Analysis" stammen. Folgende Distanzmaße wurden implementiert: euklidische Distanz, Manhattan-Distanz, Minkowski-Distanz, Canberra-Distanz, Pearson-Distanz und Winkeldistanz.  
+
+\subsection{Linkagefunktionen}
+\label{linkage-funktionen}
+
+\subsubsection{Single Linkage}
 \label{single-linkage}
 
-\subsection{Average Linkage}
+\subsubsection{Average Linkage}
 \label{average-linkage}
 
-\subsection{Complete Linkage}
+\subsubsection{Complete Linkage}
 \label{complete-linkage}
+
+
 
 % ----------------------------------------------------------------------------------------------
 \newpage
