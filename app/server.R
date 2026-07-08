@@ -3,6 +3,11 @@ server <- function(input, output, session) {
   
   cluster_result <- reactiveVal(NULL)
   cluster_bundle <- reactiveVal(NULL)
+  skip_mink1 <- reactiveVal(FALSE)
+  skip_mink2 <- reactiveVal(FALSE)
+  skip_pathways <- reactiveVal(FALSE)
+  
+  current_warn <- reactiveVal(NULL)
   d_mat_result <- reactiveVal(NULL)
   pathway_list <- reactiveVal()
   coverage_result <- reactiveVal(NULL)
@@ -18,6 +23,7 @@ server <- function(input, output, session) {
   tree_gene <- reactiveVal(NULL)
   order_gene <- reactiveVal(NULL)
   cluster_gene <- reactiveVal(NULL)
+  gene_names <- reactiveVal(NULL)
   
   heatmap_store <- reactiveVal(NULL)
   patient_store <- reactiveVal(NULL)
@@ -35,6 +41,8 @@ server <- function(input, output, session) {
     minkowski_p = 1
   )
   
+  #-------------------UPLOAD DATASET---------------------
+  
   output$Beispieltext <- renderText({
     paste("Deine Datei:", input$x)
   })
@@ -49,53 +57,80 @@ server <- function(input, output, session) {
   observeEvent(input$Datei_csv, {
     req(input$Datei_csv)
     
-    df <- read.table(
-      input$Datei_csv$datapath,
-      header = TRUE,
-      stringsAsFactors = FALSE,
-      sep = ",",
-      dec = ".",
-      quote = "\"",
-      na.strings = c("", " ", "NA", "NaN", "NULL", "N/A"),
-      colClasses = NA
-    )
+    shinyjs::disable("confirm_button")
     
-    gene_id_col <- as.character(df[, 1])
+    output$upload_status <- renderUI({
+        div(style = "font-size: 16px; color: black;",
+            icon("spinner", class = "fa-spin"),
+            "Datei wird hochgeladen, bitte warten..."
+        )
+    })
     
-    df_rest <- as.data.frame(lapply(df[, -1], function(col) {
-      converted <- suppressWarnings(as.numeric(as.character(col)))
-      na_before <- sum(is.na(col))
-      na_after <- sum(is.na(converted))
-      if (na_after <= na_before + 0.5 * length(col))
-        converted
-      else
-        col
-    }))
-    
-    df <- cbind(setNames(data.frame(gene_id_col), names(df)[1]), df_rest)
-    
-    na_gesamt <- sum(is.na(df))
-    zeilen_mit_na <- !complete.cases(df)
-    anzahl_zeilen_mit_na <- sum(zeilen_mit_na)
-    na_pro_spalte <- colSums(is.na(df))
-    
-    daten_original(df)
-    daten_aktuell(df)
-    
-    na_infos(
-      list(
-        na_gesamt = na_gesamt,
-        zeilen_mit_na = anzahl_zeilen_mit_na,
-        zeilen_gesamt = nrow(df),
-        spalten_gesamt = ncol(df),
-        na_pro_spalte = na_pro_spalte,
-        bereits_bereinigt = FALSE
-      )
+    withProgress(
+      message = "Datei wird verarbeitet...",
+      value = 0,
+      {
+        incProgress(0.2, detail = "CSV Datei wird eingelesen")
+        
+        df <- read.table(
+          input$Datei_csv$datapath,
+          header = TRUE,
+          stringsAsFactors = FALSE,
+          sep = ",",
+          dec = ".",
+          quote = "\"",
+          na.strings = c("", " ", "NA", "NaN", "NULL", "N/A"),
+          colClasses = NA
+        )
+        
+        incProgress(0.5, detail = "Daten werden geprüft")
+        
+        gene_id_col <- as.character(df[, 1])
+        
+        df_rest <- as.data.frame(lapply(df[, -1], function(col) {
+          converted <- suppressWarnings(as.numeric(as.character(col)))
+          na_before <- sum(is.na(col))
+          na_after <- sum(is.na(converted))
+          if (na_after <= na_before + 0.5 * length(col))
+            converted
+          else
+            col
+        }))
+        
+        df <- cbind(setNames(data.frame(gene_id_col), names(df)[1]), df_rest)
+        
+        incProgress(0.8, detail = "Speichere Datensatz")
+        
+        daten_original(df)
+        daten_aktuell(df)
+        
+        na_gesamt <- sum(is.na(df))
+        zeilen_mit_na <- !complete.cases(df)
+        anzahl_zeilen_mit_na <- sum(zeilen_mit_na)
+        na_pro_spalte <- colSums(is.na(df))
+        
+        na_infos(
+          list(
+            na_gesamt = na_gesamt,
+            zeilen_mit_na = anzahl_zeilen_mit_na,
+            zeilen_gesamt = nrow(df),
+            spalten_gesamt = ncol(df),
+            na_pro_spalte = na_pro_spalte,
+            bereits_bereinigt = FALSE
+          )
+        )
+        
+        incProgress(1, detail = "Fertig")
+      }
     )
     
     output$upload_status <- renderUI({
-      div(style = "font-size: 16px; font-weight: bold; color: #000000; margin-top: 10px;", "Datei erfolgreich hochgeladen")
+      div(style = "font-size: 16px; font-weight: bold; color: #000000; margin-top: 10px;",
+          icon("check-circle"),
+          "Datei erfolgreich hochgeladen")
     })
+    
+    shinyjs::enable("confirm_button")
     
     session$sendInputMessage("Datei_csv", list(value = character(0)))
   })
@@ -170,6 +205,9 @@ server <- function(input, output, session) {
       )
     )
   })
+  
+  
+  #-----------------------FINISH DATASET UPLOAD---------------------------------
   
   ##############################################################################
   # PDF EXPORT 
@@ -267,10 +305,6 @@ server <- function(input, output, session) {
     updateTabItems(session, "tabs", selected = "datei_hochladen")
   })
   
-  observeEvent(input$switchtab, {
-    updateTabItems(session, "tabs", selected = "parameter")
-  })
-  
   observeEvent(input$clusterverfahren, {
     clust_config$method <- input$clusterverfahren
   })
@@ -320,10 +354,25 @@ server <- function(input, output, session) {
     clust_config$gamma <- input$gamma
   })
   
+  output$customInfo <- renderUI({
+    
+    if(clust_config$method == "Custom-Linkage"){
+      div(style = "background-color: #f8f9fa; border-left: 4px solid #007bff; padding: 8px 12px;
+          margin-top: 5px; font-size: 14px;",
+          
+          icon("info-circle"),
+          tags$b("Hinweis: "),
+          "Nicht alle Werte sind sinnvoll. Bitte geben Sie nur geeignete Werte ein"
+      )
+    }
+  })
+  
+  #---------------------Favorite Patient search---------------------------
   observeEvent(input$focus_patient, {
     selected_patient(input$focus_patient)
   })
   
+  #------------------End of patient search-----------------------------------
   
   observe({
     updateSelectInput(session, "clusterverfahren", selected = clust_config$method)
@@ -349,7 +398,7 @@ server <- function(input, output, session) {
     cat("Analysis started\n")
     
     showNotification(
-      ui = div(style = "font-size: 18px; font-weight: bold; color: #000000;", "Analyse läuft, bitte warten"),
+      ui = div(style = "font-size: 18px; font-weight: bold; color: #000000;", "Analyse läuft, bitte warten..."),
       type = "message",
       duration = NULL,
       id = "analysis_progress"
@@ -360,6 +409,7 @@ server <- function(input, output, session) {
       req(clust_config$distance)
       req(clust_config$method)
       req(clust_config$normalisation)
+      req(clust_config$palette)
       
       #calls the updated data
       data <- daten()
@@ -411,7 +461,9 @@ server <- function(input, output, session) {
       prepared_data(df_prepared)
       
       patient_names_vec <- colnames(df_normalized)
-      updateSelectizeInput(session, "focus_patient", choices = patient_names_vec, server = TRUE)
+      updateSelectizeInput(session, "focus_patient", choices = patient_names_vec, selected = character(0), server = TRUE)
+      
+      gene_names_vec <- result$gene_names
       
       class_labels_vec <- as.character(metaDaten_gefiltert["Meta_labels", patient_names_vec])
       cat("Class labels:", paste(unique(class_labels_vec), collapse = ", "), "\n")
@@ -471,33 +523,47 @@ server <- function(input, output, session) {
       
       #--------------------BUILD PLOTS ---------------------------------------
       
-      heatmap_plot <- generate_heatmap(
+      heatmap_plot <- generate_heatmap_plotly(
         data_matrix = df_normalized,
+        gene_order = order_genes,
+        patient_order = order_pat,
+        gene_names = gene_names_vec,
+        palette = clust_config$palette,
+        show_x_axis = TRUE
+      )
+      
+      patient_dendro <- generate_dendro_plotly(
+        cluster_result = cluster_pat,
+        tree_result = tree_pat,
+        order_vector = order_pat,
+        title = "TCGA Kidney Cancer: Patient Clustering",
+        names_vector = patient_names_vec,
+        class_labels = class_labels_vec,
+        palette = clust_config$palette,
+        show_x_axis = TRUE,
+        show_y_axis = TRUE
+      )
+      
+      gene_dendro <- generate_dendro_plotly(
+        cluster_result = cluster_genes,
+        tree_result = tree_genes,
+        order_vector = order_genes,
+        title = "TCGA Kidney Cancer: Gene Clustering",
+        names_vector = gene_names_vec,
+        class_labels = NULL,
+        show_x_axis = TRUE,
+        show_y_axis = TRUE
+      )
+      
+      final_plot <- grafikpanel(
+        heatmap_plot = heatmap_plot,
+        patient_dendro = patient_dendro,
+        gene_dendro = gene_dendro,
         gene_order = order_genes,
         patient_order = order_pat
       )
       
-      patient_dendro <- generate_dendro(
-        cluster_pat,
-        tree_pat,
-        order_pat,
-        title = "Patienten",
-        names_vector = patient_names_vec,
-        class_labels = class_labels_vec,
-        palette = clust_config$palette
-      )
-      
-      gene_dendro <- generate_dendro(
-        cluster_genes,
-        tree_genes,
-        order_genes,
-        title = "Gene",
-        names_vector = NULL,
-        class_labels = NULL,
-        palette = clust_config$palette
-      )
-      
-      heatmap_store(heatmap_plot)
+      heatmap_store(final_plot)
       patient_store(patient_dendro)
       gene_store(gene_dendro)
       
@@ -510,6 +576,7 @@ server <- function(input, output, session) {
       cluster_gene(cluster_genes)
       tree_gene(tree_genes)
       order_gene(order_genes)
+      gene_names(gene_names_vec)
       
       shinyjs::delay(100, {
         updateTabItems(session, "tabs", selected = "heatmap")
@@ -530,12 +597,18 @@ server <- function(input, output, session) {
   observeEvent(input$run, {
     req(inputs_valid())
     
-    if (input$distanzmatrix == "Minkowski-Distanz" &&
-        input$param_paramtab == 1) {
+    if (clust_config$distance == "Minkowski-Distanz" &&
+        input$param_paramtab == 1 &&
+        !skip_mink1()) {
+      
+      current_warn("p1")
+      
       showModal(
         modalDialog(
           title = "Warnung",
           "hier wird mit Manhattan-Distanz statt Minkowski-Distanz berechnet. Möchten Sie fortfahren?",
+          
+          checkboxInput("dont_show1", "Diese Meldung nicht mehr zeigen", value = FALSE),
           
           footer = tagList(
             modalButton("Abbrechen"),
@@ -544,14 +617,20 @@ server <- function(input, output, session) {
           )
         )
       )
-    } else if (input$distanzmatrix == "Minkowski-Distanz" &&
-               input$param_paramtab == 2) {
+    } else if (clust_config$distance == "Minkowski-Distanz" &&
+              input$param_paramtab == 2 &&
+              !skip_mink2()) {
+      
+      current_warn("p2")
+      
       showModal(
         modalDialog(
           title = "Warnung",
           "hier wird mit Euklidische Distanz statt Minkowski-Distanz berechnet. Möchten Sie fortfahren?",
           
-          footer = tagList(modalButton("Nein"), actionButton("confirm_run", "Ja"))
+          checkboxInput("dont_show2", "Diese Meldung nicht mehr zeigen", value = FALSE),
+          
+          footer = tagList(modalButton("Abbrechen"), actionButton("confirm_run", "Ja"))
         )
       )
     } else{
@@ -559,11 +638,50 @@ server <- function(input, output, session) {
     }
   })
   
-  observeEvent(input$confirm_run, {
-    removeModal()
+  observeEvent(input$refreshButton, {
+    req(inputs_valid())
     
-    run_analysis()
+    if (clust_config$distance == "Minkowski-Distanz" &&
+        input$param_heatmap == 1 &&
+        !skip_mink1()) {
+      
+      current_warn("p1")
+      
+      showModal(
+        modalDialog(
+          title = "Warnung",
+          "hier wird mit Manhattan-Distanz statt Minkowski-Distanz berechnet. Möchten Sie fortfahren?",
+          
+          checkboxInput("dont_show1", "Diese Meldung nicht mehr zeigen", value = FALSE),
+          
+          footer = tagList(
+            modalButton("Abbrechen"),
+            
+            actionButton("confirm_run", "Ja")
+          )
+        )
+      )
+    } else if (clust_config$distance == "Minkowski-Distanz" &&
+               input$param_heatmap == 2 &&
+               !skip_mink2()) {
+      
+      current_warn("p2")
+      
+      showModal(
+        modalDialog(
+          title = "Warnung",
+          "hier wird mit Euklidische Distanz statt Minkowski-Distanz berechnet. Möchten Sie fortfahren?",
+          
+          checkboxInput("dont_show2", "Diese Meldung nicht mehr zeigen", value = FALSE),
+          
+          footer = tagList(modalButton("Abbrechen"), actionButton("confirm_run", "Ja"))
+        )
+      )
+    } else{
+      run_analysis()
+    }
   })
+  
   
   observeEvent(input$save_preset, {
     #Save Preset in Json
@@ -655,27 +773,49 @@ server <- function(input, output, session) {
     pathway_list(pw)
   })
   
+
   observe({
     req(pathway_list())
     
     updateSelectizeInput(session, "pathways", choices = pathway_list(), server = TRUE)
   })
   
-  observeEvent(input$switchtab, {
+
+  observeEvent(input$confirm_button, {
+    if(is.null(input$pathways) || length(input$pathways) == 0) {
+      showNotification(
+        ui = div(style = "font-size: 18px; font-weight: bold; color: #000000;", "Bitte mindestens eine Pathway auswählen!"),
+        type = "error")
+      return()
+    }
     selected_pathways <- input$pathways
     print(selected_pathways)
   })
   
   observeEvent(input$confirm_run, {
+    
+    if(current_warn() == "p1" &&
+      isTRUE(input$dont_show1)){
+      
+      skip_mink1(TRUE)
+    }
+    
+    if(current_warn() == "p2" &&
+      isTRUE(input$dont_show2)){
+      
+      skip_mink2(TRUE)
+    }
+    
     removeModal()
+    
+    run_analysis()
   })
   
   inputs_valid <- reactive({
-    req(input$clusterverfahren)
-    req(input$normalisierung)
-    req(input$distanzmatrix)
-    
-    req(!is.null(input$farbpaletten))
+    req(clust_config$method)
+    req(clust_config$normalisation)
+    req(clust_config$distance)
+    req(clust_config$palette)
     
     mink_valid <- TRUE
     
@@ -698,23 +838,42 @@ server <- function(input, output, session) {
     }
   })
   
-  observeEvent(input$analyze_pathways, {
-    cov_matrix <- analyze_pathways_coverage(daten(), input$pathways)
-    
-    coverage_result(cov_matrix)
-  })
-  
+  #-------------------------CALLING ANALYSE PATHWAY COVERAGE--------------------
   output$coverage_table <- renderTable({
     req(coverage_result())
-    
-    as.data.frame(coverage_result())
+    coverage_result()
   }, rownames = TRUE)
   
+  
+ 
   observeEvent(input$confirm_button, {
+    
+    req(input$pathways)
+    req(daten())
+    
+    coverage <- analyze_pathways_coverage(
+      chosen_pathways = input$pathways,
+      dataset_cleaned = daten(),
+      con = con
+    )
+    
+    coverage_result(coverage$matrix_unused)
+    
+    if(skip_pathways()){
+      updateTabItems(session, "tabs", selected = "parameter")
+      return()
+    
+    }
+    
     showModal(
       modalDialog(
         title = "Warnung",
+        
+        tableOutput("coverage_table"),
+        
         "Einige Gene in den ausgewählten Pathways wurden entfernt. Möchten Sie trotzdem mit den ausgewählten Pathways fortfahren?",
+        
+        checkboxInput("dont_showBox", "Diese Meldung nicht mehr zeigen", value = FALSE),
         
         footer = tagList(
           modalButton("Andere Pathways auswählen"),
@@ -726,67 +885,68 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$continue_analysis, {
+    
+    if(isTRUE(input$dont_showBox)){
+      skip_pathways(TRUE)
+    }
     removeModal()
     
     updateTabItems(session, "tabs", selected = "parameter")
   })
   
+  
+  #---------------VISUALISATION-------------------------
+  
   output$patientDendrogram <- renderPlotly({
-    req(cluster_patient())
-    req(tree_patient())
-    req(order_patient())
-    req(patient_names())
-    req(class_labels())
+    req(patient_store())
     
-    p <- generate_dendro(
-      cluster_patient(),
-      tree_patient(),
-      order_patient(),
-      title = "Patienten",
-      names_vector = patient_names(),
-      class_labels = class_labels(),
-      palette = clust_config$palette
-    )
-    
-    ggplotly(p)
+    patient_store()
   })
   
   output$geneDendrogram <- renderPlotly({
-    req(cluster_gene())
-    req(tree_gene())
-    req(order_gene())
+    req(gene_store())
     
-    p <- generate_dendro(
-      cluster_gene(),
-      tree_gene(),
-      order_gene(),
-      title = "Gene",
-      names_vector = NULL,
-      class_labels = NULL,
-      palette = clust_config$palette
-    )
-    
-    ggplotly(p)
+    gene_store()
   })
 
-  output$grafikpanel <- renderPlot({
-    req(heatmap_store(), patient_store(), gene_store())
+  
+  highlighted_heatmap <- reactive({
+    req(heatmap_store())
     
-    focus <- selected_patient()
+    plot <- heatmap_store()
     
-    heatmap <- heatmap_store()
-    patient <- patient_store()
-    gene <- gene_store()
-    
-    if (is.null(focus) || focus == "") {
-      return(grafikpanel(heatmap, patient, gene))
+    if(is.null(selected_patient())){
+      return(plot)
     }
     
-    if (focus %in% colnames(heatmap)) {
-      heatmap <- heatmap[, c(focus, setdiff(colnames(heatmap), focus)), drop = FALSE]
+    req(order_gene())
+    req(patient_names())
+    req(order_patient())
+    
+    patient <- selected_patient()
+    
+    patient_index <- which(patient_names()[order_patient()] == patient)
+    
+    if(length(patient_index)==0){
+      return(plot)
     }
-    grafikpanel(heatmap, patient, gene)
+    
+    n_genes <- length(order_gene())
+    
+    plot %>%
+      add_trace(type = "scatter", mode = "lines", 
+                x=c(patient_index-0.5, patient_index+0.5, patient_index+0.5, patient_index-0.5, patient_index-0.5),
+                y=c(0.5, 0.5, n_genes+0.5, n_genes+0.5, 0.5),
+                fill = "toself", fillcolor = "rgba(0, 0, 0, 0)",
+                line = list(color = "black", width = 3),
+                hoverinfo = "skip", xaxis = "x", yaxis = "y", showlegend = FALSE
+                )
+  })
+  
+  output$grafikpanel <- renderPlotly({
+    highlighted_heatmap()
     
   })
+  
   
 }

@@ -32,6 +32,16 @@ ui <- dashboardPage(
             )
           ),
           
+          
+          conditionalPanel(
+            condition = "input.clusterverfahren_sidebar == 'Custom-Linkage'",
+            numericInput("alpha_a", "Alpha a", value = 0.5),
+            numericInput("alpha_b", "Alpha b", value = 0.5),
+            numericInput("beta", "Beta", value = 0),
+            numericInput("gamma", "Gamma", value = 0)
+          ),
+          
+          
           selectInput(
             inputId = "normalisierung_sidebar",
             label = "Normalisierungs Verfahren auswählen",
@@ -65,14 +75,6 @@ ui <- dashboardPage(
               value = 1
             ),
             textOutput("result")
-          ),
-          
-          conditionalPanel(
-            condition = "input.clusterverfahren_sidebar == 'Custom-Linkage'",
-            numericInput("alpha_a", "Alpha a", value = 0.5),
-            numericInput("alpha_b", "Alpha b", value = 0.5),
-            numericInput("beta", "Beta", value = 0),
-            numericInput("gamma", "Gamma", value = 0)
           ),
           
           radioButtons(
@@ -141,8 +143,14 @@ ui <- dashboardPage(
             ),
             choiceValues = list("RdYlBu", "viridis", "RdBu", "PRGn")
           ),
-        ),
-        selectizeInput("focus_patient", "Lieblingspatient suchen", choices = NULL)
+          selectizeInput("focus_patient", "Patient suchen", choices = NULL, selected = NULL, multiple = TRUE,
+                         options = list(placeholder = "Patient suchen...", 
+                                        searchField = "label", allowEmptyOption = TRUE)),
+        
+          actionButton("refreshButton", "Parameter aktualisieren")
+          
+        )
+
       )
 
     ),
@@ -154,21 +162,45 @@ ui <- dashboardPage(
     useShinyFeedback(),
     useShinyjs(),
     
-    tags$head(tags$style(
-      HTML(
-        "
+    tags$head(
+      
+      tags$style(HTML("
+             html, body {
+             height: 100%;
+             }
+             
+             .wrapper{
+             min-height: 100vh !important;
+             }
+             
+             .main-sidebar{
+             min-height: 100vh !important;
+             }
+        
+             body{
+             background-color: #FFFFFF !important;
+             color: #000000 !important;
+             }
+             
              .main-header {position:fixed; width:100%;}
-             .content-wrapper{padding-top: 50px !important;}            "
-      )
-    ), tags$style(
-      HTML(
-        "
+             
+             .content-wrapper{
+             background-color: #FFFFFF !important;
+             padding-top: 60px !important; 
+             margin-top:0px !important;}
+                        
+             .wrapper{
+             background-color: #FFFFFF !important;}           
+                        
+                        ")),
+      
+      tags$style(HTML("
       /* Main header */
       .main-header .logo {
         background-color: #D1D1D1 !important;
         color: #000000 !important;
       }
-
+      
       .main-header .logo:hover {
       background-color: #FFFFFF !important;
       color: black !important;
@@ -182,98 +214,107 @@ ui <- dashboardPage(
       .main-sidebar {
         background-color: #D1D1D1 !important;
       }
-
+      
       /* All sidebar text */
     .sidebar-menu > li > a {
       color: black !important;
     }
-
+     
      /* Active menu item */
     .sidebar-menu > li.active > a {
       background-color: #ECECEC !important;
       color: black !important;
     }
-
+    
+    /* Sidebar hover */
+    .sidebar-menu > li:hover > a {
+     background-color: #ECECEC !important;
+     color: #000000 !important;
+    }
+      
        /* Treeview arrows/icons */
     .sidebar-menu li a .fa,
     .sidebar-menu li a .glyphicon {
       color: black !important;
     }
-
+    
+    .sidebar-toggle,
+    .main-header .sidebar-toggle,
+    .main-header .navbar .sidebar-toggle {
+    color: #000000 !important;
+    }
+    
+    /* Sometimes it's rendered as icon inside */
+    .sidebar-toggle .fa,
+    .main-header .sidebar-toggle .fa {
+    color: #000000 !important;
+    }
     .custom-box .box-header{
     background-color: #FBEEB9 !important;
     }
-
+    
     .custom-box .box-title{
     color: black !important;
     }
-
+    
     .cluster-box .box-header{
     background-color:  #FBEEB9 !important;
     }
-
+    
     .cluster-box .box-title{
     color: black !important;
     }
-
+    
     .preset-box .box-header{
     background-color:  #FBEEB9 !important;
     }
-
+    
     .preset-box .box-title{
     color: black !important;
     }
-
+    
+    .box {
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    }
+    
     /* Overrides SUCCESS box header */
     .box.box-success > .box-header {
       background-color: #FEFAEC !important;
       color: black !important;
-      border-bottom: none;
+      border-bottom: 1px solid #000000 !important;
     }
-
+    
     /* Overrides PRIMARY box header */
     .box.box-primary > .box-header {
       background-color: #FEFAEC !important;
       color: black !important;
-      border-bottom: none;
+      border-bottom: 1px solid #000000 !important;
     }
-
+    
     #changes text in sidebar to black
     .heatmap-controls label {
     color: black !important;
     }
-
+    
     .heatmap-controls .control-label {
     color: black !important;
     }
-
+    
     .heatmap-controls .radio-label {
     color: black !important;
     }
-
+    
+    .heatmap-controls .form-group label{
+    color: black !important;
+    }
+    
     #heatmap .radio label{
     color: black !important;
     }
-
-    .selectize-input,
-    .selectize-input input,
-    .selectize-dropdown,
-    .selectize-dropdown-content {
-    color: black !important;
-    }
-
-    .heatmap-controls h1,
-    .heatmap-controls h2,
-    .heatmap-controls h3,
-    .heatmap-controls h4,
-    .heatmap-controls h5,
-    .heatmap-controls h6 {
-    color: black !important;
-    }
-
-    "
-      )
-    )),
+  
+    "))
+    ),
     
     tabItems(
       tabItem(
@@ -288,11 +329,7 @@ ui <- dashboardPage(
         h2("CSV Datei hochladen"),
         
         fancyFileInput("Datei_csv", "CSV Datei hochladen", accept = ".csv"),
-        withSpinner(
           uiOutput("upload_status"),
-          type = 6,
-          color = "#000000"
-        ),
         
         fluidRow(box(
           width = 12,
@@ -324,8 +361,7 @@ ui <- dashboardPage(
           )
         ),
         
-        actionButton('confirm_button', "Weiter mit diesem Pathways"),
-        actionButton('switchtab', 'Parametern Wählen'),
+        actionButton('confirm_button', "Weiter mit diesem Pathways", disabled = TRUE),
       ),
       
       tabItem(
@@ -350,6 +386,8 @@ ui <- dashboardPage(
                 "Custom-Linkage"
               )
             ),
+            
+            uiOutput("customInfo"),
             
             conditionalPanel(
               condition = "input.clusterverfahren == 'Custom-Linkage'",
@@ -492,6 +530,15 @@ ui <- dashboardPage(
         
         navset_card_underline(
           nav_panel(
+            "Grafikpanel",
+            withSpinner(
+              plotlyOutput("grafikpanel", height = "85vh", width = "100%"),
+              type = 6,
+              color = "#000000"
+            )
+          ),
+          
+          nav_panel(
             "Dendrogram: Patient",
             withSpinner(
               plotlyOutput("patientDendrogram", height = "85vh", width = "100%"),
@@ -505,15 +552,6 @@ ui <- dashboardPage(
             withSpinner(
               plotlyOutput("geneDendrogram", height = "85vh", width = "100%")
               ,
-              type = 6,
-              color = "#000000"
-            )
-          ),
-          
-          nav_panel(
-            "Grafikpanel",
-            withSpinner(
-              plotOutput("grafikpanel", height = "85vh", width = "100%"),
               type = 6,
               color = "#000000"
             )

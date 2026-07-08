@@ -97,13 +97,14 @@ grafikpanel <- function(
   
   final <- layout(
     final,
+    dragmode = "zoom",
     #heatmap
     xaxis = modifyList(
       heatmap_xaxis,
       list(
         domain = c(0.20,1),
         range = patient_range,
-        fixedrange = TRUE,
+        fixedrange = FALSE,
         showticklabels = TRUE,
         tickangle = -90
       )
@@ -114,7 +115,7 @@ grafikpanel <- function(
       list(
         domain = c(0,0.80),
         range = gene_range,
-        fixedrange = TRUE,
+        fixedrange = FALSE,
         side = "right",
         showticklabels = TRUE
       )
@@ -123,7 +124,7 @@ grafikpanel <- function(
     xaxis2 = list(
       domain = c(0.20,1),
       range = patient_range,
-      fixedrange = TRUE,
+      fixedrange = FALSE,
       showticklabels = FALSE,
       showgrid = FALSE,
       zeroline = FALSE
@@ -131,7 +132,7 @@ grafikpanel <- function(
     
     yaxis2 = list(
       domain = c(0.80,1),
-      fixedrange = TRUE,
+      fixedrange = FALSE,
       showticklabels = FALSE,
       showgrid = FALSE,
       zeroline = FALSE
