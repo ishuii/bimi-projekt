@@ -21,7 +21,7 @@ generate_heatmap <- function(data_matrix,
   sorted_matrix <- data_matrix[gene_order, patient_order]
   
   # Convert matrix to long format
-  df_plot <- melt(data_matrix)
+  df_plot <- melt(sorted_matrix)
   colnames(df_plot) <- c("Gene", "Patient", "Expression")
   
   # Correct display order
@@ -37,7 +37,7 @@ generate_heatmap <- function(data_matrix,
   
   df_plot$Patient <- factor(
     df_plot$Patient,
-    levels = colnames(data_matrix)
+    levels = colnames(sorted_matrix)
   )
   
   if (!is.null(palette)) {
