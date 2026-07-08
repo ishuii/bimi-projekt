@@ -10,6 +10,8 @@ library(DBI)
 library(reshape2) 
 library(viridis) 
 library(RColorBrewer) 
+library(stringr)
+library(plotly)
 
 # ============================================================
 # SOURCE FILES
@@ -143,8 +145,8 @@ plotly_pat <- generate_dendro_plotly(
 
 plotly_gen <- generate_dendro_plotly(
   cluster_result = cluster_genes,
-  tree_result    = baum_gene,
-  order_vector   = order_gene,
+  tree_result    = tree_genes,
+  order_vector   = order_genes,
   title          = "TCGA Kidney Cancer: Gene Clustering",
   names_vector   = gene_names,
   class_labels   = NULL,
@@ -159,14 +161,128 @@ plotly_gen
 # HEATMAP
 # ============================================================
 
-viridis <- viridis::viridis(100) 
-RdYlBu <- brewer.pal(11, "RdYlBu") 
-RdBu <- brewer.pal(11, "RdBu") 
-PRGn <- brewer.pal(11, "PRGn") 
+heatmap_fields <- create_heatmap_field_data(data_matrix = df_prepared, 
+                                            metaDaten_gefiltert = metaDaten_gefiltert)
 
-heatmap1 <- generate_heatmap(df_normalized, order_genes, order_pat)
-grafikpanel(heatmap1, patient_dendro, gene_dendro)
+meta_names <- extract_metadata_names(metaDaten_gefiltert)
+heatmap_fields <- heatmap_fields[, c("Expression", "Gene", "Patient", meta_names)]
+print(head(heatmap_fields))
+
+heatmap_plotly <- generate_heatmap_plotly(
+  data_matrix   = df_normalized,
+  gene_order    = order_genes,
+  patient_order = order_pat,
+  gene_names    = gene_names,
+  palette       = "PRGn",
+  show_x_axis   = TRUE
+)
+
+final_plot <- grafikpanel(
+  
+  heatmap_plot   = heatmap_plotly,
+  patient_dendro = plotly_pat,
+  gene_dendro    = plotly_gen,
+  
+  gene_order     = order_genes,
+  patient_order  = order_pat
+)
+
+final_plot
+
 
 # zum Vergleichen
-stats::heatmap(df_normalized)
+hc.rows = hclust(dist(df_normalized))
+hc.cols = hclust(dist(t(df_normalized)))
+stats::heatmap(df_normalized, Rowv = as.dendrogram(hc.rows), Colv = as.dendrogram(hc.cols))
+
+# ===========================================================
+# COMPARISONS 
+# ===========================================================
+
+# Setting: SHIPP dataset, filtered by "Pathways in Cancer"
+# normalization method: 3
+# distance method: euclidean
+# clusteirng method: complete
+
+# (1) DISTANCE MATRIX
+d_ref  <- as.matrix(dist(df_normalized)) 
+d_ours <- as.matrix(dist_cpp(df_normalized, "euclidean"))
+
+max(abs(d_ref - d_ours))
+all.equal(as.vector(d_ref), as.vector(d_ours), tolerance = 1e-10) 
+
+# RESULT: TRUE
+
+# -----------------------------------------------------------
+# (2) MERGE PROCESS
+hc_ref <- hclust(dist(df_normalized))
+merge_ref <- hc_ref$merge
+height_ref <- hc_ref$height
+order_ref <- hc_ref$order
+
+hc_ours <- hierarchical_clustering(d_ours, method = "complete") 
+merge_ours <- hc_ours$merge
+height_ours <- hc_ours$matched_at
+
+our_tree   <- build_tree(hc_ours)
+order_ours  <- get_order_vector(our_tree)
+
+all.equal(height_ref, height_ours)
+# RESULT: TRUE
+
+hc_ours <- list(merge = merge_ours, height = height_ours, order = order_ours,
+                labels = rownames(df_normalized), method = "complete")
+class(hc_ours) <- "hclust"
+
+# -----------------------------------------------------------
+# (3) CLUSTER ASSIGNMENT
+ref  <- cutree(hc_ref, k = 4)
+ours <- cutree(hc_ours, k = 4)
+
+same_ref <- outer(ref, ref , "==")
+same_ours <- outer(ours, ours, "==")
+
+identical(same_ref, same_ours)
+# RESULT: TRUE
+
+# ----------------------------------------------------------
+# (4) COPHENETIC DISTANCE
+
+cop_ref <- cophenetic(hc_ref)
+cop_ours <- cophenetic(hc_ours)
+
+cor(cop_ref, cop_ours)
+# RESULT: 1 --> result is the same
+
+# ----------------------------------------------------------
+# (5) DENDROS
+
+plot(as.dendrogram(hc_ref))
+plot(as.dendrogram(hc_ours))
+
+# ----------------------------------------------------------
+# (5) HEATMAPS
+
+stats::heatmap(df_normalized, col = brewer.pal(11,"PRGn"))
+
+heatmap_plotly <- generate_heatmap_plotly(
+  data_matrix   = df_normalized,
+  gene_order    = order_genes,
+  patient_order = order_pat,
+  gene_names    = gene_names,
+  palette       = "PRGn",
+  show_x_axis   = TRUE
+)
+
+heatmap_plotly
+
+final_plot <- grafikpanel(
+  heatmap_plot   = heatmap_plotly,
+  patient_dendro = plotly_pat,
+  gene_dendro    = plotly_gen,
+  gene_order     = order_genes,
+  patient_order  = order_pat
+)
+
+final_plot
 
