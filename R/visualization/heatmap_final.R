@@ -5,40 +5,60 @@ library(reshape2)
 library(viridis)
 library(RColorBrewer)
 library(stringr)
+library(plotly)
 
-#source("R/clustering/normalization_methods.R")
-#source("R/clustering/prepare_data.R") 
-#source("data/database_functions_v4.r")
-
-# List of colours
-viridis <- viridis::viridis(100)
-RdYlBu <- brewer.pal(11, "RdYlBu")
-RdBu <- brewer.pal(11, "RdBu")
-PRGn <- brewer.pal(11, "PRGn")
 
 #heatmap function 
 generate_heatmap <- function(data_matrix,
                              gene_order,
                              patient_order,
-                             show_x_axis = FALSE) {
+                             gene_names = NULL,
+                             palette = NULL,
+                             show_x_axis = FALSE
+                             ) {
   
   # Sort rows and columns
   sorted_matrix <- data_matrix[gene_order, patient_order]
   
   # Convert matrix to long format
-  df_plot <- melt(sorted_matrix)
+  df_plot <- melt(data_matrix)
   colnames(df_plot) <- c("Gene", "Patient", "Expression")
   
   # Correct display order
+  
+  display_gene_names <- make.unique(
+    gene_names[gene_order]
+  )
+  
   df_plot$Gene <- factor(
-    df_plot$Gene,
-    levels = rev(rownames(sorted_matrix))
+    display_gene_names,
+    levels = rev(display_gene_names)
   )
   
   df_plot$Patient <- factor(
     df_plot$Patient,
-    levels = colnames(sorted_matrix)
+    levels = colnames(data_matrix)
   )
+  
+  if (!is.null(palette)) {
+    
+    heat_colors <- switch(
+      palette,
+      "viridis" = viridis::viridis(100),
+      "RdYlBu"  = brewer.pal(11,"RdYlBu"),
+      "RdBu"    = brewer.pal(11,"RdBu"),
+      "PRGn"    = brewer.pal(11,"PRGn"),
+      {
+        warning("Unknown palette -> using viridis")
+        viridis::viridis(100)
+      }
+    )
+    
+  } else {
+    
+    heat_colors <- viridis::viridis(100)
+    
+  }
   
   # Heatmap
   p <- ggplot(
@@ -53,10 +73,12 @@ generate_heatmap <- function(data_matrix,
     geom_tile(color = "grey85") +
     
     scale_fill_gradientn(
-      colours = PRGn,
+      colours = heat_colors,
       name = "Expression",
       limits = range(df_plot$Expression, na.rm = TRUE)
     ) +
+    
+    scale_y_discrete(position = "right") +
     
     labs(
       title = "Gene Expression Heatmap",
@@ -192,3 +214,55 @@ heatmap_pdf <- function(df_normalized,
   dev.off()
 }
 
+generate_heatmap_plotly <- function(
+    data_matrix,
+    gene_order,
+    patient_order,
+    gene_names = NULL,
+    palette = NULL,
+    show_x_axis = FALSE
+){
+  
+  heatmap <- generate_heatmap(
+    data_matrix   = data_matrix,
+    gene_order    = gene_order,
+    patient_order = patient_order,
+    gene_names    = gene_names,
+    palette       = palette,
+    show_x_axis   = show_x_axis
+  )
+  
+  heatmap_plotly <- ggplotly(
+    heatmap,
+    tooltip = c(
+      "Gene",
+      "Patient",
+      "Expression"
+    ),
+    dynamicTicks = FALSE
+  )
+  
+  built <- plotly_build(heatmap_plotly)
+  
+  built$x$layout$xaxis$fixedrange <- TRUE
+  built$x$layout$yaxis$fixedrange <- TRUE
+  
+  heatmap_plotly <- layout(
+    built,
+    margin = list(
+      l = 5,
+      r = 60,
+      t = 30,
+      b = 5
+    ),
+    xaxis = list(
+      fixedrange = TRUE
+    ),
+    yaxis = list(
+      fixedrange = TRUE,
+      side = "right"
+    )
+  )
+  
+  return(heatmap_plotly)
+}
