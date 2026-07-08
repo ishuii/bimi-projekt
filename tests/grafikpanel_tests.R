@@ -1,10 +1,10 @@
-
 library(ggplot2)
-library(patchwork)
+library(plotly)
 library(distRcpp)
 library(RSQLite)
 library(DBI)
 library(reshape2)
+
 
 # ============================================================
 # SOURCE
@@ -16,7 +16,9 @@ source("R/visualization/Grafikpanel.R")
 source("R/clustering/hierarchical_clustering.R")
 source("R/clustering/normalization_methods.R")
 source("R/clustering/prepare_data.R")
-
+source("data/database_functions_v4.r")
+source("R/visualization/saving_functions.R")
+source("R/visualization/wrapper_functions.R")
 # ============================================================
 # DATABASE AND DATASET
 # ============================================================
@@ -116,45 +118,57 @@ print(
   head(heatmap_fields)
 )
 
+# Patient Dendrogramm 
 
-# ============================================================
-# DENDROGRAMS
-# ============================================================
-
-# patients — colored by class labels, legend shown
-patient_dendro <- generate_dendro(
+patient_dendro_plotly <- generate_dendro_plotly(
   cluster_result = cluster_pat,
   tree_result    = baum_patienten,
   order_vector   = order_patienten,
   title          = "Patienten",
   names_vector   = patient_names,
-  class_labels   = class_labels
+  class_labels   = class_labels,
+  show_x_axis    = TRUE,
+  show_y_axis    = TRUE
 )
 
-# genes — no class labels, everything black, no legend
-gene_dendro <- generate_dendro(
+
+# Gene Dendrogramm
+
+gene_dendro_plotly <- generate_dendro_plotly(
   cluster_result = cluster_genes,
   tree_result    = baum_gene,
   order_vector   = order_gene,
   title          = "Gene",
   names_vector   = gene_names,
-  class_labels   = NULL
+  class_labels   = NULL,
+  palette        = "viridis",
+  show_x_axis    = TRUE,
+  show_y_axis    = TRUE
+)
+
+# Heatmap
+
+heatmap_plotly <- generate_heatmap_plotly(
+  data_matrix   = df_prepared,
+  gene_order    = order_gene,
+  patient_order = order_patienten,
+  gene_names    = gene_names,
+  palette       = "PRGn",
+  show_x_axis   = TRUE
 )
 
 
-heatmap_plot <- generate_heatmap(
-  df_prepared, order_gene, order_patienten
-)
-
-# ============================================================
-# GRAFIKPANEL
-# ============================================================
+#Grafikpanel
 
 final_plot <- grafikpanel(
-  heatmap_plot   = heatmap_plot,
-  patient_dendro = patient_dendro,
-  gene_dendro    = gene_dendro
+  
+  heatmap_plot   = heatmap_plotly,
+  patient_dendro = patient_dendro_plotly,
+  gene_dendro    = gene_dendro_plotly,
+  
+  gene_order     = order_gene,
+  patient_order  = order_patienten
 )
 
-print(final_plot)
+final_plot
 
