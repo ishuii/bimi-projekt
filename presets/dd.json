@@ -1,0 +1,6 @@
+{
+  "clusterverfahren": "Single-Linkage",
+  "distanzmatrix": "Euklidische Distanz",
+  "normalisierung": "Keine Normalisierung",
+  "farbpaletten": "RdYlBu"
+}

@@ -496,14 +496,14 @@ if(interactive()){
                 h2("Visualisierung"),
                 
                 navset_card_underline(
+                  nav_panel("Grafikpanel", withSpinner(plotOutput("grafikpanel", height = "85vh", width = "100%"), 
+                                                       type = 6, color = "#000000")),
+                  
                   nav_panel("Dendrogram: Patient", withSpinner(plotlyOutput("patientDendrogram", height = "85vh", width = "100%"),
                                                                type = 6, color = "#000000")),
                   
                   nav_panel("Dendrogram: Gene", withSpinner(plotlyOutput("geneDendrogram", height = "85vh", width = "100%")
-                                                            , type = 6, color = "#000000")),
-                  
-                  nav_panel("Grafikpanel", withSpinner(plotOutput("grafikpanel", height = "85vh", width = "100%"), 
-                                                       type = 6, color = "#000000"))
+                                                            , type = 6, color = "#000000"))
                 ),
                 
                 

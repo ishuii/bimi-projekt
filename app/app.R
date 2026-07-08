@@ -24,6 +24,7 @@ source("R/visualization/final_dendrogram.R")
 source("R/visualization/Grafikpanel.R")
 source("R/clustering/prepare_data.R")
 source("R/visualization/heatmap_final.R")
+source("R/visualization/wrapper_functions.R")
 
 source("R/utils/presets.R")
 source("R/utils/pdf_export.R")
@@ -32,3 +33,4 @@ source("app/ui.R")
 source("app/server.R")
 
 shinyApp(ui = ui, server = server)
+

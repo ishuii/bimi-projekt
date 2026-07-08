@@ -244,8 +244,8 @@ generate_heatmap_plotly <- function(
   
   built <- plotly_build(heatmap_plotly)
   
-  built$x$layout$xaxis$fixedrange <- TRUE
-  built$x$layout$yaxis$fixedrange <- TRUE
+  built$x$layout$xaxis$fixedrange <- FALSE
+  built$x$layout$yaxis$fixedrange <- FALSE
   
   heatmap_plotly <- layout(
     built,
@@ -256,11 +256,12 @@ generate_heatmap_plotly <- function(
       b = 5
     ),
     xaxis = list(
-      fixedrange = TRUE
+      fixedrange = FALSE,
+      autorange = TRUE
     ),
     yaxis = list(
-      fixedrange = TRUE,
-      side = "right"
+      fixedrange = FALSE,
+      autorange = TRUE
     )
   )
   
