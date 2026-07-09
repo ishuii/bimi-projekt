@@ -866,7 +866,8 @@ server <- function(input, output, session) {
   output$coverage_table <- renderTable({
     req(coverage_result())
     coverage_result()
-  }, rownames = TRUE)
+    
+  }, rownames = TRUE, digits = 0)
   
   
  
@@ -891,7 +892,7 @@ server <- function(input, output, session) {
     
     showModal(
       modalDialog(
-        title = "Warnung",
+        title = "Warnung!",
         
         tableOutput("coverage_table"),
         
