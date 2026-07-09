@@ -18,5 +18,5 @@ Testing:
 6 Stunden 
 
 Bericht:
-3 Stunden(gesucht wie man code referenziert und einfügt, immer noch nicht richtig )
+6 Stunden(gesucht wie man code referenziert und einfügt, immer noch nicht richtig )
 
