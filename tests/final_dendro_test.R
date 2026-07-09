@@ -11,7 +11,8 @@ library(RSQLite)
 library(DBI)
 library(reshape2)
 library(plotly)
-
+library(RColorBrewer)
+library(colorspace)
 # ============================================================
 # SOURCES
 # ============================================================
@@ -157,7 +158,7 @@ plotly_pat <- generate_dendro_plotly(
   title          = "TCGA Kidney Cancer: Patient Clustering",
   names_vector   = patient_names,
   class_labels   = class_labels,
-  palette        = "viridis",
+  palette        = "RdYlBu",
   show_x_axis    = TRUE,
   show_y_axis    = TRUE
 )
