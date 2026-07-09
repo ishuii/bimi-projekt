@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  7 JUL 2026 16:04
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  9 JUL 2026 21:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -397,10 +397,6 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [3]
 
-LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 82.
-
-
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
 (fancyhdr)                \setlength{\headheight}{14.49998pt}.
@@ -409,6 +405,17 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [4]
 
+LaTeX Warning: No positions in optional float specifier.
+               Default added (so using `tbp') on input line 89.
+
+
+Overfull \hbox (10.84784pt too wide) in paragraph at lines 111--114
+\OT1/cmr/m/n/12 Linkage ([][]\OT1/cmtt/m/n/12 "complete"[]\OT1/cmr/m/n/12 ) zur
+ Verf[]ugung, so-wie ei-ne be-nut-zer-de-fi-nier-te Linkage-Funktion ([][]\OT1/
+cmtt/m/n/12 "custom"[]\OT1/cmr/m/n/12 ).
+ []
+
+
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
 (fancyhdr)                \setlength{\headheight}{14.49998pt}.
@@ -416,6 +423,11 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [5]
+Overfull \hbox (13.68272pt too wide) in paragraph at lines 121--122
+\OT1/cmr/m/n/12 Das Complete-Linkage-Verfahren ist ge-wis-ser-ma-^^Yen das Ge-g
+enst[]uck zum Single-Linkage-Verfahren
+ []
+
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -431,27 +443,47 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[7] (wiki.aux)
+[7]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[8]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[9] (wiki.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 6408 strings out of 467871
- 107800 string characters out of 5418377
- 546884 words of memory out of 5000000
- 35188 multiletter control sequences out of 15000+600000
- 636484 words of font info for 74 fonts, out of 8000000 for 9000
+ 6411 strings out of 467871
+ 107837 string characters out of 5418377
+ 550884 words of memory out of 5000000
+ 35190 multiletter control sequences out of 15000+600000
+ 636653 words of font info for 75 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 68i,11n,90p,582b,349s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 68i,11n,90p,677b,349s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/
 cmbx12.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/ams
-fonts/cm/cmr12.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/pu
-blic/amsfonts/cm/cmr17.pfb>
-Output written on wiki.pdf (7 pages, 55454 bytes).
+fonts/cm/cmmi12.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/p
+ublic/amsfonts/cm/cmmi8.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts
+/type1/public/amsfonts/cm/cmr12.pfb><C:/Users/wikto/AppData/Local/Programs/MiKT
+eX/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Users/wikto/AppData/Local/Progr
+ams/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/wikto/AppData/Lo
+cal/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
+Output written on wiki.pdf (9 pages, 98137 bytes).
 PDF statistics:
- 41 PDF objects out of 1000 (max. 8388607)
+ 67 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
