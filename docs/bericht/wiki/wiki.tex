@@ -66,10 +66,17 @@ Was ist Clustering?
 \newpage
 \pagestyle{fancy}
 \fancyhead{}
-\fancyhead[L]{Rosina \& Wiki}
+\fancyhead[L]{Rosina}
 \section{Normalisierung}
 \label{normalisierung}
 
+
+
+
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Wiktoria}
 
 \section{Clusteranalyse}
 \label{clusteranalyse}
@@ -101,16 +108,29 @@ Für die Clusteranalyse muss eine Distanzmatrix aus dem Datensatz berechnet werd
 \subsection{Linkagefunktionen}
 \label{linkage-funktionen}
 
-\subsubsection{Single Linkage}
+Die eigentliche Clusterung erfolgt mit Hilfe der Linkage-Function \verb*|hierarchical_clustering|. Diese Funktion erhält als Parameter eine Distanzmatrix, eine Methode als String, sowie eine Liste aus Parametern. Standardmäßig wird als Methode \verb*|"single"| (siehe \ref{single-linkage}) und für die Parameter \verb*|NULL| übergeben.\\
+Das Ergebnis dieser Funktion ist eine Liste mit zwei Elementen, die für die Visualisierung der Ergebnisse benötigt werden. Das erste Element ist \verb*|matched_at|, ein Vektor, der die Werte enthält, an denen die Cluster zusammengefügt wurden. Dies entspricht der minimalen Distanz an jedem Schritt. Das zweite Element der Output-Liste ist \verb*|merge|, eine \verb*|n-1| mal \verb*|2| Matrix, die in jeder Zeile die zusammengefügten Cluster-Indizes enthält.\\
+Als Methode stehen Single-Linkage (\verb*|"single"|), Average-Linkage (\verb*|"average"|) und Complete-Linkage (\verb*|"complete"|) zur Verfügung, sowie eine benutzerdefinierte Linkage-Funktion (\verb*|"custom"|). Diese Funktionen werden in den Folgenden Unterkapiteln erklärt.
+
+\subsubsection{Single-Linkage}
 \label{single-linkage}
+Das Single-Linkage-Verfahren wird auch als Nearest-Neighbour-Verfahren bezeichnet. Um zwei Cluster zusammenzufügen, wird hierbei der Abstand zwischen ihren nächstgelegenen Elementen (den „nähesten Nachbarn“) betrachtet. Wie Lance und Williams beschreiben, weist dieses Verfahren eine Tendenz dazu auf, eine Verkettung zu bilden. In jedem Schritt der Clusterung werden größere Cluster gebildet, die sich damit anderen Clustern „nähern“; so ist es wahrscheinlicher, dass größere Cluster umso stärker wachsen und sich ausbreiten. Aus diesem Grund spricht man beim Single-Linkage-Verfahren von einer raumverkleinernden Strategie.
 
-\subsubsection{Average Linkage}
-\label{average-linkage}
-
-\subsubsection{Complete Linkage}
+\subsubsection{Complete-Linkage}
 \label{complete-linkage}
+Das Complete-Linkage-Verfahren ist gewissermaßen das Gegenstück zum Single-Linkage-Verfahren und wird auch als Furthest-Neighbour-Verfahren bezeichnet. Der Abstand zwischen zwei Clustern ist hierbei über die am weitesten voneinander gelegenen Elemente definiert. Beim Zusammenfassen zu einem Clustern hat dies den Effekt, dass sich der neue Cluster keinem anderen nähert, was das Verfahren zu einer raumausdehnenden Strategie macht. 
 
+\subsubsection{Average-Linkage}
+\label{average-linkage}
+Das Average-Linkage-Verfahren nutzt den Mittelwert der Cluster als Abstandsmaß. Diese Methode gilt als konservierende Strategie, da sie den Raum weder verkleinert noch vergrößert. 
 
+\subsubsection{Benutzerdefinierte Linkage-Funktion}
+\label{custom-linkage}
+Die drei zuvor beschriebenen Methoden lassen sich mit einer einzigen Funktion abdecken, die Lance und Williams in ihrem Paper vorstellten:
+
+\[ d_{hk} = \alpha_i d_{hi} + \alpha_j d_{hj} + \beta d_{ij} + \gamma |d_{hi}-d_{hj}| \]
+
+Durch Setzen der Werte für \(\alpha_i\), \(\alpha_j\), \(\beta\) und \(\gamma\) kann die Methode exakt definiert werden.
 
 % ----------------------------------------------------------------------------------------------
 \newpage
