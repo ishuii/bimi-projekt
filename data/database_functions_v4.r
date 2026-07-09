@@ -2,10 +2,10 @@
 library(RSQLite)
 library(DBI)
 
-
 # ============================================================
 # HILFSFUNKTIONEN
 # ============================================================
+
 #####################################################################################################
 # First Step of Preprocessing the data after the User chooses the dataset which will be analyzed
 #####################################################################################################
@@ -83,19 +83,18 @@ preprocess_general <- function(data){
 }
 
 
-
 #########################################################
 #Preprocess dataset with meta data and ID as first column 
 #########################################################
-# it searches the index of the row Meta_labels ==> it has to be the first one 
-# and get all indices from that index till the last row of the dataset
+
+# it saves the indices of the rows which contain the value Meta in the first column 
 # it renames the first column as Entrez_ID which equals the name in the database
 # it changes the Datatype of the ID to integer
 
 # Input Values:
-# Dataset which was read by read csv and Header = True ===> important!!
+# Dataset preprocessed => without NA rows and columns
 # Return value:
-# Named list with meta data and pure data 
+# Named list with a meta data datafram and a dataframe without the meta data
 
 
 preprocess_dataset_meta <- function(data) {
@@ -111,7 +110,7 @@ preprocess_dataset_meta <- function(data) {
   rownames(data_meta) <- data_meta[, 1]
   data_meta <- data_meta[, -1]
   
-  # First column: Entrez_ID and integer
+  #first column: Entrez_ID and integer
   data_withoutmeta[[1]] <- as.integer(data_withoutmeta[[1]])
   colnames(data_withoutmeta)[1] <- "Entrez_ID"
   
@@ -126,12 +125,10 @@ preprocess_dataset_meta <- function(data) {
 #Preprocess dataset with meta data and gen name as first column 
 ###############################################################
 
-
-
 preprocess_dataset_meta_gennames <- function(data) {
   
   meta_indices <- grep("^Meta_", data[, 1], ignore.case = FALSE, perl = FALSE)
-  # split dataset 
+  #split dataset 
   data_withoutmeta <- data[-meta_indices, ]
   
   #dataframe with meta information as row name 
@@ -139,7 +136,7 @@ preprocess_dataset_meta_gennames <- function(data) {
   rownames(data_meta) <- data_meta[, 1]
   data_meta <- data_meta[, -1]
   
-  # return named list 
+  #return named list 
   return(list(
     data_withoutmeta = data_withoutmeta,
     meta_data = data_meta
@@ -160,19 +157,20 @@ preprocess_dataset_meta_gennames <- function(data) {
 #columns: total, found, missing, and covering which is simply the proportion in percent  
 #vector of the ids which could not be found in the dataset
 
-
 analyze_pathways_coverage <- function(chosen_pathways, dataset_cleaned, con) {
   
-  # Matrix für die Ergebnisse vorbereiten
-  result <- matrix(NA, nrow = length(chosen_pathways), ncol = 4,dimnames = list(chosen_pathways, c("Total", "Found Genes", "Missing Genes", "Coverage")))
+  #prepare matrix for result matrix 
+  result <- matrix(NA, nrow = length(chosen_pathways), ncol = 4,dimnames = list(chosen_pathways, c("Gesamtanzahl Gene", "Gefundene Gene", "Fehlende Gene", "Coverage in %")))
   missing_ids <- c()
+
+
+  #if the first column contains IDs instead of gene names
 
   if (any(grepl("^[0-9]+$", dataset_cleaned[, 1]))) {
     
     preprocessed <- preprocess_dataset_meta(dataset_cleaned)
     data_clean <- preprocessed$data_withoutmeta
     
-    # Für den Abgleich brauchen wir ALLE IDs aus dem Datensatz, nicht die gefilterten!
     dataset_ids_all <- data_clean[, 1]
 
   } else {
@@ -180,7 +178,7 @@ analyze_pathways_coverage <- function(chosen_pathways, dataset_cleaned, con) {
     preprocessed <- preprocess_dataset_meta_gennames(dataset_cleaned)
     data_clean <- preprocessed$data_withoutmeta
 
-    # Wenn es Gennamen sind, konvertieren wir die komplette erste Spalte in IDs
+    #if the first column contains gene names, convert them into IDs
     gene_names_all <- data_clean[, 1]
     dataset_ids_all <- get_chosen_IDs_from_database(con, gene_names_all)
   }
@@ -191,11 +189,11 @@ analyze_pathways_coverage <- function(chosen_pathways, dataset_cleaned, con) {
   for (i in chosen_pathways) {
     pathway_genes <- unique(get_geneIDS_for_pathways(i, con))
     
-    # WICHTIG: Wir prüfen gegen 'dataset_ids_all' (den kompletten Datensatz)
+
     missing <- pathway_genes[!(pathway_genes %in% dataset_ids_all)]
     found <- length(pathway_genes) - length(missing)
     
-    # Schutz vor Division durch 0, falls ein Pathway in der DB leer ist
+    
     if (length(pathway_genes) > 0) {
       coverage <- round(found / length(pathway_genes) * 100, digits = 2)
     } else {
@@ -244,7 +242,7 @@ get_chosen_IDs_from_database <- function(con, gene_names) {
   query       <- paste0("SELECT Genname, Entrez_ID FROM Gene WHERE Genname IN (", platzhalter, ")")
   result      <- dbGetQuery(con, query, params = as.list(gene_names))
   
-  # keep input order
+  #match: in order the input order
   result <- result[match(gene_names, result$Genname), ]
   
   return(result$Entrez_ID)
@@ -288,6 +286,7 @@ get_all_genes_from_database <- function(con){
 ######################################################################
 # returns all entrez ids which belong to the chosen pathway(s)
 ######################################################################
+
 # unique gen IDs will be returned 
 # Input values:
 # database connection object
@@ -394,9 +393,8 @@ rename_duplikate_genes_v2<- function(extracted_dataset) {
 # ============================================================
 
 # the function needs the chosen pathways from the GUI selection
-# furthermore it needs the original dataset the connection object for the database
-# named list is returned: filtered dataset, metadata, gene vector, gene names, list of unused 
-# gene names and ids 
+# furthermore it needs the preprocessed dataset the connection object for the database
+# named list is returned: filtered dataset, dataset metadata, gene vector, gene names
 # if there are no matches with the chosen pathways ==> stop 
 
 
