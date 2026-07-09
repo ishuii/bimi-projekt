@@ -44,7 +44,7 @@ ui <- dashboardPage(
           
           selectInput(
             inputId = "normalisierung_sidebar",
-            label = "Normalisierungs Verfahren auswählen",
+            label = "Normalisierungsverfahren auswählen",
             choices = c(
               "Keine Normalisierung",
               "normalize_log_zscore",
@@ -56,7 +56,7 @@ ui <- dashboardPage(
           
           selectInput(
             inputId = "distanzmatrix_sidebar",
-            label = "Distanz Matrix auswählen",
+            label = "Distanzmatrix auswählen",
             choices = c(
               "Euklidische Distanz",
               "Manhattan-Distanz",
@@ -143,9 +143,9 @@ ui <- dashboardPage(
             ),
             choiceValues = list("RdYlBu", "viridis", "RdBu", "PRGn")
           ),
-          selectizeInput("focus_patient", "Patient suchen", choices = NULL, selected = NULL, multiple = TRUE,
+          selectizeInput("focus_patient", "Patient suchen", choices = NULL, selected = "", multiple = FALSE,
                          options = list(placeholder = "Patient suchen...", 
-                                        searchField = "label", allowEmptyOption = TRUE)),
+                                        searchField = "label", allowEmptyOption = TRUE, plugins = list("remove_button"))),
         
           actionButton("refreshButton", "Parameter aktualisieren")
           
@@ -155,7 +155,7 @@ ui <- dashboardPage(
 
     ),
     br(),
-    div(style = "padding: 10px;", downloadButton("download_pdf", "PDF exportieren"))
+    div(style = "padding: 10px; background-color: #D1D1D1; text-color: #000000", downloadButton("download_pdf", "PDF exportieren", class="pdf-button"))
   ),
   
   dashboardBody(
@@ -190,9 +190,28 @@ ui <- dashboardPage(
              margin-top:0px !important;}
                         
              .wrapper{
-             background-color: #FFFFFF !important;}           
+             background-color: #FFFFFF !important;}    
+             
+             .main-sidebar {
+             position: fixed !important;
+             height: 100vh !important;
+             overflow-y: auto !important;
+             }
+             
+             .left-side {
+             min-height: 100% !important;
+             }
+             
+             .wrapper {
+             min-height: 100vh !important;
+             }
+             
+             .content-wrapper {
+             min-height: 100vh !important;
+             }
                         
                         ")),
+      
       
       tags$style(HTML("
       /* Main header */
@@ -253,7 +272,15 @@ ui <- dashboardPage(
     background-color: #FBEEB9 !important;
     }
     
+    .abt-box .box-header{
+    background-color: #FBEEB9 !important;
+    }
+    
     .custom-box .box-title{
+    color: black !important;
+    }
+    
+    .abt-box .box-title{
     color: black !important;
     }
     
@@ -312,6 +339,12 @@ ui <- dashboardPage(
     #heatmap .radio label{
     color: black !important;
     }
+    
+    .pdf-button {
+    background-color: #777777 !important;
+    color: white !important;
+    border: none !important;
+    }
   
     "))
     ),
@@ -319,7 +352,32 @@ ui <- dashboardPage(
     tabItems(
       tabItem(
         tabName = "Startseite",
-        h2("Wilkommen zum Dashboard für Cluster Analyse"),
+        h2("Willkommen bei ClusterIt!"),
+        
+        box(width = 12, class = "abt-box", status = "primary",
+            title = tags$span(style = "font-size: 24px;", "Einleitung"),
+            
+            p(style = "font-size: 18px; line-height: 1.6;","ClusterIt! ist ein interaktives Analyse-Dashboard zur Untersuchung 
+              biologischer Datensätze mithilfe von hierarchischem Clustering."),
+            
+            p(style = "font-size: 18px; line-height: 1.6;", "Das Dashboard ermöglicht die Auswahl relevanter Pathways, 
+            die Vorbereitung und Normalisierung von Daten sowie die Visualisierung 
+            von Gen- und Patienten-Clustern in Form von Heatmaps und Dendrogrammen."),
+            
+            tags$b(style = "font-size: 20px; line-height: 1.6;", "Workflow"),
+            
+            tags$ul(style = "font-size: 18px; line-height: 1.6;",
+              tags$li("Laden Sie einen Datensatz im CSV-Format hoch"),
+              tags$li("Wählen Sie relevante Pathways und Analyseparameter aus"),
+              tags$li("Führen Sie die Clusteranalyse durch"),
+              tags$li("Analysieren Sie die Ergebnisse anhand der Heatmap und Dendrogramme")
+            ),
+            
+            p(style = "font-size: 18px; line-height: 1.6;", "Die Visualisierung unterstützt dabei, Muster, Ähnlichkeiten und 
+              Gruppierungen innerhalb komplexer biologischer Daten zu erkennen.")
+            
+            ),
+        
         
         actionButton('nextpage', 'Datei Hochladen')
       ),
@@ -347,14 +405,13 @@ ui <- dashboardPage(
         
         fluidRow(
           box(
-            title = "Datensatz Parametern einstellen",
+            title = "Pathways auswählen",
             width = 12,
             class = "custom-box",
             
             selectizeInput(
               "pathways",
-              "Pathways auswählen",
-              
+              label = NULL,
               choices = NULL,
               multiple = TRUE
             )
@@ -366,7 +423,7 @@ ui <- dashboardPage(
       
       tabItem(
         tabName = "parameter",
-        h2("Bitte Parametern benötigt zur Cluster Analyse, auswählen"),
+        h2("Parameter auswahl für Cluster Analyse"),
         
         fluidRow(
           box(
@@ -467,7 +524,7 @@ ui <- dashboardPage(
             
             selectInput(
               inputId = "normalisierung",
-              label = "Normalisierungs Verfahren auswählen",
+              label = "Normalisierungsverfahren auswählen",
               choices = c(
                 "Keine Normalisierung",
                 "normalize_log_zscore",
@@ -479,7 +536,7 @@ ui <- dashboardPage(
             
             selectInput(
               inputId = "distanzmatrix",
-              label = "Distanz Matrix auswählen",
+              label = "Distanzmatrix auswählen",
               choices = c(
                 "Euklidische Distanz",
                 "Manhattan-Distanz",
@@ -518,10 +575,13 @@ ui <- dashboardPage(
             actionButton("load_preset", "Preset laden")
           )
         ),
+        actionButton('back2upload', 'Zurück zum Datei Hochladen'),
 
         disabled(
           actionButton("run", "Run Cluster Analyse", class = "btn-successful")
         ),
+        
+        uiOutput("analysis_status")
       ),
 
       tabItem(
@@ -575,7 +635,7 @@ ui <- dashboardPage(
         ),
 
         textOutput("selection_feedback"),
-        actionButton('back', 'zurück zum Parametern wählen'),
+        actionButton('back', 'Zurück zum Parametern wählen'),
         conditionalPanel(condition = "input.distanzmatrix == 'Minkowski-Distanz'", )
       )
     )

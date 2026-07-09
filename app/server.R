@@ -369,8 +369,12 @@ server <- function(input, output, session) {
   
   #---------------------Favorite Patient search---------------------------
   observeEvent(input$focus_patient, {
-    selected_patient(input$focus_patient)
-  })
+    if(is.null(input$focus_patient) || input$focus_patient == ""){
+      selected_patient(NULL)
+    }else{
+      selected_patient(input$focus_patient)
+    }
+  }, ignoreNULL = FALSE)
   
   #------------------End of patient search-----------------------------------
   
@@ -397,201 +401,217 @@ server <- function(input, output, session) {
   run_analysis <- function() {
     cat("Analysis started\n")
     
-    showNotification(
-      ui = div(style = "font-size: 18px; font-weight: bold; color: #000000;", "Analyse läuft, bitte warten..."),
-      type = "message",
-      duration = NULL,
-      id = "analysis_progress"
-    )
     
-    tryCatch({
-      req(daten())
-      req(clust_config$distance)
-      req(clust_config$method)
-      req(clust_config$normalisation)
-      req(clust_config$palette)
-      
-      #calls the updated data
-      data <- daten()
-      cat("data dims:", nrow(data), ncol(data), "\n")
-      
-      cat("Your data first column sample:\n")
-      print(head(data[, 1]))
-      cat("Your data first column class:", class(data[, 1]), "\n")
-      
-      #filters rows by selected pathways
-      selected_pathways <- input$pathways
-      req(selected_pathways)
-      req(length(selected_pathways) > 0)
-      
-      #------------------ PREPROCESS + INTEGRATION OF DATA -------------------
-      
-      preprocess <- preprocess_general(data)
-      data_preprocessed <- preprocess$dataset_preprocessed
-      cat("Preprocessed dims:", nrow(data_preprocessed), ncol(data_preprocessed), "\n")
-      
-      result <- run_data_integration(dataset = data_preprocessed,
-                                     chosen_pathways = selected_pathways,
-                                     con = con)
-      
-      gefilteterDatensatz <- result$filtered_dataset
-      metaDaten_gefiltert <- result$meta_data
-      cat("Filtered dims:", nrow(gefilteterDatensatz), ncol(gefilteterDatensatz), "\n")
-      
-      #------------------ PREPARE + NORMALIZE DATA ---------------------------
-      #str(df_prepared[,1:3])
-      
-      norm_number <- switch(
-        clust_config$normalisation,
-        "Keine Normalisierung" = 0,
-        "normalize_log_zscore" = 1,
-        "normalize_log_only" = 2,
-        "normalize_log_median_centering" = 3,
-        "normalize_log_mad" = 4,
-        0
-      )
-      cat("norm_number:", norm_number, "\n")
-      
-      #---------------- PREPARED DATA ----------------------------------------
-      df_prepared <- prepare_data(gefilteterDatensatz, clust_config$normalisation == "Keine Normalisierung")
-      
-      df_normalized <- normalization(df_prepared, norm_number)
-      cat("normalisation OK, dims:", nrow(df_normalized), ncol(df_normalized), "\n")
-      
-      prepared_data(df_prepared)
-      
-      patient_names_vec <- colnames(df_normalized)
-      updateSelectizeInput(session, "focus_patient", choices = patient_names_vec, selected = character(0), server = TRUE)
-      
-      gene_names_vec <- result$gene_names
-      
-      class_labels_vec <- as.character(metaDaten_gefiltert["Meta_labels", patient_names_vec])
-      cat("Class labels:", paste(unique(class_labels_vec), collapse = ", "), "\n")
-      
-      #--------------- DISTANCE + CLUSTERING ----------------------------------
-      
-      method <- switch(
-        clust_config$distance,
-        "Euklidische Distanz" = "euclidean",
-        "Manhattan-Distanz" = "manhattan",
-        "Minkowski-Distanz" = "minkowski",
-        "Canberra-Distanz" = "canberra",
-        "Pearson-Distanz" = "pearson",
-        "Winkeldistanz (Angular Seperation)" = "angular"
-      )
-      
-      cat("distance method String:", method, "\n")
-      
-      method_name <- switch (
-        clust_config$method,
-        "Single-Linkage" = "single",
-        "Average-Linkage" = "average",
-        "Complete-Linkage" = "complete",
-        "Custom-Linkage" = "custom"
-      )
-      
-      cat("cluster method string:", method_name, "\n")
-      
-      custom_params <- if (method_name == "custom") {
-        list(
-          alpha_a = clust_config$alpha_a,
-          alpha_b = clust_config$alpha_b,
-          beta = clust_config$beta,
-          gamma = clust_config$gamma
-        )
-      } else
-        NULL
-      
-      #---------------------Patient data ------------------------
-      dist_mat_pat <- dist_cpp(t(df_normalized), method)
-      
-      cluster_pat <- hierarchical_clustering(dist_mat_pat, method_name, custom_params = custom_params)
-      
-      #------------------Gene data ------------------------------
-      
-      dist_mat_genes <- dist_cpp(df_normalized, method)
-      
-      cluster_genes <- hierarchical_clustering(dist_mat_genes, method_name, custom_params = custom_params)
-      
-      #---------------------DENDROGRAM PREP ----------------------------------
-      
-      tree_pat <- build_tree(cluster_pat)
-      order_pat <- get_order_vector(tree_pat)
-      
-      tree_genes <- build_tree(cluster_genes)
-      order_genes <- get_order_vector(tree_genes)
-      
-      #--------------------BUILD PLOTS ---------------------------------------
-      
-      heatmap_plot <- generate_heatmap_plotly(
-        data_matrix = df_normalized,
-        gene_order = order_genes,
-        patient_order = order_pat,
-        gene_names = gene_names_vec,
-        palette = clust_config$palette,
-        show_x_axis = TRUE
-      )
-      
-      patient_dendro <- generate_dendro_plotly(
-        cluster_result = cluster_pat,
-        tree_result = tree_pat,
-        order_vector = order_pat,
-        title = "TCGA Kidney Cancer: Patient Clustering",
-        names_vector = patient_names_vec,
-        class_labels = class_labels_vec,
-        palette = clust_config$palette,
-        show_x_axis = TRUE,
-        show_y_axis = TRUE
-      )
-      
-      gene_dendro <- generate_dendro_plotly(
-        cluster_result = cluster_genes,
-        tree_result = tree_genes,
-        order_vector = order_genes,
-        title = "TCGA Kidney Cancer: Gene Clustering",
-        names_vector = gene_names_vec,
-        class_labels = NULL,
-        show_x_axis = TRUE,
-        show_y_axis = TRUE
-      )
-      
-      final_plot <- grafikpanel(
-        heatmap_plot = heatmap_plot,
-        patient_dendro = patient_dendro,
-        gene_dendro = gene_dendro,
-        gene_order = order_genes,
-        patient_order = order_pat
-      )
-      
-      heatmap_store(final_plot)
-      patient_store(patient_dendro)
-      gene_store(gene_dendro)
-      
-      cluster_patient(cluster_pat)
-      tree_patient(tree_pat)
-      order_patient(order_pat)
-      patient_names(patient_names_vec)
-      class_labels(class_labels_vec)
-      
-      cluster_gene(cluster_genes)
-      tree_gene(tree_genes)
-      order_gene(order_genes)
-      gene_names(gene_names_vec)
-      
-      shinyjs::delay(100, {
-        updateTabItems(session, "tabs", selected = "heatmap")
-      })
-      
-      cat("tab switch triggered\n")
-      
-      removeNotification(id = "analysis_progress")
-      
-    }, error = function(e) {
-      cat("\n=== ERROR after step above ===\n")
-      cat("Message:", conditionMessage(e), "\n")
-      print(traceback())
-      cat("====================\n")
+    output$analysis_status <- renderUI({
+      div(style = "font-size: 18px; color: black;", icon("spinner", class = "fa-spin"), 
+          "Analyse wurde gestartet, bitte warten...")
     })
+    
+    withProgress(
+      message = "Analyse gestartet...",
+      value = 0,
+      {
+        incProgress(0.15, detail = "Daten wird verarbeitet")
+        
+        tryCatch({
+          req(daten())
+          req(clust_config$distance)
+          req(clust_config$method)
+          req(clust_config$normalisation)
+          req(clust_config$palette)
+          
+          #calls the updated data
+          data <- daten()
+          cat("data dims:", nrow(data), ncol(data), "\n")
+          
+          cat("Your data first column sample:\n")
+          print(head(data[, 1]))
+          cat("Your data first column class:", class(data[, 1]), "\n")
+          
+          #filters rows by selected pathways
+          selected_pathways <- input$pathways
+          req(selected_pathways)
+          req(length(selected_pathways) > 0)
+          
+          #------------------ PREPROCESS + INTEGRATION OF DATA -------------------
+          
+          preprocess <- preprocess_general(data)
+          data_preprocessed <- preprocess$dataset_preprocessed
+          cat("Preprocessed dims:", nrow(data_preprocessed), ncol(data_preprocessed), "\n")
+          
+          result <- run_data_integration(dataset = data_preprocessed,
+                                         chosen_pathways = selected_pathways,
+                                         con = con)
+          
+          gefilteterDatensatz <- result$filtered_dataset
+          metaDaten_gefiltert <- result$meta_data
+          cat("Filtered dims:", nrow(gefilteterDatensatz), ncol(gefilteterDatensatz), "\n")
+          
+          
+
+          #------------------ PREPARE + NORMALIZE DATA ---------------------------
+          #str(df_prepared[,1:3])
+          
+          norm_number <- switch(
+            clust_config$normalisation,
+            "Keine Normalisierung" = 0,
+            "normalize_log_zscore" = 1,
+            "normalize_log_only" = 2,
+            "normalize_log_median_centering" = 3,
+            "normalize_log_mad" = 4,
+            0
+          )
+          cat("norm_number:", norm_number, "\n")
+          
+          #---------------- PREPARED DATA ----------------------------------------
+          df_prepared <- prepare_data(gefilteterDatensatz, clust_config$normalisation == "Keine Normalisierung")
+          
+          df_normalized <- normalization(df_prepared, norm_number)
+          cat("normalisation OK, dims:", nrow(df_normalized), ncol(df_normalized), "\n")
+          
+          prepared_data(df_prepared)
+          
+          patient_names_vec <- colnames(df_normalized)
+          updateSelectizeInput(session, "focus_patient", choices = patient_names_vec, selected = character(0), server = TRUE)
+          
+          gene_names_vec <- result$gene_names
+          
+          class_labels_vec <- as.character(metaDaten_gefiltert["Meta_labels", patient_names_vec])
+          cat("Class labels:", paste(unique(class_labels_vec), collapse = ", "), "\n")
+          
+          #--------------- DISTANCE + CLUSTERING ----------------------------------
+          
+          method <- switch(
+            clust_config$distance,
+            "Euklidische Distanz" = "euclidean",
+            "Manhattan-Distanz" = "manhattan",
+            "Minkowski-Distanz" = "minkowski",
+            "Canberra-Distanz" = "canberra",
+            "Pearson-Distanz" = "pearson",
+            "Winkeldistanz (Angular Seperation)" = "angular"
+          )
+          
+          cat("distance method String:", method, "\n")
+          
+          method_name <- switch (
+            clust_config$method,
+            "Single-Linkage" = "single",
+            "Average-Linkage" = "average",
+            "Complete-Linkage" = "complete",
+            "Custom-Linkage" = "custom"
+          )
+          
+          cat("cluster method string:", method_name, "\n")
+          
+          custom_params <- if (method_name == "custom") {
+            list(
+              alpha_a = clust_config$alpha_a,
+              alpha_b = clust_config$alpha_b,
+              beta = clust_config$beta,
+              gamma = clust_config$gamma
+            )
+          } else
+            NULL
+          
+          
+          incProgress(0.7, detail = "Daten wird Visualisiert")          
+          
+          #---------------------Patient data ------------------------
+          dist_mat_pat <- dist_cpp(t(df_normalized), method)
+          
+          cluster_pat <- hierarchical_clustering(dist_mat_pat, method_name, custom_params = custom_params)
+          
+          #------------------Gene data ------------------------------
+          
+          dist_mat_genes <- dist_cpp(df_normalized, method)
+          
+          cluster_genes <- hierarchical_clustering(dist_mat_genes, method_name, custom_params = custom_params)
+          
+          #---------------------DENDROGRAM PREP ----------------------------------
+          
+          tree_pat <- build_tree(cluster_pat)
+          order_pat <- get_order_vector(tree_pat)
+          
+          tree_genes <- build_tree(cluster_genes)
+          order_genes <- get_order_vector(tree_genes)
+          
+
+          #--------------------BUILD PLOTS ---------------------------------------
+          
+          heatmap_plot <- generate_heatmap_plotly(
+            data_matrix = df_normalized,
+            gene_order = order_genes,
+            patient_order = order_pat,
+            gene_names = gene_names_vec,
+            palette = clust_config$palette,
+            show_x_axis = TRUE
+          )
+          
+          patient_dendro <- generate_dendro_plotly(
+            cluster_result = cluster_pat,
+            tree_result = tree_pat,
+            order_vector = order_pat,
+            title = "TCGA Kidney Cancer: Patient Clustering",
+            names_vector = patient_names_vec,
+            class_labels = class_labels_vec,
+            palette = clust_config$palette,
+            show_x_axis = TRUE,
+            show_y_axis = TRUE
+          )
+          
+          gene_dendro <- generate_dendro_plotly(
+            cluster_result = cluster_genes,
+            tree_result = tree_genes,
+            order_vector = order_genes,
+            title = "TCGA Kidney Cancer: Gene Clustering",
+            names_vector = gene_names_vec,
+            class_labels = NULL,
+            show_x_axis = TRUE,
+            show_y_axis = TRUE
+          )
+          
+          final_plot <- grafikpanel(
+            heatmap_plot = heatmap_plot,
+            patient_dendro = patient_dendro,
+            gene_dendro = gene_dendro,
+            gene_order = order_genes,
+            patient_order = order_pat
+          )
+          
+          heatmap_store(final_plot)
+          patient_store(patient_dendro)
+          gene_store(gene_dendro)
+          
+          cluster_patient(cluster_pat)
+          tree_patient(tree_pat)
+          order_patient(order_pat)
+          patient_names(patient_names_vec)
+          class_labels(class_labels_vec)
+          
+          cluster_gene(cluster_genes)
+          tree_gene(tree_genes)
+          order_gene(order_genes)
+          gene_names(gene_names_vec)
+          
+          shinyjs::delay(100, {
+            updateTabItems(session, "tabs", selected = "heatmap")
+          })
+          
+          cat("tab switch triggered\n")
+          
+
+          incProgress(1, detail = "Fertig")
+          
+        }, error = function(e) {
+          cat("\n=== ERROR after step above ===\n")
+          cat("Message:", conditionMessage(e), "\n")
+          print(traceback())
+          cat("====================\n")
+        })
+      }
+    )
+      
+    
   }
   
   observeEvent(input$run, {
@@ -765,6 +785,10 @@ server <- function(input, output, session) {
     updateTabItems(session, "tabs", selected = "parameter")
   })
   
+  observeEvent(input$back2upload, {
+    updateTabItems(session, "tabs", selected = "datei_hochladen")
+  })
+  
   con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
   
   observe({
@@ -871,7 +895,7 @@ server <- function(input, output, session) {
         
         tableOutput("coverage_table"),
         
-        "Einige Gene in den ausgewählten Pathways wurden entfernt. Möchten Sie trotzdem mit den ausgewählten Pathways fortfahren?",
+        "Möchten Sie mit dem angegebenen Pathways fortfahren?",
         
         checkboxInput("dont_showBox", "Diese Meldung nicht mehr zeigen", value = FALSE),
         
