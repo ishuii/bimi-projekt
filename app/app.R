@@ -16,6 +16,7 @@ library(RColorBrewer)
 library(shinycssloaders)
 library(viridisLite)
 library(patchwork)
+library(colorspace)
 
 source("R/clustering/normalization_methods.R")
 source("data/database_functions_v4.r")
