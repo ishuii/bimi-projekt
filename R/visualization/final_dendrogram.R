@@ -38,22 +38,33 @@ generate_dendro <- function(cluster_result, tree_result, order_vector,
       detected_classes <- unique(class_labels)
       detected_classes <- detected_classes[!is.na(detected_classes) & detected_classes != ""]
       n <- length(detected_classes)
-      default_colors   <- c("cyan", "orange", "purple", "green", "pink", "yellow", "blue", "red")
+      #default_colors   <- c("cyan", "orange", "purple", "green", "pink", "yellow", "blue", "red")
+      default_colors <- c(
+        "#0000FF", "#FF0000", "#00FF00", "#D60072", "#B2DF8A",
+        "#005300", "#FFD300", "#0096FF", "#9B4D00", "#00FFD2", 
+        "#A100FA", "#7B8100", "#960000", "#00646B", "#FDBF6F",
+        "#FF6C00", "#540066", "#00A278", "#000094", "#FFC0CB"
+      )
+      
       
       # if palette is given => get color vectors
       
       if(!is.null(palette)){
-      colors <- switch(
-        palette,"viridis" = viridis::viridis(n,end = 0.8),
-        "RdYlBu"  = brewer.pal(n, "RdYlBu"),
-        "RdBu"    = brewer.pal(n, "RdBu"),
-        "PRGn"    = brewer.pal(n, "PRGn"),
-        {
-          # if given String doesn't match => warning + use default_colors
-          warning(paste("Unbekannte Palette:", palette, "-> verwende Standardfarben"))
-          default_colors[1:n]
+        colors <- switch(
+          palette,"viridis" = viridis::viridis(n,end = 0.8),
+          "RdYlBu"  = brewer.pal(n, "RdYlBu"),
+          "RdBu"    = brewer.pal(n, "RdBu"),
+          "PRGn"    = brewer.pal(n, "PRGn"),
+          {
+            # if given String doesn't match => warning + use default_colors
+            warning(paste("Unbekannte Palette:", palette, "-> verwende Standardfarben"))
+            default_colors[1:n]
           }
-      )
+        )
+        
+        desaturate <- colorspace::desaturate(colors, amount = 0.1)
+        darken <- colorspace::darken(colors, amount = 0.15)
+        
       }
       
       # if no palette is given => fallback using default colors
