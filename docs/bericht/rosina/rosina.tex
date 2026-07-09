@@ -27,6 +27,28 @@
 \section{Einleitung}
 \label{einleitung}
 
+
+\label{grundlagen}
+
+\subsubsection{Biologische Grundlagen}
+\label{bio-grundlagen}
+Was ist Genexpression und -regulation?
+
+Was sind Pathways (KEGG)?
+
+\subsubsection{Medizinische Grundlagen}
+\label{medizin-grundlagen}
+Warum sind Ärzte an der Analyse von Genexpression und -regulation interessiert?
+
+Was ist ein Tumorboard?
+
+\subsubsection{Informatische Grundlagen}
+\label{info-grundlagen}
+Was ist eine explorative Datenanalyse?
+
+Was ist Clustering?
+
+
 \section{Arbeitseinteilung (oder sowas)}
 \label{arbeitseinteilung}
 % TODO: wer hat was gemacht und warum?
@@ -45,22 +67,142 @@
 \pagestyle{fancy}
 \fancyhead{}
 \fancyhead[L]{Rosina \& Wiki}
-\section{Normalisierung}
+
+\section{Datenvorbereitung und Normalisierung}
+\label{datenvorbereitung und normalisierung}
+
+Nach der Filterung der Genexpressionsdaten müssen sie für die anschließende Clusteranalyse vorbereitet werden. Rohdaten können fehlende Werte, unterschiedliche Wertebereiche oder andere Eigenschaften aufweisen, die die Qualität der Clusterbildung negativ beeinflussen. Eine sorgfältige Vorverarbeitung stellt daher sicher, dass die Daten in einer geeigneten Form für die Distanzberechnung und die Clusteranalyse vorliegen.
+
+Die Vorverarbeitung besteht aus zwei Schritten. Zunächst werden die Daten auf Vollständigkeit und Gültigkeit überprüft sowie fehlende Werte behandelt. Anschließend erfolgt optional eine Normalisierung der Daten. Je nach gewählter Methode werden die Expressionswerte transformiert und skaliert, um Unterschiede in den Wertebereichen zwischen den Genen zu reduzieren und die Vergleichbarkeit der Expressionsprofile zu verbessern. Dadurch wird eine zuverlässigere Grundlage für die nachfolgenden Clustering-Verfahren geschaffen.
+
+\subsection{Datenvorbereitung}
+\label{datenvorbereitung}
+
+Vor der eigentlichen Normalisierung wird der Datensatz auf seine Eignung für die weitere Verarbeitung überprüft. Dies geschieht in der Funktion \texttt{prepare\_data}, welches auffindbar im Github-Projekt unter \texttt{R/clustering/prepare\_data.R} ist. Ziel dieser Funktion ist es, fehlerhafte oder unvollständige Eingabedaten frühzeitig zu erkennen und eine konsistente Datenstruktur für die anschließende Clusteranalyse sicherzustellen.
+
+Als Erstes wird überprüft, ob der übergebene Datensatz leer ist oder keine Zeilen beziehungsweise Spalten enthält. Darüber hinaus wird kontrolliert, ob mindestens zwei Zeilen vorhanden sind, da eine Clusteranalyse mehrere Beobachtungen voraussetzt.
+
+Anschließend erfolgt eine Plausibilitätsprüfung der Werte. Falls der Datensatz nicht bereits als normalisiert gekennzeichnet wurde, wird überprüft, ob Werte kleiner als $-1$ enthalten sind. Solche Werte können darauf hinweisen, dass die Daten bereits transformiert oder skaliert wurden und eine erneute Normalisierung ungeeignet wäre. In diesem Fall wird die Verarbeitung mit einer entsprechenden Fehlermeldung abgebrochen.
+
+Für die weitere Verarbeitung wird der Datensatz anschließend in eine Matrix umgewandelt. Anschließend wird der ganze Inhalt zu numerischen Werten konvertiert. Dies stellt sicher, dass berechenbare Zahlen in der Matrix vorhanden sind. Nicht-numerische Werte, wie Buchstaben, werden dadurch zu fehlenden Einträgen (\texttt{NA}) gewandelt. So können sie in der darauffolgenden NA-Behandlung mit entfernt werden.
+
+Der nächste Bestandteil der Datenvorbereitung ist die Behandlung fehlender Werte. Enthält eine Zeile fehlende Einträge, wird zunächst überprüft, ob mindestens ein gültiger numerischer Wert vorhanden ist. Ist dies der Fall, werden die fehlenden Werte, sofern welche in der Zeile vorhanden sind, durch den Mittelwert der numerischen Werte derselben Zeile ersetzt. Auf diese Weise bleiben möglichst viele Informationen erhalten und die NA-Werte werden ersetzt. Enthält eine Zeile ausschließlich fehlende Werte, wird die Verarbeitung abgebrochen, da keine Mittelwertberechnung möglich ist.
+
+Abschließend wird der Datensatz auf unendliche Werte (\texttt{Inf} beziehungsweise \texttt{-Inf}) überprüft. Da solche Werte bei den nachfolgenden Berechnungen zu Fehlern führen würden, wird die Verarbeitung in diesem Fall ebenfalls beendet. Nach Abschluss aller Prüfungen liegt ein vollständiger numerischer Datensatz vor, der für die anschließende Normalisierung und Clusteranalyse verwendet werden kann.
+
+\subsection{Normalisierung}
 \label{normalisierung}
 
+Nach der Datenvorbereitung kann der Datensatz optional normalisiert werden. 
+
+Ziel der Normalisierung ist es, den Einfluss technischer Störfaktoren und systematischer Fehler auf die Messdaten zu reduzieren, sodass möglichst ausschließlich die biologische Variabilität der Genexpression erhalten bleibt. Solche unerwünschten Variationen können beispielsweise durch Unterschiede bei der Probenvorbereitung, leichte Schwankungen der Umgebungsbedingungen, den Abbau von Probenmaterial oder technische Einflüsse der verwendeten Messinstrumente entstehen. Generell sind diese Störquellen häufig weder direkt messbar noch exakt quantifizierbar, deswegen stellt ihre Korrektur eine besondere Herausforderung dar \cite{DUBOIS2022104661}. 
+
+Eine geeignete Normalisierung trägt daher wesentlich dazu bei, die Vergleichbarkeit der Daten zu verbessern und die Grundlage für eine zuverlässige Clusteranalyse zu schaffen. Für die in diesem Projekt entwickelte Funktion \texttt{normalization} stehen fünf verschiedene Normalisierungsmethoden zur Verfügung, die nach dem belieben des Users ausgewählt werden können. Sie ist auffindbar im Projekt unter dem Pfad \texttt{R/clustering/normalization\_methods.R}.
+
+\subsubsection{Keine Normalisierung}
+\label{Keine Normalisierung}
+
+Bei dieser Methode werden die Daten unverändert weitergegeben. Sie eignet sich für Datensätze, die bereits vorverarbeitet oder mit einem externen Verfahren normalisiert wurden.
+
+\subsubsection{Logarithmierung und Z-Score-Normalisierung}
+\label{Logarithmierung und Z-Score-Normalisierung}
+
+Diese Methode besteht aus zwei aufeinanderfolgenden Schritten. Zunächst wird auf alle Expressionswerte eine Logarithmierung zur Basis 2 angewendet, dies hilft den Dynamikbereich als auch die Schiefe der Verteilung zu reduzieren und führt so zu einer stärkeren Symmetrie sowie nähert die Daten an eine Normalverteilung an. Dadurch erfüllen die Daten die Annahmen statistischer Analysen besser. Um Probleme mit Null- oder sehr kleinen Werten zu vermeiden, wird vor der Anwendung des Logarithmus üblicherweise eine kleine Konstante (z. B. 1) zu jedem Wert addiert \cite{Deng2025}. Dies wurde in dieser Funktion auch durchgeführt mit einer Addierung von 1.
+
+\[
+x_1'=\log_2(x_1+1)
+\]
+
+Alle darauffolgenden Logarithmen werden genau wie hier beschrieben durchgeführt.
+Anschließend erfolgt für jede Genzeile eine Z-Score-Normalisierung. Die Z-Score-Transformation ist eine weit verbreitete Normalisierungsmethode, bei der Merkmale (Gene) so skaliert werden, dass sie einen Mittelwert von 0 und eine Standardabweichung von 1 aufweisen. Für jedes Gen wird zunächst der Mittelwert ($\mu$) und die Standardabweichung ($\sigma$) über alle Proben hinweg berechnet\cite{Deng2025}. Anschließend wird jeder Wert ($x$) mithilfe der folgenden Formel standardisiert:
+
+\[
+z_i=\frac{x_1'-\mu}{\sigma}
+\]
+
+Diese Transformation ermöglicht es, unterschiedliche Merkmale auf eine vergleichbare Skala zu bringen\cite{Deng2025}. Im eigentlichen R Code wird diese Formel mit der\texttt{scale}-Funktion durchgeführt. Da die Funktion spaltenweise arbeitet, wird der Datensatz zunächst transponiert, verarbeitet und abschließend erneut transponiert, um die ursprüngliche Ausrichtung wiederherzustellen.
+
+\subsubsection{Nur Logarithmierung}
+
+Bei dieser Variante wird ausschließlich die Logarithmierung durchgeführt (siehe \ref{Logarithmierung und Z-Score-Normalisierung}).
+Dadurch werden große Expressionswerte abgeschwächt, während die absoluten Unterschiede zwischen den Genen weitgehend erhalten bleiben. Eine zusätzliche Skalierung der Daten erfolgt nicht. Die reine Log-Transformation ist sinnvoll, wenn der Nutzer die Wertekompression benötigt, aber die ursprüngliche Struktur der Daten möglichst unverändert beibehalten möchte.
+
+\subsubsection{Logarithmierung und Median-Centering}
+\label{Logarithmierung und Median-Centering}
+
+Auch bei dieser Methode wird zunächst die Logarithmierung durchgeführt (siehe \ref{Logarithmierung und Z-Score-Normalisierung}). Anschließend wird jede Genzeile um ihren Median zentriert und mithilfe ihrer Spannweite skaliert. Das Ziel der Median-Normalisierung besteht darin, die Daten auf den Median der Verteilung jeder Probe zu zentrieren. Im Allgemeinen wird die Zentrierung anhand des Medians gegenüber dem Mittelwert bevorzugt, da der Median robuster gegenüber Ausreißern ist. Dies geschieht mit dieser Formel:
+
+\[
+x_i''=\frac{x_i'-\mathrm{Median}(x')}{\max(x')-\min(x')}
+\]
+
+Hierbei entspricht $\max(x')-\min(x')$ die Spannweite der jeweiligen Genzeile. Durch diese Transformation wird jede Zeile auf ihren Median zentriert, während Unterschiede in der Variabilität der Gene erhalten bleiben.
+
+\subsubsection{Logarithmierung und MAD-Normalisierung}
+\label{Logarithmierung und MAD-Normalisierung}
+
+Diese Methode verwendet ebenfalls zunächst die Logarithmierung(siehe \ref{Logarithmierung und Z-Score-Normalisierung}). Anschließend erfolgt eine robuste Skalierung mithilfe der Median Absolute Deviation (MAD):
+
+\[
+x_i''=\frac{x_i'-\mathrm{Median}(x')}{\mathrm{MAD}(x')+\varepsilon}
+\]
+
+Dabei bezeichnet
+
+\[
+\mathrm{MAD}(x)=\mathrm{Median}\left(\left|x-\mathrm{Median}(x)\right|\right)
+\]
+
+die Median Absolute Deviation und $\varepsilon= 1e-8$ eine kleine Konstante, die eine Division durch Null verhindert.
+Anstelle der Standardabweichung wird die mediane absolute Abweichung als Maß für die Variabilität verwendet. Diese Kennzahl ist definiert als der Median der absoluten Abweichungen vom Median der Stichprobe \cite{MADSchmidt}.
+
+Im Vergleich zur Standardabweichung ist MAD deutlich robuster gegenüber Ausreißern und eignet sich daher insbesondere für Datensätze mit einzelnen extremen Expressionswerten \cite{MADKappal}.
+
+\subsubsection{Nur Z-Score-Normalisierung}
+\label{Nur Z-Score-Normalisierung}
+
+Als Letztes gibt es
 
 \section{Clusteranalyse}
 \label{clusteranalyse}
 % TODO: theoretische Erklärung des Algorithmus
 
-\subsection{Single Linkage}
+\subsection{Arbeitsverteilung}
+\label{cluster-arbeitsverteilung}
+Der Bereich der Clusteranalyse unterteilt sich in mehrere Unteraufgaben. Zunächst wurden die Daten auf die Weiterverarbeitung vorbereitet mit Hilfe einer Preprocessing-Funktion. Der Datensatz wurde daraufhin normalisiert, wobei unterschiedliche Normalisierungsfunktionen zur Auswahl standen. Aus dem normalisierten Datensatz wurde eine Distanzmatrix berechnet und anschließend ein Linkage-Verfahren angewendet. Dementsprechend mussten neben der Preprocessing-Funktion auch die Normalisierungs-, Distanz- und Linkage-Funktionen implementiert werden. 
+
+\begin{table}[h]
+	\begin{tabular}{l|l|l}
+		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
+		\hline
+		Datenvorbereitung             & Rosina    & 5 Stunden        \\
+		Normalisierungsfunktionen     & Rosina    & 6 Stunden  (mit Recherche)           \\ 
+		Distanzfunktionen             & Wiktoria  & 7 Stunden      \\ 
+		Single-Linkage                & Wiktoria  & 6 Stunden      \\ 
+		Complete-Linkage              & Rosina    & 30 Minuten        \\ 
+		Average-Linkage               & Rosina    & 1 Stunde         \\ 
+		Linkagefunktionen - allgemein & Wiktoria  & 4 Stunden      \\ 
+	\end{tabular}
+\end{table}
+
+
+\subsection{Distanzfunktionen}
+\label{distanzfunktionen}
+Für die Clusteranalyse muss eine Distanzmatrix aus dem Datensatz berechnet werden. Es wird jeweils eine Distanzmatrix für die Patienten sowie für die Gene berechnet. Insgesamt wurden sechs Distanzfunktionen implementiert, die aus dem Buch "Cluster Analysis" stammen. Folgende Distanzmaße wurden implementiert: euklidische Distanz, Manhattan-Distanz, Minkowski-Distanz, Canberra-Distanz, Pearson-Distanz und Winkeldistanz.  
+
+\subsection{Linkagefunktionen}
+\label{linkage-funktionen}
+
+\subsubsection{Single Linkage}
 \label{single-linkage}
 
-\subsection{Average Linkage}
+\subsubsection{Average Linkage}
 \label{average-linkage}
 
-\subsection{Complete Linkage}
+\subsubsection{Complete Linkage}
 \label{complete-linkage}
+
+
 
 % ----------------------------------------------------------------------------------------------
 \newpage
@@ -95,5 +237,8 @@
 \fancyhead[L]{Johanna}
 \subsection{Farben}
 
+\bibliographystyle{acm}
+\bibliography{bibliography} 
 
 \end{document}
+
