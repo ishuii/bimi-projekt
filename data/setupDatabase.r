@@ -2,10 +2,10 @@
 #Install Packages if not installed, otherwise just load them 
 if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 
-# Wir zwingen R auf 20 Minuten (1200 Sekunden)
+
 options(timeout = 1200)
 
-# Wir versuchen es mit einer Methode, die auf Macs oft stabiler ist ("libcurl")
+
 install.packages("https://bioconductor.org/packages/3.20/data/annotation/src/contrib/org.Hs.eg.db_3.20.0.tar.gz", 
                  repos = NULL, 
                  type = "source",
@@ -14,6 +14,7 @@ install.packages("https://bioconductor.org/packages/3.20/data/annotation/src/con
 
 library(RSQLite)
 library(DBI)
+
 #Library for Gene Annotations
 library("org.Hs.eg.db")
 
@@ -68,7 +69,6 @@ dbExecute(con, "DELETE FROM Pathway")
 #Pathway
 #---------------------
 #Read CSV Data from REST API "https://rest.kegg.jp/list/pathway/hsa"
-#Header = False, otherwise the first Dataset will be displayed as column name
 
 pathway_names <- read.csv2("data/pathway_names.csv", header = FALSE)
 colnames(pathway_names) <- c("Pathway_ID", "Name")
