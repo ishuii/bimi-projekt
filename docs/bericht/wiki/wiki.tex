@@ -93,10 +93,9 @@ Der Bereich der Clusteranalyse unterteilt sich in mehrere Unteraufgaben. Zunäch
 		Datenvorbereitung             & Rosina    &                \\
 		Normalisierungsfunktionen     & Rosina    &                \\ 
 		Distanzfunktionen             & Wiktoria  & 7 Stunden      \\ 
-		Single-Linkage                & Wiktoria  & 6 Stunden    \\ 
-		Complete-Linkage              & Rosina    &                \\ 
-		Average-Linkage               & Rosina    &                \\ 
-		Linkagefunktionen allgemein & Wiktoria  & 4 Stunden      \\ 
+		Linkagefunktionen			  & Rosina    &                \\
+		Linkagefunktionen allgemein   & Wiktoria  & 10 Stunden     \\
+		Testen                        & Wiktoria  &                \\  
 	\end{tabular}
 \end{table}
 
@@ -126,7 +125,7 @@ Das Average-Linkage-Verfahren nutzt den Mittelwert der Cluster als Abstandsmaß.
 
 \subsubsection{Benutzerdefinierte Linkage-Funktion}
 \label{custom-linkage}
-Die drei zuvor beschriebenen Methoden lassen sich mit einer einzigen Funktion abdecken, die Lance und Williams in ihrem Paper vorstellten:
+Die drei zuvor beschriebenen Methoden lassen sich mit einer einzigen Funktion abdecken, die Lance und Williams \cite{Lance1967a} in ihrem Paper vorstellten:
 
 \[ d_{hk} = \alpha_i d_{hi} + \alpha_j d_{hj} + \beta d_{ij} + \gamma |d_{hi}-d_{hj}| \]
 
@@ -165,5 +164,6 @@ Durch Setzen der Werte für \(\alpha_i\), \(\alpha_j\), \(\beta\) und \(\gamma\)
 \fancyhead[L]{Johanna}
 \subsection{Farben}
 
-
+\bibliographystyle{plain} % Styles include plain, unsrt, alpha, apalike
+\bibliography{wiki-bericht}
 \end{document}
