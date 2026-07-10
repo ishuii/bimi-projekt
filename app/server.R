@@ -157,12 +157,8 @@ server <- function(input, output, session) {
     }
     
     cat("\nZeilen mit mindestens 50% NA:", length(info$rows_over_50_na), "\n")
-    if (length(info$rows_over_50_na) > 0) {
-      print(data.frame(
-        Zeile = info$rows_over_50_na,
-        Name = info$rows_over_50_na_names
-      ))
-    }
+   
+    
     
     cat("\nSpalten mit mindestens 50% NA:", length(info$cols_over_50_na), "\n")
     if (length(info$cols_over_50_na) > 0) {
@@ -864,15 +860,7 @@ server <- function(input, output, session) {
     refresh_presets(session)
   })
   
-  output$debug_matrix <- renderPrint({
-    cat("Distanz Matrix: ", input$distanzmatrix, "\n")
-    cat("Cluster Methode: ", input$clusterverfahren, "\n")
-    
-    req(d_mat_result())
-    
-    print(d_mat_result())
-    
-  })
+  
   
   observe({
     if (input$distanzmatrix != "Minkowski-Distanz") {
