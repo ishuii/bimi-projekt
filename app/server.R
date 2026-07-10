@@ -40,13 +40,21 @@ server <- function(input, output, session) {
     gamma = 0,
     minkowski_p = 1
   )
-  
+  distance_cache <- reactiveValues(
+    key = NULL,
+    patient = NULL,
+    gene = NULL
+  )
   #-------------------UPLOAD DATASET---------------------
   
   output$Beispieltext <- renderText({
     paste("Deine Datei:", input$x)
   })
   preset_values <- reactiveVal(list()) #Create reactive variable list
+  preset_dir <- "presets"
+  session$onFlushed(function() {
+    refresh_presets(session)
+  }, once = TRUE)
   options(shiny.maxRequestSize = 300 * 1024^2)
   
   # CSV IMPORT BACKEND
@@ -60,83 +68,69 @@ server <- function(input, output, session) {
     shinyjs::disable("confirm_button")
     
     output$upload_status <- renderUI({
-        div(style = "font-size: 16px; color: black;",
-            icon("spinner", class = "fa-spin"),
-            "Datei wird hochgeladen, bitte warten..."
-        )
+      div(
+        style = "font-size: 16px; color: black;",
+        icon("spinner", class = "fa-spin"),
+        "Datei wird hochgeladen, bitte warten..."
+      )
     })
     
     withProgress(
       message = "Datei wird verarbeitet...",
       value = 0,
       {
-        incProgress(0.2, detail = "CSV Datei wird eingelesen")
+        incProgress(0.2, detail = "CSV-Datei wird eingelesen")
         
-        df <- read.table(
-          input$Datei_csv$datapath,
-          header = TRUE,
-          stringsAsFactors = FALSE,
-          sep = ",",
-          dec = ".",
-          quote = "\"",
-          na.strings = c("", " ", "NA", "NaN", "NULL", "N/A"),
-          colClasses = NA
-        )
+        uploaded <- read_uploaded_csv(input$Datei_csv$datapath)
         
-        incProgress(0.5, detail = "Daten werden geprüft")
+        incProgress(0.5, detail = "NA-Werte werden geprüft")
         
-        gene_id_col <- as.character(df[, 1])
+        cleaned <- auto_clean_na_upload(uploaded$df)
         
-        df_rest <- as.data.frame(lapply(df[, -1], function(col) {
-          converted <- suppressWarnings(as.numeric(as.character(col)))
-          na_before <- sum(is.na(col))
-          na_after <- sum(is.na(converted))
-          if (na_after <= na_before + 0.5 * length(col))
-            converted
-          else
-            col
-        }))
-        
-        df <- cbind(setNames(data.frame(gene_id_col), names(df)[1]), df_rest)
-        
-        incProgress(0.8, detail = "Speichere Datensatz")
-        
-        daten_original(df)
-        daten_aktuell(df)
-        
-        na_gesamt <- sum(is.na(df))
-        zeilen_mit_na <- !complete.cases(df)
-        anzahl_zeilen_mit_na <- sum(zeilen_mit_na)
-        na_pro_spalte <- colSums(is.na(df))
-        
-        na_infos(
-          list(
-            na_gesamt = na_gesamt,
-            zeilen_mit_na = anzahl_zeilen_mit_na,
-            zeilen_gesamt = nrow(df),
-            spalten_gesamt = ncol(df),
-            na_pro_spalte = na_pro_spalte,
-            bereits_bereinigt = FALSE
+        if (!check_50_na(cleaned$info)) {
+          
+          cleaned <- User_handle_na_decision(
+            df = cleaned$df,
+            info = cleaned$info,
+            action = "mean"
           )
-        )
+        }
+        
+        incProgress(0.8, detail = "Datensatz wird gespeichert")
+        
+        daten_original(cleaned$df)
+        daten_aktuell(cleaned$df)
+        na_infos(cleaned$info)
+        
+        
+        
+        distance_cache$key <- NULL
+        distance_cache$patient <- NULL
+        distance_cache$gene <- NULL
         
         incProgress(1, detail = "Fertig")
       }
     )
     
     output$upload_status <- renderUI({
-      div(style = "font-size: 16px; font-weight: bold; color: #000000; margin-top: 10px;",
-          icon("check-circle"),
-          "Datei erfolgreich hochgeladen")
+      div(
+        style = "font-size: 16px; font-weight: bold; color: #000000; margin-top: 10px;",
+        icon("check-circle"),
+        "Datei erfolgreich hochgeladen und automatisch auf leere NA-Zeilen/Spalten geprüft."
+      )
     })
     
-    shinyjs::enable("confirm_button")
+    if (check_50_na(cleaned$info) && !isTRUE(cleaned$info$bereits_bereinigt)) {
+      shinyjs::disable("confirm_button")
+    } else {
+      shinyjs::enable("confirm_button")
+    }
     
     session$sendInputMessage("Datei_csv", list(value = character(0)))
   })
   
-  
   output$na_info <- renderPrint({
+    
     info <- na_infos()
     
     if (is.null(info)) {
@@ -144,65 +138,145 @@ server <- function(input, output, session) {
       return(invisible(NULL))
     }
     
+    cat("NA-Status\n")
+    cat("---------\n")
     cat("Anzahl aller NA-Werte:", info$na_gesamt, "\n")
-    cat("Zeilen mit mindestens einem NA-Wert:",
-        info$zeilen_mit_na,
-        "\n")
-    cat("Spalten mit mindestens einem NA-Wert:",
-        sum(info$na_pro_spalte > 0),
-        "\n")
+    cat("Zeilen mit mindestens einem NA-Wert:", info$zeilen_mit_na, "\n")
+    cat("Spalten mit mindestens einem NA-Wert:", length(info$spalten_mit_na), "\n")
     cat("Zeilen gesamt:", info$zeilen_gesamt, "\n")
     cat("Spalten gesamt:", info$spalten_gesamt, "\n\n")
     
+    cat("Automatisch entfernte 100%-NA-Zeilen:", length(info$auto_removed_rows), "\n")
+    if (length(info$auto_removed_rows) > 0) {
+      print(info$auto_removed_rows)
+    }
+    
+    cat("Automatisch entfernte 100%-NA-Spalten:", length(info$auto_removed_cols), "\n")
+    if (length(info$auto_removed_cols) > 0) {
+      print(info$auto_removed_cols)
+    }
+    
+    cat("\nZeilen mit mindestens 50% NA:", length(info$rows_over_50_na), "\n")
+    if (length(info$rows_over_50_na) > 0) {
+      print(data.frame(
+        Zeile = info$rows_over_50_na,
+        Name = info$rows_over_50_na_names
+      ))
+    }
+    
+    cat("\nSpalten mit mindestens 50% NA:", length(info$cols_over_50_na), "\n")
+    if (length(info$cols_over_50_na) > 0) {
+      print(info$cols_over_50_na)
+    }
     
     if (isTRUE(info$bereits_bereinigt)) {
-      cat("\nStatus: NA-Spalten wurden entfernt.\n")
-      cat("Entfernte Spalten:", info$entfernte_spalten, "\n")
+      cat("\nStatus: User-Entscheidung wurde angewendet.\n")
       
-      if (length(info$entfernte_spalten_namen) > 0) {
-        cat("Entfernte Spaltennamen:\n")
-        print(info$entfernte_spalten_namen)
+      cat("Entfernte 50%-NA-Zeilen:", length(info$removed_50_rows), "\n")
+      if (length(info$removed_50_rows) > 0) {
+        print(info$removed_50_rows)
       }
+      
+      cat("Entfernte 50%-NA-Spalten:", length(info$removed_50_cols), "\n")
+      if (length(info$removed_50_cols) > 0) {
+        print(info$removed_50_cols)
+      }
+      
+      cat("Durch Mittelwert ersetzte NA-Werte:", info$imputed_values, "\n")
+      
     } else {
-      cat("\nStatus: Datei wurde geprüft. Es wurde noch nichts gelöscht.\n")
+      cat("\nStatus: Auto-Cleanup wurde durchgeführt. User-Entscheidung steht noch aus.\n")
     }
     
     invisible(NULL)
   })
   
-  observeEvent(input$drop_na, {
-    req(daten_aktuell())
+  output$na_decision_ui <- renderUI({
     
-    df <- daten_aktuell()
+    info <- na_infos()
     
-    # Colum with at least one NA
-    spalten_mit_na <- colSums(is.na(df)) > 0
+    if (is.null(info)) {
+      return(NULL)
+    }
     
-    # save name of removed colum
-    entfernte_spalten_namen <- names(df)[spalten_mit_na]
+    if (!check_50_na(info)) {
+      return(NULL)
+    }
     
-    #Remove coloum
-    df_clean <- df[, !spalten_mit_na, drop = FALSE]
+    if (isTRUE(info$bereits_bereinigt)) {
+      return(NULL)
+    }
     
-    #Number of removed columns
-    entfernte_spalten <- sum(spalten_mit_na)
-    
-    #save clean data
-    daten_aktuell(df_clean)
-    
-    # refresh na_infos
-    na_infos(
-      list(
-        na_gesamt = sum(is.na(df_clean)),
-        spalten_mit_na = sum(colSums(is.na(df_clean)) > 0),
-        zeilen_mit_na = sum(!complete.cases(df_clean)),
-        zeilen_gesamt = nrow(df_clean),
-        spalten_gesamt = ncol(df_clean),
-        na_pro_spalte = colSums(is.na(df_clean)),
-        bereits_bereinigt = TRUE,
-        entfernte_spalten = entfernte_spalten,
-        entfernte_spalten_namen = entfernte_spalten_namen
+    tagList(
+      br(),
+      
+      actionButton(
+        inputId = "na_replace_mean",
+        label = "50%-Zeilen/Spalten behalten und NA durch Mittelwert ersetzen",
+        class = "na-mean-button"
+      ),
+      
+      br(),
+      br(),
+      
+      actionButton(
+        inputId = "na_drop_and_replace",
+        label = "50%-Zeilen/Spalten entfernen und Rest durch Mittelwert ersetzen",
+        class = "na-drop-button"
       )
+    )
+  })
+  
+  
+  
+  observeEvent(input$na_replace_mean, {
+    
+    req(daten_aktuell())
+    req(na_infos())
+    
+    result <- User_handle_na_decision(
+      df = daten_aktuell(),
+      info = na_infos(),
+      action = "mean"
+    )
+    
+    daten_aktuell(result$df)
+    na_infos(result$info)
+    
+    distance_cache$key <- NULL
+    distance_cache$patient <- NULL
+    distance_cache$gene <- NULL
+    shinyjs::enable("confirm_button")
+    
+    showNotification(
+      "NA-Werte wurden zeilenweise durch Mittelwerte ersetzt.",
+      type = "message"
+    )
+  })
+  
+  observeEvent(input$na_drop_and_replace, {
+    
+    req(daten_aktuell())
+    req(na_infos())
+    
+    result <- User_handle_na_decision(
+      df = daten_aktuell(),
+      info = na_infos(),
+      action = "drop"
+    )
+    
+    daten_aktuell(result$df)
+    na_infos(result$info)
+    
+    distance_cache$key <- NULL
+    distance_cache$patient <- NULL
+    distance_cache$gene <- NULL
+    
+    shinyjs::enable("confirm_button")
+    
+    showNotification(
+      "50%-NA-Zeilen und 50%-NA-Spalten wurden entfernt. Restliche NA-Werte wurden zeilenweise durch den Mittelwert ersetzt.",
+      type = "message"
     )
   })
   
@@ -411,7 +485,7 @@ server <- function(input, output, session) {
       message = "Analyse gestartet...",
       value = 0,
       {
-        incProgress(0.15, detail = "Daten wird verarbeitet")
+        incProgress(0.15, detail = "Daten werden verarbeitet")
         
         tryCatch({
           req(daten())
@@ -432,8 +506,7 @@ server <- function(input, output, session) {
           selected_pathways <- input$pathways
           req(selected_pathways)
           req(length(selected_pathways) > 0)
-          
-          #------------------ PREPROCESS + INTEGRATION OF DATA -------------------
+             #------------------ PREPROCESS + INTEGRATION OF DATA -------------------
           
           preprocess <- preprocess_general(data)
           data_preprocessed <- preprocess$dataset_preprocessed
@@ -514,18 +587,66 @@ server <- function(input, output, session) {
             NULL
           
           
-          incProgress(0.7, detail = "Daten wird Visualisiert")          
+          incProgress(0.7, detail = "Daten werden Visualisiert")          
           
-          #---------------------Patient data ------------------------
-          dist_mat_pat <- dist_cpp(t(df_normalized), method)
+          #---------------------DISTANCE MATRIX CACHE ------------------------
           
-          cluster_pat <- hierarchical_clustering(dist_mat_pat, method_name, custom_params = custom_params)
+          minkowski_p_for_key <- if (identical(method, "minkowski")) {
+            input$param_paramtab
+          } else {
+            NA
+          }
           
-          #------------------Gene data ------------------------------
+          cache_key <- make_distance_cache_key(
+            df_normalized = df_normalized,
+            method = method,
+            selected_pathways = selected_pathways,
+            normalisation = clust_config$normalisation,
+            minkowski_p = minkowski_p_for_key
+          )
           
-          dist_mat_genes <- dist_cpp(df_normalized, method)
+          if (
+            !is.null(distance_cache$key) &&
+            identical(distance_cache$key, cache_key) &&
+            !is.null(distance_cache$patient) &&
+            !is.null(distance_cache$gene)
+          ) {
+            
+            
+            
+            dist_mat_pat <- distance_cache$patient
+            dist_mat_genes <- distance_cache$gene
+            
+          } else {
+            
           
-          cluster_genes <- hierarchical_clustering(dist_mat_genes, method_name, custom_params = custom_params)
+            dist_mat_pat <- dist_cpp(t(df_normalized), method)
+            dist_mat_genes <- dist_cpp(df_normalized, method)
+            
+            distance_cache$key <- cache_key
+            distance_cache$patient <- dist_mat_pat
+            distance_cache$gene <- dist_mat_genes
+          }
+          
+          d_mat_result(list(
+            patient = dist_mat_pat,
+            gene = dist_mat_genes,
+            key = cache_key
+          ))
+          
+          #---------------------CLUSTERING ------------------------
+          
+          cluster_pat <- hierarchical_clustering(
+            dist_mat_pat,
+            method_name,
+            custom_params = custom_params
+          )
+          
+          cluster_genes <- hierarchical_clustering(
+            dist_mat_genes,
+            method_name,
+            custom_params = custom_params
+          )
           
           #---------------------DENDROGRAM PREP ----------------------------------
           
@@ -704,19 +825,42 @@ server <- function(input, output, session) {
   
   
   observeEvent(input$save_preset, {
-    #Save Preset in Json
+    
     req(input$preset_name)
-    if (!dir.exists("presets")) {
-      dir.create("presets")
+    
+    if (!dir.exists(preset_dir)) {
+      dir.create(preset_dir, recursive = TRUE)
     }
-    pfad <- file.path("presets", paste0(input$preset_name, ".json"))
+    
+    preset_name_clean <- gsub("[^A-Za-z0-9_\\-]", "_", input$preset_name)
+    pfad <- file.path(preset_dir, paste0(preset_name_clean, ".json"))
+    
+    preset <- list(
+      anzahlcluster = input$anzahlcluster,
+      clusterverfahren = clust_config$method,
+      normalisierung = clust_config$normalisation,
+      distanzmatrix = clust_config$distance,
+      farbpaletten = clust_config$palette,
+      alpha_a = clust_config$alpha_a,
+      alpha_b = clust_config$alpha_b,
+      beta = clust_config$beta,
+      gamma = clust_config$gamma,
+      minkowski_p = clust_config$minkowski_p,
+      pathways = input$pathways
+    )
+    
     jsonlite::write_json(
-      preset_values(),
+      preset,
       path = pfad,
       auto_unbox = TRUE,
       pretty = TRUE
     )
-    showNotification(paste("Preset gespeichert unter:", pfad), type = "message")
+    
+    showNotification(
+      paste("Preset gespeichert unter:", pfad),
+      type = "message"
+    )
+    
     refresh_presets(session)
   })
   

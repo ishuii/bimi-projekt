@@ -209,6 +209,31 @@ ui <- dashboardPage(
              .content-wrapper {
              min-height: 100vh !important;
              }
+             .na-mean-button {
+  background-color: #FBEEB9 !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  font-weight: bold !important;
+}
+
+.na-mean-button:hover {
+  background-color: #FEFAEC !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+}
+
+.na-drop-button {
+  background-color: #D1D1D1 !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  font-weight: bold !important;
+}
+
+.na-drop-button:hover {
+  background-color: #ECECEC !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+}
                         
                         ")),
       
@@ -389,17 +414,14 @@ ui <- dashboardPage(
         fancyFileInput("Datei_csv", "CSV Datei hochladen", accept = ".csv"),
           uiOutput("upload_status"),
         
-        fluidRow(box(
-          width = 12,
-          h4("NA-Fehlerbehandlung"),
-          verbatimTextOutput("na_info"),
-          
-          actionButton(
-            inputId = "drop_na",
-            label = "NA-Spalten entfernen",
-            class = "btn-warning"
-          ),
-        )),
+        fluidRow(
+          box(
+            width = 12,
+            h4("NA-Fehlerbehandlung"),
+            verbatimTextOutput("na_info"),
+            uiOutput("na_decision_ui")
+          )
+        ),
         
         tableOutput("coverage_table"),
         
