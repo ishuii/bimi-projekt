@@ -40,17 +40,20 @@
 
 \subsubsection{Genexpression und -regulation}
 
-Die im Folgenden analysierten Genexpressionsdaten beschreiben die Aktivität eines Gens und damit wann und in welcher Intensität ein Gen abgelesen wird. Dies entscheidet über den Phänotyp einer Zelle, denn auch wenn die Zellen eines Organismus dieselbe genetische Information in Form von DNA enthalten, erfüllen sie doch sehr unterschiedliche Funktionen. Die Genexpression beschreibt dabei das Zentrale Dogma der Molekularbiologie, von der Transkription wird die in der DNA codiert Information in RNA und anschließend mittels der Translation in Proteine überführt \cite{LeeYoung2013}.
+Die im Folgenden analysierten Genexpressionsdaten beschreiben die Aktivität eines Gens und damit, wann und in welcher Intensität ein Gen abgelesen wird. Dies entscheidet über den Phänotyp einer Zelle, denn auch wenn die Zellen eines Organismus dieselbe genetische Information in Form von DNA enthalten, erfüllen sie doch sehr unterschiedliche Funktionen. Die Genexpression fogt dabei dem Zentralen Dogma der Molekularbiologie, bei der Transkription wird die in der DNA kodiert Information in RNA und anschließend mittels der Translation in Proteine überführt \cite{LeeYoung2013}.
 
-Dieser Prozess der Genexpression unterliegt einer zellinternen Genregulation. Dabei binden Transkriptionsfaktoren an regulatorische DNA-Abschnitte wie Promotoren und Enhancer und rekrutieren drüber die RNA-Polymerase, welche das Ablesen des jeweiligen Genabschnitts startet. Je nach gebundenem Transkriptionsfaktor wird die Transkription gehemmt oder aktiviert, es kommt also entweder zum Ablesen oder nicht. Transkriptionsfaktoren sind dabei selbst Proteine, die als Genprodukt anderer Gene entstehen. Je nach Zelltypen, Entwicklungsstadien und äußeren Signalen sind verschiedene Transkiptionsfaktoren vorhanden und aktiv. Diese kaskadierenden Genregulationsnetzwerke erklären warum trotz identischer DNA in jeder Zelle andere Gene ausgelesen werden \cite{LeeYoung2013}.
+Dieser Prozess der Genexpression unterliegt einer zellinternen Genregulation. Dabei binden Transkriptionsfaktoren an regulatorische DNA-Abschnitte wie Promotoren und Enhancer und rekrutieren drüber die RNA-Polymerase, welche das Ablesen des jeweiligen Genabschnitts startet. Je nach gebundenem Transkriptionsfaktor wird die Transkription gehemmt oder aktiviert, es kommt also entweder zum Ablesen oder nicht. Transkriptionsfaktoren sind dabei selbst Proteine, die als Genprodukt anderer Gene entstehen. Je nach Zelltyp, Entwicklungsstadium und äußeren Signalen sind verschiedene Transkiptionsfaktoren vorhanden und aktiv. Diese kaskadierenden Genregulationsnetzwerke erklären, warum trotz identischer DNA in jeder Zelle andere Gene ausgelesen werden \cite{LeeYoung2013}.
 
-Die Feinjustierung der Genexpression hat mehrere nachgelagerte Ebenen. Post-transkriptionelle wird beispielsweise durch microRNAs oder alternatives Spleißen reguliert, welche und wie viel mRNA für die Translation zur Verfügung steht. Translational wird die Proteinbiosyntheserate kontrolliert, welche bestimmt, wie viele funktionale Proteine aus einer gegebenen mRNA-Menge tatsächlich entstehen. In der postranslationalen Ebene findet die Proteinmodifikation (z.\,B. Phosphorylierung, Ubiquitinierung) statt. Eine Abnormalität in einer dieser Kontrollebenen kann zur Fehlregulation der Genexpression und in Folge dessen zu Krankheitsbildern führen \cite{LeeYoung2013}.
+Die Feinjustierung der Genexpression umfasst mehrere nachgelagerte Ebenen. Post-transkriptionell wird beispielsweise durch microRNAs oder alternatives Spleißen reguliert, diese Prozesse entscheiden welche und wie viel mRNA für die Translation zur Verfügung steht. Translational wird die Proteinbiosyntheserate kontrolliert, welche bestimmt, wie viele funktionale Proteine aus einer gegebenen mRNA-Menge tatsächlich entstehen. In der post-translationaler Ebene findet schließlich die Proteinmodifikation (z.\,B. Phosphorylierung, Ubiquitinierung) statt. Eine Abnormalität in einer dieser Kontrollebenen kann zur Fehlregulation der Genexpression und in Folge dessen zu Krankheitsbildern führen \cite{LeeYoung2013}.
 
-Die Datenerhebung der möglicherweise dafür verantwortlichen RNA-Mengen erfolgt nach heutigem Stand der Technik meist über das High-Throughput-Verfahren des Next-Generation-Sequencing (RNA-Seq). In Ausnahmefällen werden noch ältere Microarray-Technologien verwendet, diese haben allerdings eine geringere Sensitivität und einen eingeschränkteren dynamischen Messbereich als RNA-Seq \cite{Wang2009}. Der bioinformatische Workflow führt dabei von der RNA-Isolation über das Alignment an ein Referenzgenom bis hin zur Generierung einer rohen Count-Matrix \cite{Kukurba2015}. Diese Matrix bildet das Ergebnis der Sequenzierung ab, sie enthält für jedes Gen (Zeilen) und jede untersuchte Probe oder jeden Patienten (Spalten) die Anzahl der Reads. Eine solches tabellarische Format erwartet auch der CSV-Upload (siehe Kap.~\ref{gui}).
+Die Datenerhebung der möglicherweise dafür verantwortlichen RNA-Mengen erfolgt nach heutigem Stand der Technik meist über das High-Throughput-Verfahren des Next-Generation-Sequencing (RNA-Seq). In Ausnahmefällen werden noch ältere Microarray-Technologien verwendet, diese haben allerdings eine geringere Sensitivität und einen eingeschränkteren dynamischen Messbereich als RNA-Seq \cite{Wang2009}. Der bioinformatische Workflow führt dabei von der RNA-Isolation über das Alignment an ein Referenzgenom bis hin zur Generierung einer rohen Count-Matrix \cite{Kukurba2015}. Diese Matrix bildet das Ergebnis der Sequenzierung ab, sie enthält für jedes Gen (Zeilen) und jede untersuchte Probe oder jeden Patienten (Spalten) die Anzahl der Reads. Eine solches tabellarische Format erwartet auch der CSV-Upload des, in dem diesem Projekt entwickelten Dashboard (siehe Kap.~\ref{gui}).
 
-Bei diesen Rohdaten kommt es jedoch unweigerlich zu systematischen Verzerrungen, bedingt durch variierende Genlängen und stark schwankende Sequenziertiefen zwischen den einzelnen Probenläufen. Die Sequenziertiefe bezeichnet dabei die Gesamtzahl der in einem Lauf erzeugten Reads für eine Probe, welche stark variieren können. Ein direkter Vergleich zweier Proben unterschiedlicher Sequenziertiefen würde also fälschlicherweise einen Unterschied in der Genaktivität suggerieren, obwohl dieser lediglich an der Datenmenge liegt. Für eine valide biologische Vergleichbarkeit müssen die Datensätze daher zwingend mathematisch normalisiert werden, bevor sie miteinander verglichen werden können (siehe Kap.~\ref{normalisierung}) \cite{Oshlack2010}.
+Bei diesen Rohdaten kommt es jedoch unweigerlich zu systematischen Verzerrungen, bedingt durch variierende Genlängen und stark schwankende Sequenziertiefen zwischen den einzelnen Probenläufen. Die Sequenziertiefe bezeichnet dabei die Gesamtzahl der in einem Lauf erzeugten Reads für eine Probe und kann zwischen den Proben stark variieren. Ein direkter Vergleich zweier Proben unterschiedlicher Sequenziertiefen würde also fälschlicherweise einen Unterschied in der Genaktivität suggerieren, obwohl dieser lediglich an der Datenmenge liegt. Für eine valide biologische Vergleichbarkeit müssen die Datensätze daher zwingend mathematisch normalisiert werden, bevor sie miteinander verglichen werden können (siehe Kap.~\ref{normalisierung}) \cite{Oshlack2010}.
 
 Die Analyse der Genexpressionsdaten ist vorrangig für die Onkologie von großem Interesse. Dabei wird die Genaktivität quantifiziert und analysiert, wofür das Transkriptom, also die Gesamtheit aller zu einem bestimmten Zeitpunkt in einer Zelle transkribierten RNA-Moleküle, betrachtet werden muss \cite{Conesa2016}. Denn nicht nur das Genom, also die strukturelle DNA und deren Mutationen, ist entscheidend für die Entstehung und das Fortschreiten vieler Krankheitsbilder, sondern maßgeblich auch die zelluläre Aktivität. So lassen sich beispielsweise pathophysiologische Prozesse wie unkontrolliertes Zellwachstum oder die Metastasierung bei strukturell intakten Genen beobachten, wenn diese fehlerhaft reguliert (über- oder unterexprimiert) sind \cite{Vogelstein2013}.
+
+Zu berücksichtigen ist dabei außerdem, dass Genexpression kein synchroner, sondern ein zeitlich gestaffelter, asynchroner Prozess ist. Wird eine Zelle beispielsweise durch einen Wachstumsfaktor oder eine DNA-Schädigung stimuliert, werden nicht alle beteiligten Gene gleichzeitig abgelesen. Zuerst reagieren einzelne, meist regulatorisch wirkende Gene innerhalb weniger Minuten, deren Genprodukte wiederum weitere, nachgeschaltete Zielgene erst zeitversetzt aktivieren \cite{LeeYoung2013}. Eine einzelne RNA-Seq-Messung bildet dabei stets nur eine Momentaufnahme dieses dynamischen Prozesses ab. Zwei Gene, die demselben biologischen Signalweg angehören, müssen in einer solchen Momentaufnahme also nicht zwangsläufig ein gleich starkes Expressionsniveau aufweisen.
+
 
 \subsubsection{Pathways und die KEGG-Datenbank}
 
@@ -58,7 +61,7 @@ Da viele biologische Prozesse jedoch nicht monogen ablaufen, reicht die Betracht
 
 Eine der wichtigsten Referenzdatenbanken, welche hunderte dieser kuratierten Pathways für unterschiedlichste Organismen bereithält, ist die Kyoto Encyclopedia of Genes and Genomes (KEGG) \cite{Kanehisa2023}. KEGG bildet Signalwege, Stoffwechselwege und krankheitsassoziierte Prozesse als standardisierte grafische annotierte Netzwerke ab und beinhaltet pro Pathway die zusammengehörigen Gene. Damit können die Genexpressionsdaten direkt auf die bekannten biologischen Zusammenhänge abgebildet werden. 
 
-Das in diesem Projekt entwickelte Dashboard erlaubt es den Nutzern verschiedenste Pathways der KEGG Datenbank auszuwählen. Damit können die interessanten Aktivitätsmuster gezielt und ohne Umwege über die vollständige Genexpressionsmatrix untersucht werden. Genaueres zur technischen Implementierung ist in Kapitel~\ref{pathways} zu finden.
+Das in diesem Projekt entwickelte Dashboard erlaubt es den Nutzern verschiedenste Pathways der KEGG-Datenbank auszuwählen. Damit können die interessanten Aktivitätsmuster gezielt und ohne Umwege über die vollständige Genexpressionsmatrix untersucht werden. Genaueres zur technischen Implementierung ist in Kapitel~\ref{pathways} zu finden.
 
 \subsection{Medizinische Grundlagen}
 \label{medizin-grundlagen}
@@ -69,7 +72,7 @@ Das entwickelte Tumorboard Dashboard findet vorrangig im klinischen Kontext, bei
 
 \subsubsection{Das Molekulare Tumorboard}
 
-Das Molekulare Tumorboard (MTB) ist eine interdisziplinäre Expertenkonferenz, in der für besondere Krankheitsbilder oder spezielle Verläufe individualisierte Therapiepläne entwickelt werden sollen. Hier dienen die genomischen und transkriptomischen Profile der Entscheidungsfindung \cite{Tamborero2020}.
+Das Molekulare Tumorboard (MTB) ist eine interdisziplinäre Expertenkonferenz, in der für besondere Krankheitsbilder oder spezielle Verläufe individualisierte Therapiepläne entwickelt werden. Hier dienen die genomischen und transkriptomischen Profile der Entscheidungsfindung \cite{Tamborero2020}.
 
 \subsubsection{Das Dashboard als Clinical Decision Support System}
 
@@ -139,6 +142,72 @@ Das Ziel des interdisziplinären Gremiums besteht dementsprechend darin, die gen
 \fancyhead{}
 \fancyhead[L]{Johanna}
 \subsection{Farben}
+
+\subsubsection{Kontrast- und Wahrnehmungsanforderungen}
+Die visuelle Aufbereitung der komplexen Darstellungen fordern fehlerfrei Interpretierbarkeit, Barrierefreiheit und visuelle Ausgeglichenheit/Neutralität. Dadurch sollen kognitive Verzerrungen durch ungleiche Signalwirkung vermieden werden und die Übersichtlichkeit beibehalten werden. Um dies zu erreichen muss sichergestellt werden, dass die Extrempunkte einer Messreihe visuell mit exakt derselben Intensität wahrgenommen werden, dies wird durch die selbe Leutdichte und Sättigung gewährleistet. Ist dies nicht gewährleistet würde das zu klinischen Fehlinterpetation bezüglich der Relevanz bestimmter Cluster führen. Die Berücksichtigung von Sehschwächen, insbesondere der Rot-Grün-Blindheit wurde für einen höheren Grad der Barrierefreiheit zu erlangen \cite{Crameri2020}.
+
+Diese datenbezogenen Kontraste dürfen zudem nicht mit der Grafikoberfläche konkurrieren. Aus diesem Grund wurde für das gesamte Layout der GUI ein bewusst neutrales, grau-weißes Farbschema gewählt. Diese chromatische Zurückhaltung der Steuerungselemente minimiert die visuelle Ermüdung bei längerer Bildschirmnutzung und stellt sicher, dass der Fokus des Anwenders unverzerrt auf den biologischen Mustern im Grafikpanel liegt \cite{Tufte1983}.
+
+\subsubsection{Farbpaletten}
+Für die Wahl der Farbpaletten wurden sowohl theoretische als auch subjektive Farbwahrnehmungsaspekte in Betracht gezogen. Letztendlich wurden vier Farbtabellen ausgewählt, welche für die Heatmap zur Verfügung stehen. Sie werden über die R-Pakete \texttt{RColorBrewer} \cite{HarrowerBrewer2003} und  \texttt{viridis} angesteuert. 
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Vergleich der implementierten Farbpaletten für die Heatmap-Generierung.}
+\label{tab:farbpaletten}
+\vspace{0.2cm}
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+\textbf{Palette} & \textbf{Typ} & \textbf{Einsatzzweck und Begründung} \\
+\midrule
+\texttt{RdYlBu} & Divergierend & Bietet durch das helle, gelbe Zentrum einen neutralen Mittelpunkt für zweiseitige Abweichungen. Die äußeren Maxima entfalten eine visuell gleichwertige Intensität. \\
+\addlinespace
+\texttt{RdBu} & Divergierend & Ein klassisches, in der Genexpressionsanalyse bewährtes Farbschema. Es liefert maximale Kontraste und verzichtet zur Vermeidung von Rot-Grün-Fehlsichtigkeiten auf Grünanteile. \\
+\addlinespace
+\texttt{PRGn} & Divergierend & Dient als barrierefreie und kontrastreiche Alternative zu traditionellen Skalen. Die Kombination aus Violett und Grün ist für farbfehlsichtige Personen präzise differenzierbar. \\
+\addlinespace
+\texttt{viridis} & Sequentiell & Zeichnet sich durch einen absolut linearen Verlauf der Luminanz (Helligkeit) aus. Die visuelle Information bleibt auch bei Konvertierung in Graustufen oder Schwarz-Weiß-Druck vollständig erhalten. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+%Abstufungen
+%GUI
+
+\subsubsection{Dendrogramm}
+%Überarbeiten
+Die Farbgebung der des Dendrogramms orientiert sich an den gewählten Farbpaletten. Allerdings mussten die hellen mittleren Farben ausgeschlossen werden, da sie zu hell für die Darstellung sind. Deshalb gibt es nur 9 Farben, auf die die Labels dann zurück greifen können. Falls es mehr Farben geben sollte wird auf die "default-colors" zurück gegriffen, die von mir zusammengesetllt wurden. 
+
+\begin{verbatim}
+default_colors <- c(
+    "#0000FF", "#FF6C00", "#005300", "#A100FA", "#B2DF8A", "#FFD300",
+    "#0096FF", "#9B4D00", "#00FFD2", "#FDBF6F", "#7B8100", "#960000",
+    "#00646B", "#D60072", "#00FF00", "#FF0000", "#540066", "#00A278",
+    "#000094", "#FFC0CB"
+)
+\end{verbatim}
+
+\begin{table}[]
+	\begin{tabular}{l|l|l}
+		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
+		\hline
+		Recherche Farbdarstellungen             & Johanna   & 4 Stunden               \\
+		Testen verschiedener Farbtabellen     & Johanna   & 2 Stunden               \\ 
+		Zusammenstellen der default-coulors             & Johanna   & 1,5 Stunden      \\ 
+		Grundlagen Kapitel Biologie verfasst              & Johanna   & 10 Stunden               \\ 
+		Grundlagen Kapitel Medizin  verfasst              & Johanna   & 8 Stunden               \\ 
+		Kommunikation zwischen den Teams   & Johanna   & 2 Stunden      \\ 
+        Meetings mit Adrika                & Johanna   & 3 Stunden    \\ 
+        Absprachen mit Visualisierungsteam                & Johanna   & 3 Stunden    \\ 
+        Gruppenmeetings                & Johanna   & 19,5 Stunden    \\ 
+	\end{tabular}
+\end{table}
+
+
+\newpage
+
+\printbibliography
 
 
 \end{document}
