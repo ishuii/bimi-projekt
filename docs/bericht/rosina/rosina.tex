@@ -81,14 +81,12 @@ Die Vorverarbeitung besteht aus zwei Schritten. Zunächst werden die Daten auf V
 Vor der eigentlichen Normalisierung wird der Datensatz auf seine Eignung für die weitere Verarbeitung überprüft. Dies geschieht in der Funktion \texttt{prepare\_data}, welches auffindbar im Github-Projekt unter \texttt{R/clustering/prepare\_data.R} ist. Ziel dieser Funktion ist es, fehlerhafte oder unvollständige Eingabedaten frühzeitig zu erkennen und eine konsistente Datenstruktur für die anschließende Clusteranalyse sicherzustellen.
 
 Als Erstes wird überprüft, ob der übergebene Datensatz leer ist oder keine Zeilen beziehungsweise Spalten enthält. Darüber hinaus wird kontrolliert, ob mindestens zwei Zeilen vorhanden sind, da eine Clusteranalyse mehrere Beobachtungen voraussetzt.
-
 Anschließend erfolgt eine Plausibilitätsprüfung der Werte. Falls der Datensatz nicht bereits als normalisiert gekennzeichnet wurde, wird überprüft, ob Werte kleiner als $-1$ enthalten sind. Solche Werte können darauf hinweisen, dass die Daten bereits transformiert oder skaliert wurden und eine erneute Normalisierung ungeeignet wäre. In diesem Fall wird die Verarbeitung mit einer entsprechenden Fehlermeldung abgebrochen.
-
 Für die weitere Verarbeitung wird der Datensatz anschließend in eine Matrix umgewandelt. Anschließend wird der ganze Inhalt zu numerischen Werten konvertiert. Dies stellt sicher, dass berechenbare Zahlen in der Matrix vorhanden sind. Nicht-numerische Werte, wie Buchstaben, werden dadurch zu fehlenden Einträgen (\texttt{NA}) gewandelt. So können sie in der darauffolgenden NA-Behandlung mit entfernt werden.
-
 Der nächste Bestandteil der Datenvorbereitung ist die Behandlung fehlender Werte. Enthält eine Zeile fehlende Einträge, wird zunächst überprüft, ob mindestens ein gültiger numerischer Wert vorhanden ist. Ist dies der Fall, werden die fehlenden Werte, sofern welche in der Zeile vorhanden sind, durch den Mittelwert der numerischen Werte derselben Zeile ersetzt. Auf diese Weise bleiben möglichst viele Informationen erhalten und die NA-Werte werden ersetzt. Enthält eine Zeile ausschließlich fehlende Werte, wird die Verarbeitung abgebrochen, da keine Mittelwertberechnung möglich ist.
-
 Abschließend wird der Datensatz auf unendliche Werte (\texttt{Inf} beziehungsweise \texttt{-Inf}) überprüft. Da solche Werte bei den nachfolgenden Berechnungen zu Fehlern führen würden, wird die Verarbeitung in diesem Fall ebenfalls beendet. Nach Abschluss aller Prüfungen liegt ein vollständiger numerischer Datensatz vor, der für die anschließende Normalisierung und Clusteranalyse verwendet werden kann.
+
+Während der Entwicklung dieser Funktion traten keine größeren Schwierigkeiten auf. Der Entwicklungsaufwand betrug etwa sechs Stunden, während die anschließende Testphase ungefähr vier Stunden in Anspruch nahm. Eine Besonderheit beim Testen der Funktion bestand darin, dass für bestimmte Fehlerfälle eigene, kleine Testdatensätze erstellt werden mussten. Dadurch konnten spezifische Fehler gezielt reproduziert und überprüft werden, da nicht alle möglichen Fehlerzustände regelmäßig in realen Datensätzen auftreten. Insbesondere die Behandlung von fehlenden Werten (NA-Werten) erforderte eine ausführliche Abstimmung. Hierzu wurde eine längere Zeitspanne einer Besprechung in Anspruch genommen, um festzulegen, unter welchen Bedingungen eine Fehlerbehandlung erfolgen soll und welche Vorgehensweise für die verschiedenen Fälle angemessen ist.
 
 \subsection{Normalisierung}
 \label{normalisierung}
@@ -97,23 +95,37 @@ Nach der Datenvorbereitung kann der Datensatz optional normalisiert werden.
 
 Ziel der Normalisierung ist es, den Einfluss technischer Störfaktoren und systematischer Fehler auf die Messdaten zu reduzieren, sodass möglichst ausschließlich die biologische Variabilität der Genexpression erhalten bleibt. Solche unerwünschten Variationen können beispielsweise durch Unterschiede bei der Probenvorbereitung, leichte Schwankungen der Umgebungsbedingungen, den Abbau von Probenmaterial oder technische Einflüsse der verwendeten Messinstrumente entstehen. Generell sind diese Störquellen häufig weder direkt messbar noch exakt quantifizierbar, deswegen stellt ihre Korrektur eine besondere Herausforderung dar \cite{DUBOIS2022104661}. 
 
-Eine geeignete Normalisierung trägt daher wesentlich dazu bei, die Vergleichbarkeit der Daten zu verbessern und die Grundlage für eine zuverlässige Clusteranalyse zu schaffen. Für die in diesem Projekt entwickelte Funktion \texttt{normalization} stehen fünf verschiedene Normalisierungsmethoden zur Verfügung, die nach dem belieben des Users ausgewählt werden können. Sie ist auffindbar im Projekt unter dem Pfad \texttt{R/clustering/normalization\_methods.R}.
+Eine geeignete Normalisierung trägt daher wesentlich dazu bei, die Vergleichbarkeit der Daten zu verbessern und die Grundlage für eine zuverlässige Clusteranalyse zu schaffen. Für die in diesem Projekt entwickelte Funktion \texttt{normalization} stehen acht verschiedene Normalisierungsmethoden zur Verfügung, die nach dem belieben des Users ausgewählt werden können. Sie ist auffindbar im Projekt unter dem Pfad \texttt{R/clustering/normalization\_methods.R}. 
+
+%--------------------------------------------------
 
 \subsubsection{Keine Normalisierung}
 \label{Keine Normalisierung}
 
-Bei dieser Methode werden die Daten unverändert weitergegeben. Sie eignet sich für Datensätze, die bereits vorverarbeitet oder mit einem externen Verfahren normalisiert wurden.
+Bei dieser Methode werden die Daten unverändert weitergegeben. Sie eignet sich für Datensätze, die bereits vorverarbeitet oder mit einem externen Verfahren normalisiert wurden. Somit können auch normalisierte Datensätze visualisiert werden.
 
-\subsubsection{Logarithmierung und Z-Score-Normalisierung}
-\label{Logarithmierung und Z-Score-Normalisierung}
+%--------------------------------------------------
 
-Diese Methode besteht aus zwei aufeinanderfolgenden Schritten. Zunächst wird auf alle Expressionswerte eine Logarithmierung zur Basis 2 angewendet, dies hilft den Dynamikbereich als auch die Schiefe der Verteilung zu reduzieren und führt so zu einer stärkeren Symmetrie sowie nähert die Daten an eine Normalverteilung an. Dadurch erfüllen die Daten die Annahmen statistischer Analysen besser. Um Probleme mit Null- oder sehr kleinen Werten zu vermeiden, wird vor der Anwendung des Logarithmus üblicherweise eine kleine Konstante (z. B. 1) zu jedem Wert addiert \cite{Deng2025}. Dies wurde in dieser Funktion auch durchgeführt mit einer Addierung von 1.
+\subsubsection{Nur Logarithmierung}
+\label{Nur Logarithmierung}
+
+In dieser Variante wird ausschließlich die Logarithmierung durchgeführt.
+Dies geschieht indem auf alle Expressionswerte eine Logarithmierung zur Basis 2 angewendet, dies hilft den Dynamikbereich als auch die Schiefe der Verteilung zu reduzieren und führt so zu einer stärkeren Symmetrie, sowie nähert die Daten an eine Normalverteilung an. Dadurch erfüllen die Daten die Annahmen statistischer Analysen besser. Um Probleme mit Null- oder sehr kleinen Werten zu vermeiden, wird vor der Anwendung des Logarithmus üblicherweise eine kleine Konstante (z. B. 1) zu jedem Wert addiert \cite{Deng2025}. Dies wurde in dieser Funktion auch durchgeführt mit einer Addierung von 1.
 
 \[
 x_1'=\log_2(x_1+1)
 \]
 
-Alle darauffolgenden Logarithmen werden genau wie hier beschrieben durchgeführt.
+Dadurch werden große Expressionswerte abgeschwächt, während die absoluten Unterschiede zwischen den Genen weitgehend erhalten bleiben. In dieser Methode erfolgt keine zusätzliche Skalierung der Daten. Die reine Log-Transformation ist sinnvoll, wenn der Nutzer die Wertekompression benötigt, aber die ursprüngliche Struktur der Daten möglichst unverändert beibehalten möchte. Alle darauffolgenden Logarithmen werden genau wie hier beschrieben durchgeführt.
+
+%--------------------------------------------------
+
+\subsubsection{Z-Score-Normalisierung}
+\label{Z-Score-Normalisierung}
+
+\paragraph{Variante mit Logarithmierung}
+
+Diese Methode startet mit dem logarithmieren der Daten wie in \ref{Nur Logarithmierung} beschrieben.
 Anschließend erfolgt für jede Genzeile eine Z-Score-Normalisierung. Die Z-Score-Transformation ist eine weit verbreitete Normalisierungsmethode, bei der Merkmale (Gene) so skaliert werden, dass sie einen Mittelwert von 0 und eine Standardabweichung von 1 aufweisen. Für jedes Gen wird zunächst der Mittelwert ($\mu$) und die Standardabweichung ($\sigma$) über alle Proben hinweg berechnet\cite{Deng2025}. Anschließend wird jeder Wert ($x$) mithilfe der folgenden Formel standardisiert:
 
 \[
@@ -122,26 +134,52 @@ z_i=\frac{x_1'-\mu}{\sigma}
 
 Diese Transformation ermöglicht es, unterschiedliche Merkmale auf eine vergleichbare Skala zu bringen\cite{Deng2025}. Im eigentlichen R Code wird diese Formel mit der\texttt{scale}-Funktion durchgeführt. Da die Funktion spaltenweise arbeitet, wird der Datensatz zunächst transponiert, verarbeitet und abschließend erneut transponiert, um die ursprüngliche Ausrichtung wiederherzustellen.
 
-\subsubsection{Nur Logarithmierung}
+\paragraph{Variante ohne Logarithmierung}
 
-Bei dieser Variante wird ausschließlich die Logarithmierung durchgeführt (siehe \ref{Logarithmierung und Z-Score-Normalisierung}).
-Dadurch werden große Expressionswerte abgeschwächt, während die absoluten Unterschiede zwischen den Genen weitgehend erhalten bleiben. Eine zusätzliche Skalierung der Daten erfolgt nicht. Die reine Log-Transformation ist sinnvoll, wenn der Nutzer die Wertekompression benötigt, aber die ursprüngliche Struktur der Daten möglichst unverändert beibehalten möchte.
+In dieser Methode wird ausschließlich die Z-Score Normalisierung durchgeführt. Im Gegensatz zur vorherigen beschriebenen Variante erfolgt keine vorherige Logarithmierung der Expressionswerte. Dadurch werden die ursprünglichen Expressionswerte direkt standardisiert.
 
-\subsubsection{Logarithmierung und Median-Centering}
-\label{Logarithmierung und Median-Centering}
+Diese Variante eignet sich insbesondere für Datensätze, die bereits logarithmiert wurden oder bei denen bewusst auf eine zusätzliche Logarithmierung verzichtet werden soll.
 
-Auch bei dieser Methode wird zunächst die Logarithmierung durchgeführt (siehe \ref{Logarithmierung und Z-Score-Normalisierung}). Anschließend wird jede Genzeile um ihren Median zentriert und mithilfe ihrer Spannweite skaliert. Das Ziel der Median-Normalisierung besteht darin, die Daten auf den Median der Verteilung jeder Probe zu zentrieren. Im Allgemeinen wird die Zentrierung anhand des Medians gegenüber dem Mittelwert bevorzugt, da der Median robuster gegenüber Ausreißern ist. Dies geschieht mit dieser Formel:
+%--------------------------------------------------
+
+\subsubsection{Median-Zentrierung}
+\label{Median-Zentrierung}
+
+\paragraph{Variante mit Logarithmierung}
+Auch in dieser Methode wird zunächst die Logarithmierung durchgeführt (siehe \ref{Nur Logarithmierung}). Anschließend wird jede Genzeile um ihren Median zentriert und mithilfe ihrer Spannweite skaliert. Das Ziel der Median-Zentrierung besteht darin, die Daten auf den Median der Verteilung jeder Probe zu zentrieren. Im Allgemeinen wird die Zentrierung anhand des Medians gegenüber dem Mittelwert bevorzugt, da der Median robuster gegenüber Ausreißern ist \cite{DUBOIS2022104661}. Der vollständige Normalisierungsprozess wird mit dieser Formel durchgeführt:
 
 \[
-x_i''=\frac{x_i'-\mathrm{Median}(x')}{\max(x')-\min(x')}
+x_i''=\frac{x_i'-\mathrm{Median}(x')}{\max(x')-\min(x')+\varepsilon}
 \]
 
-Hierbei entspricht $\max(x')-\min(x')$ die Spannweite der jeweiligen Genzeile. Durch diese Transformation wird jede Zeile auf ihren Median zentriert, während Unterschiede in der Variabilität der Gene erhalten bleiben.
+Sie ist entstanden aus der Kombination der Median-Zentrierung und dem Range-Skalierung.
+Die Formel der Median-Zentrierung ist nach \cite{DUBOIS2022104661}: 
 
-\subsubsection{Logarithmierung und MAD-Normalisierung}
-\label{Logarithmierung und MAD-Normalisierung}
+\[
+x_i''={x_i'-\mathrm{Median}(x')}
+\] 
 
-Diese Methode verwendet ebenfalls zunächst die Logarithmierung(siehe \ref{Logarithmierung und Z-Score-Normalisierung}). Anschließend erfolgt eine robuste Skalierung mithilfe der Median Absolute Deviation (MAD):
+Während beim Range-Skalierung die zentrierten Werte durch die Spannweite, also die Differenz zwischen dem Maximum und Minimum einer Genzeile, dividiert werden. Dadurch werden Unterschiede in den Wertebereichen der Gene reduziert, sodass alle Gene unabhängig von ihrer ursprünglichen Variabilität einen vergleichbaren Einfluss auf die nachfolgende Analyse besitzen. Da die Spannweite den biologischen Variationsbereich der Daten repräsentiert, orientiert sich die Skalierung an diesem biologischen Wertebereich \cite{medianCentering}. Dargestellt wird es durch diese Formel nach \cite{medianCentering}:
+
+\[
+x_{ij}^{*}=\frac{x_{ij}-\bar{x}_{i}}{x_{i,\max}-x_{i,\min}}
+\] 
+
+Das $\varepsilon$ in der vollständigen Formel ist definiert mit $\varepsilon = 1e^{-8}$ und ist eine kleine Konstante, die die Teilung durch Null verhindert.
+Ein Nachteil der Range-Skalierung besteht jedoch darin, dass die Spannweite ausschließlich auf den beiden Extremwerten basiert und daher empfindlich gegenüber Ausreißern ist\cite{medianCentering}. Allerdings wird dieser Schwäche zum Teil durch die Median-Zentrierung entgegengewirkt. 
+
+\paragraph{Variante ohne Logarithmierung}
+
+In dieser Methode wird nur die oben beschriebene Median-Zentrierung durchgeführt, während das Logarithmieren ausgelassen wird. Wie schon bereits erklärt ist dies von besonderem Nutzen, wenn die Originalstruktur des Datensatzes von großer Bedeutung, oder der Datensatz schon vorbereitet worden ist.
+
+%--------------------------------------------------
+
+\subsubsection{MAD-Normalisierung}
+\label{MAD-Normalisierung}
+
+\paragraph{Variante mit Logarithmierung}
+
+Diese Methode verwendet ebenfalls zunächst die Logarithmierung(siehe \ref{Nur Logarithmierung}). Anschließend erfolgt eine robuste Skalierung mithilfe der Median Absolute Deviation (MAD):
 
 \[
 x_i''=\frac{x_i'-\mathrm{Median}(x')}{\mathrm{MAD}(x')+\varepsilon}
@@ -158,10 +196,21 @@ Anstelle der Standardabweichung wird die mediane absolute Abweichung als Maß f�
 
 Im Vergleich zur Standardabweichung ist MAD deutlich robuster gegenüber Ausreißern und eignet sich daher insbesondere für Datensätze mit einzelnen extremen Expressionswerten \cite{MADKappal}.
 
-\subsubsection{Nur Z-Score-Normalisierung}
-\label{Nur Z-Score-Normalisierung}
+\paragraph{Variante ohne Logarithmierung}
 
-Als Letztes gibt es
+Diese Methode entspricht der im vorherigen Paragraph beschriebenen MAD-Normalisierung, jedoch ohne vorherige Logarithmierung. Die ursprünglichen Expressionswerte werden direkt anhand der Median Absolute Deviation (MAD) skaliert. Diese hat vor allem Nutzen, wenn Reduktion der Verteilung im Datensatz nicht nötig ist und nur der Normalisierungseffekt benötigt wird.
+
+\subsubsection{Arbeitsprozess}
+\label{Arbeitsprozess}
+
+Der gesamte Programmieraufwand für die Funktion \texttt{normalization} betrug etwa sechs Stunden. In dieser Zeit wurden sowohl die bestehende Struktur überarbeitet als auch neue Normalisierungsmethoden implementiert. Die eigentliche Implementierung der Funktion erfolgte vergleichsweise zügig. Deutlich zeitintensiver war hingegen das Testen, welches insgesamt etwa zehn Stunden in Anspruch nahm.
+
+Während der Testphase trat bei einem von einem weiteren Tester verwendeten Datensatz ein Fehler auf, dessen Ursache zunächst unklar war. Nach eingehender Analyse stellte sich heraus, dass der Datensatz bereits vorab normalisiert worden war. Zu diesem Zeitpunkt bot das Programm jedoch keine Möglichkeit, bereits vorbereitete Datensätze korrekt zu verarbeiten oder dem Benutzer explizit die Auswahl eines vorab normalisierten Datensatzes zu ermöglichen. Aus diesem Grund wurden entsprechende Optionen für den Benutzer ergänzt sowie zusätzliche Fehlerbehandlungen implementiert.
+
+In der Endphase des Projekts wurde außerdem festgestellt, dass das Clustering beziehungsweise die Darstellung der Cluster nicht korrekt funktionierte. Daraufhin wurde die gesamte Normalisierungsfunktion erneut überprüft und ausführlich getestet. Gleichzeitig wurde der Datensatz, der den Fehler besonders deutlich sichtbar machte, nochmals analysiert. Dabei konnte die eigentliche Fehlerursache identifiziert und behoben werden. Im Zuge dieser Überarbeitung fiel zudem die Entscheidung, den Funktionsumfang zu erweitern und zusätzlich Normalisierungsmethoden ohne vorgeschaltete Logarithmierung zu implementieren.
+
+Einen weiteren unerwartet hohen Zeitaufwand verursachte die Recherche geeigneter Normalisierungsmethoden(4.5 Stunden). Zwar wird in wissenschaftlichen Veröffentlichungen häufig angegeben, dass Verfahren wie beispielsweise die Z-Score-Normalisierung verwendet wurden, jedoch fehlen oftmals detaillierte Beschreibungen der konkreten Implementierung oder eine Begründung für die Wahl der jeweiligen Methode.
+
 
 \section{Clusteranalyse}
 \label{clusteranalyse}
@@ -175,16 +224,18 @@ Der Bereich der Clusteranalyse unterteilt sich in mehrere Unteraufgaben. Zunäch
 	\begin{tabular}{l|l|l}
 		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
 		\hline
-		Datenvorbereitung             & Rosina    & 5 Stunden        \\
-		Normalisierungsfunktionen     & Rosina    & 6 Stunden  (mit Recherche)           \\ 
-		Distanzfunktionen             & Wiktoria  & 7 Stunden      \\ 
-		Single-Linkage                & Wiktoria  & 6 Stunden      \\ 
+		Datenvorbereitung             & Rosina    & 6 Stunden        \\
+		Normalisierungsfunktionen     & Rosina    & 6 Stunden           \\ 
+        Testen                        & Rosina    & 14 Stunden        \\
+        Recherche                     & Rosina    & 4.5 Stunden        \\
+        Bericht schreiben             & Rosina    & 8 Stunden        \\
+        Besprechungen                 & Rosina    & 19.5 Stunden        \\
 		Complete-Linkage              & Rosina    & 30 Minuten        \\ 
 		Average-Linkage               & Rosina    & 1 Stunde         \\ 
-		Linkagefunktionen - allgemein & Wiktoria  & 4 Stunden      \\ 
+
 	\end{tabular}
 \end{table}
-
+% Hab jetzt die Tabelle einfach nur für meine Zeiten gemacht dann ist es übersichtlicher
 
 \subsection{Distanzfunktionen}
 \label{distanzfunktionen}
