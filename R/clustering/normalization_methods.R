@@ -43,7 +43,7 @@ normalization <- function(df, norm_method) {
   #--------------
   #zscore only
   if (norm_method == 2) {
-    if (any(apply(df_log, 1, sd, na.rm = TRUE) == 0)) {
+    if (any(apply(df, 1, sd, na.rm = TRUE) == 0)) {
       warning(
         "Fehler: Zeilen mit Standardabweichung 0 gefunden. Diese Normalisierungsmethode ist nicht passend."
       )
@@ -86,7 +86,7 @@ normalization <- function(df, norm_method) {
   
   #median centering only
   if (norm_method == 5) {
-    df_norm <- t(apply(df_log, 1, function(x) {
+    df_norm <- t(apply(df, 1, function(x) {
       (x - median(x)) / (max(x) - min(x))
     }))
     
@@ -109,7 +109,7 @@ normalization <- function(df, norm_method) {
   #--------------
   #mad only
   if (norm_method == 7) {
-    df_norm <- t(apply(df_log, 1, function(x) {
+    df_norm <- t(apply(df, 1, function(x) {
       (x - median(x)) / (mad(x) + 1e-8)
     }))
     return(df_norm)
