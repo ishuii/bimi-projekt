@@ -25,7 +25,7 @@ source("R/visualization/dendrogram_data_functions.R")
 source("R/visualization/final_tree_functions.R") 
 source("R/visualization/dendrogram_plotter.R") 
 source("R/visualization/heatmap_final.R")
-source("R/visualization/grafik2.R")
+source("R/visualization/graphics_panel.R")
 source("R/visualization/saving_functions.R")
 
 
