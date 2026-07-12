@@ -21,9 +21,13 @@ source("data/database_functions_v4.r")
 source("R/clustering/normalization_methods.R")
 source("R/clustering/prepare_data.R")
 source("R/clustering/hierarchical_clustering.R")
-source("R/visualization/final_dendrogram.R") # Sourcing this file is enough => final_dendrogram.R loads all dependencies
+source("R/visualization/dendrogram_data_functions.R") 
+source("R/visualization/final_tree_functions.R") 
+source("R/visualization/dendrogram_plotter.R") 
+source("R/visualization/heatmap_final.R")
+source("R/visualization/grafik2.R")
 source("R/visualization/saving_functions.R")
-source("R/visualization/wrapper_functions.R")
+
 
 
 # ============================================================
@@ -33,7 +37,7 @@ source("R/visualization/wrapper_functions.R")
 con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 
 # dataset always placed under data/ so this path works for everyone
-dataset_kidney_meta <- read.csv("data/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
+dataset_kidney_meta <- read.csv("data/SHIPP_microarray.csv", header = TRUE)
 
 # ============================================================
 # PATHWAY SELECTION AND DATA INTEGRATION
@@ -106,77 +110,97 @@ order_gene <- get_order_vector(baum_gene)
 # ============================================================
 
 # patients — colored by class labels, legend shown
-final_plot_pat <- generate_dendro(
+dendro_data_pat <- generate_dendro_data(
   cluster_result = cluster_pat,
   tree_result    = baum_patienten,
   order_vector   = order_patienten,
-  title          = "TCGA Kidney Cancer: Patient Clustering",
-  names_vector   = patient_names,
   class_labels   = class_labels,
-  palette        = "viridis",
-  show_x_axis    = TRUE,
-  show_y_axis    = TRUE
+  palette        = "viridis"
+)
+
+final_plot_pat <- plot_dendro_ggplot(
+  dendro_data  = dendro_data_pat,
+  title        = "TCGA Kidney Cancer: Patient Clustering",
+  names_vector = patient_names,
+  show_legend  = TRUE,
+  show_x_axis  = TRUE,
+  show_y_axis  = TRUE
 )
 
 # genes — no class labels, everything black, no legend
-final_plot_den <- generate_dendro(
+dendro_data_genes <- generate_dendro_data(
   cluster_result = cluster_genes,
   tree_result    = baum_gene,
   order_vector   = order_gene,
-  title          = "TCGA Kidney Cancer: Gene Clustering",
-  names_vector   = gene_names,
   class_labels   = NULL,
-  show_x_axis    = TRUE,
-  show_y_axis    = TRUE
+  palette        = NULL
+)
+
+final_plot_den <- plot_dendro_ggplot(
+  dendro_data  = dendro_data_genes,
+  title        = "TCGA Kidney Cancer: Gene Clustering",
+  names_vector = gene_names,
+  show_legend  = FALSE,
+  show_x_axis  = TRUE,
+  show_y_axis  = TRUE
 )
 
 print(final_plot_pat)
 print(final_plot_den)
 
-
-export_dendro_pdf(
-  plot     = final_plot_pat, 
-  filename = "dendro_patients", 
-  filepath = "C:/Users/domif/Desktop"                     
+final_plotly_pat <- plot_dendro_plotly(
+  dendro_data  = dendro_data_pat,
+  title        = "TCGA Kidney Cancer: Patient Clustering",
+  names_vector = patient_names,
+  show_legend  = TRUE,
+  show_x_axis  = TRUE,
+  show_y_axis  = TRUE
 )
 
-export_dendro_pdf(
-  plot     = final_plot_den, 
-  filename = "dendro_genes",    
-  filepath = "C:/Users/domif/Desktop"                       
+final_plotly_den <- plot_dendro_plotly(
+  dendro_data  = dendro_data_genes,
+  title        = "TCGA Kidney Cancer: Gene Clustering",
+  names_vector = gene_names,
+  show_legend  = FALSE,
+  show_x_axis  = TRUE,
+  show_y_axis  = TRUE
 )
+
+print(final_plotly_den)
+print(final_plotly_pat)
+
 
 # ============================================================
-# PLOTLY WRAPPER TEST
+# 1. ERSTELLUNG DER EINZEL-OBJEKTE (Vorbereitung)
 # ============================================================
 
-# patients — plotly version
-plotly_pat <- generate_dendro_plotly(
-  cluster_result = cluster_pat,
-  tree_result    = baum_patienten,
-  order_vector   = order_patienten,
-  title          = "TCGA Kidney Cancer: Patient Clustering",
-  names_vector   = patient_names,
-  class_labels   = class_labels,
-  palette        = "RdYlBu",
-  show_x_axis    = TRUE,
-  show_y_axis    = TRUE
+# Das fertige ggplotly-Objekt deiner Kollegin generieren
+heatmap_objekt <- generate_heatmap_plotly(
+  data_matrix   = df_normalized,
+  gene_order    = order_gene,
+  patient_order = order_patienten,
+  gene_names    = gene_names,
+  palette       = "viridis",
+  show_x_axis   = TRUE
 )
 
-# genes — plotly version
-plotly_gen <- generate_dendro_plotly(
-  cluster_result = cluster_genes,
-  tree_result    = baum_gene,
-  order_vector   = order_gene,
-  title          = "TCGA Kidney Cancer: Gene Clustering",
-  names_vector   = gene_names,
-  class_labels   = NULL,
-  show_x_axis    = TRUE,
-  show_y_axis    = TRUE
+# Hinweis: dendro_data_genes und dendro_data_pat wurden bereits
+# mit deiner generate_dendro_data() Funktion erstellt.
+
+#============================================================
+  # 2. GRAFIKPANEL — Zusammenführung im koordinierten Grid
+  # ============================================================
+
+final_panel <- grafikpanel(
+  heatmap_plot        = heatmap_objekt,
+  gene_dendro         = dendro_data_genes,
+  patient_dendro      = dendro_data_pat,
+  gene_order          = order_gene,
+  patient_order       = order_patienten,
+  data_matrix         = df_prepared,         # Die Rohmatrix aus prepare_data()
+  metaDaten_gefiltert = result$meta_data,
+  gene_names = genes# Die Metadaten aus dem Result-Objekt
 )
 
-plotly_pat
-plotly_gen
-
-
-
+# Plot im Viewer anzeigen
+print(final_panel)
