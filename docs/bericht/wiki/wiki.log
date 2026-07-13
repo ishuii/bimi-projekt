@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  10 JUL 2026 19:06
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  13 JUL 2026 19:18
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -262,10 +262,124 @@ Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
 \f@nch@widthC=\skip66
 \f@nch@widthR=\skip67
 \@temptokenb=\toks25
+) (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsmath.sty
+Package: amsmath 2025/07/09 v2.17z AMS math features
+\@mathmargin=\skip68
+
+For additional information on amsmath, use the `?' option.
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amstext.sty
+Package: amstext 2024/11/17 v2.01 AMS text
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks26
+\ex@=\dimen167
+))
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen168
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsopn.sty
+Package: amsopn 2022/04/08 v2.04 operator names
+)
+\inf@bad=\count295
+LaTeX Info: Redefining \frac on input line 233.
+\uproot@=\count296
+\leftroot@=\count297
+LaTeX Info: Redefining \overline on input line 398.
+LaTeX Info: Redefining \colon on input line 409.
+\classnum@=\count298
+\DOTSCASE@=\count299
+LaTeX Info: Redefining \ldots on input line 495.
+LaTeX Info: Redefining \dots on input line 498.
+LaTeX Info: Redefining \cdots on input line 619.
+\Mathstrutbox@=\box55
+\strutbox@=\box56
+LaTeX Info: Redefining \big on input line 721.
+LaTeX Info: Redefining \Big on input line 722.
+LaTeX Info: Redefining \bigg on input line 723.
+LaTeX Info: Redefining \Bigg on input line 724.
+\big@size=\dimen169
+LaTeX Font Info:    Redeclaring font encoding OML on input line 742.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 743.
+\macc@depth=\count300
+LaTeX Info: Redefining \bmod on input line 904.
+LaTeX Info: Redefining \pmod on input line 909.
+LaTeX Info: Redefining \smash on input line 939.
+LaTeX Info: Redefining \relbar on input line 969.
+LaTeX Info: Redefining \Relbar on input line 970.
+\c@MaxMatrixCols=\count301
+\dotsspace@=\muskip17
+\c@parentequation=\count302
+\dspbrk@lvl=\count303
+\tag@help=\toks27
+\row@=\count304
+\column@=\count305
+\maxfields@=\count306
+\andhelp@=\toks28
+\eqnshift@=\dimen170
+\alignsep@=\dimen171
+\tagshift@=\dimen172
+\tagwidth@=\dimen173
+\totwidth@=\dimen174
+\lineht@=\dimen175
+\@envbody=\toks29
+\multlinegap=\skip69
+\multlinetaggap=\skip70
+\mathdisplay@stack=\toks30
+LaTeX Info: Redefining \[ on input line 2950.
+LaTeX Info: Redefining \] on input line 2951.
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/tools\tabularx.sty
+Package: tabularx 2023/12/11 v2.12a `tabularx' package (DPC)
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/tools\array.sty
+Package: array 2025/09/25 v2.6n Tabular extension package (FMi)
+\col@sep=\dimen176
+\ar@mcellbox=\box57
+\extrarowheight=\dimen177
+\NC@list=\toks31
+\extratabsurround=\skip71
+\backup@length=\skip72
+\ar@cellbox=\box58
+)
+\TX@col@width=\dimen178
+\TX@old@table=\dimen179
+\TX@old@col=\dimen180
+\TX@target=\dimen181
+\TX@delta=\dimen182
+\TX@cols=\count307
+\TX@ftn=\toks32
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/makecell\makecell.sty
+Package: makecell 2009/08/03 V0.1e Managing of Tab Column Heads and Cells
+\rotheadsize=\dimen183
+\c@nlinenum=\count308
+\TeXr@lab=\toks33
+)
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/booktabs\booktabs.sty
+Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
+\heavyrulewidth=\dimen184
+\lightrulewidth=\dimen185
+\cmidrulewidth=\dimen186
+\belowrulesep=\dimen187
+\belowbottomsep=\dimen188
+\aboverulesep=\dimen189
+\abovetopsep=\dimen190
+\cmidrulesep=\dimen191
+\cmidrulekern=\dimen192
+\defaultaddspace=\dimen193
+\@cmidla=\count309
+\@cmidlb=\count310
+\@aboverulesep=\dimen194
+\@belowrulesep=\dimen195
+\@thisruleclass=\count311
+\@lastruleclass=\count312
+\@thisrulewidth=\dimen196
 )
 Package babel-german Info: Using contemporary glottonyms
-(babel-german)             `german' denotes post-1996 spelling. on input line 1
-8.
+(babel-german)             `german' denotes post-1996 spelling. on input line 2
+3.
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/generic/babel/locale/de\babel
 -german.tex
@@ -274,33 +388,33 @@ Package babel Info: Importing basic data for german
 )
 
 Package babel-german Warning: Hyphenation patterns `ngerman-x-latest', requeste
-d by german, not available. Falling back to legacy! on input line 18.
+d by german, not available. Falling back to legacy! on input line 23.
 
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdf
 tex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count295
+\l__color_backend_stack_int=\count313
 ) (wiki.aux
 Package babel Info: 'german' activates 'german' shorthands.
 (babel)             Reported on input line 5.
 )
 \openout1 = `wiki.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 18.
-LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -340,17 +454,17 @@ LaTeX Font Info:    ... okay on input line 18.
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mk
 ii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count296
-\scratchdimen=\dimen167
-\scratchbox=\box55
-\nofMPsegments=\count297
-\nofMParguments=\count298
-\everyMPshowfont=\toks26
-\MPscratchCnt=\count299
-\MPscratchDim=\dimen168
-\MPnumerator=\count300
-\makeMPintoPDFobject=\count301
-\everyMPtoPDFconversion=\toks27
+\scratchcounter=\count314
+\scratchdimen=\dimen197
+\scratchbox=\box59
+\nofMPsegments=\count315
+\nofMParguments=\count316
+\everyMPshowfont=\toks34
+\MPscratchCnt=\count317
+\MPscratchDim=\dimen198
+\MPnumerator=\count318
+\makeMPintoPDFobject=\count319
+\everyMPtoPDFconversion=\toks35
 )
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/pdflscape\pdflscape.sty
 Package: pdflscape 2022-10-27 v0.13 Display of landscape pages in PDF
@@ -365,13 +479,13 @@ Package: lscape 2020/05/28 v3.02 Landscape Pages (DPC)
 )
 Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
 ))
-LaTeX Font Info:    Trying to load font information for U+msa on input line 21.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 26.
 
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 21.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 26.
 
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
@@ -406,15 +520,16 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [4]
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 89.
+               Default added (so using `tbp') on input line 94.
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 105--109
-
+Overfull \hbox (9.93684pt too wide) in paragraph at lines 111--115
+\OT1/cmr/m/n/12 Bei Gen-ex-pres-si-ons-da-ten han-delt es sich um kon-ti-nu-ier
+-li-che Da-ten, de-ren Abst[]ande f[]ur gew[]ohnlich
  []
 
 
-Overfull \hbox (10.84784pt too wide) in paragraph at lines 117--120
+Overfull \hbox (10.84915pt too wide) in paragraph at lines 182--185
 \OT1/cmr/m/n/12 Linkage ([][]\OT1/cmtt/m/n/12 "complete"[]\OT1/cmr/m/n/12 ) zur
  Verf[]ugung, so-wie ei-ne be-nut-zer-de-fi-nier-te Linkage-Funktion ([][]\OT1/
 cmtt/m/n/12 "custom"[]\OT1/cmr/m/n/12 ).
@@ -428,11 +543,6 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [5]
-Overfull \hbox (13.68272pt too wide) in paragraph at lines 127--128
-\OT1/cmr/m/n/12 Das Complete-Linkage-Verfahren ist ge-wis-ser-ma-^^Yen das Ge-g
-enst[]uck zum Single-Linkage-Verfahren
- []
-
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -441,6 +551,11 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [6]
+Overfull \hbox (13.68272pt too wide) in paragraph at lines 192--193
+\OT1/cmr/m/n/12 Das Complete-Linkage-Verfahren ist ge-wis-ser-ma-^^Yen das Ge-g
+enst[]uck zum Single-Linkage-Verfahren
+ []
+
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -456,7 +571,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[8] (wiki.bbl)
+[8]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -464,20 +579,28 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[9] (wiki.aux)
+[9] (wiki.bbl)
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[10] (wiki.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 6424 strings out of 467871
- 108104 string characters out of 5418377
- 549884 words of memory out of 5000000
- 35197 multiletter control sequences out of 15000+600000
+ 7496 strings out of 467871
+ 122595 string characters out of 5418377
+ 577638 words of memory out of 5000000
+ 36240 multiletter control sequences out of 15000+600000
  637621 words of font info for 78 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 68i,11n,90p,677b,349s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 68i,21n,90p,773b,393s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/
 cmbx12.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/ams
 fonts/cm/cmex10.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/p
@@ -487,12 +610,13 @@ TeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Users/wikto/AppData/Local/Prog
 rams/MiKTeX/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Users/wikto/AppData/Lo
 cal/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/wikto/App
 Data/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/
-wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti12.pfb><
-C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmt
-t12.pfb>
-Output written on wiki.pdf (9 pages, 130389 bytes).
+wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C
+:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti
+12.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfont
+s/cm/cmtt12.pfb>
+Output written on wiki.pdf (10 pages, 145900 bytes).
 PDF statistics:
- 82 PDF objects out of 1000 (max. 8388607)
+ 90 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
