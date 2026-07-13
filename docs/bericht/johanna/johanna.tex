@@ -8,6 +8,13 @@
 \usepackage[utf8]{inputenc}
 \usepackage{pdfpages}
 \usepackage{fancyhdr}
+
+%neu Johanna
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{amsmath}
+
 \DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
 
 \title{Bericht}
@@ -40,13 +47,13 @@
 
 \subsubsection{Genexpression und -regulation}
 
-Die im Folgenden analysierten Genexpressionsdaten beschreiben die Aktivität eines Gens und damit, wann und in welcher Intensität ein Gen abgelesen wird. Dies entscheidet über den Phänotyp einer Zelle, denn auch wenn die Zellen eines Organismus dieselbe genetische Information in Form von DNA enthalten, erfüllen sie doch sehr unterschiedliche Funktionen. Die Genexpression fogt dabei dem Zentralen Dogma der Molekularbiologie, bei der Transkription wird die in der DNA kodiert Information in RNA und anschließend mittels der Translation in Proteine überführt \cite{LeeYoung2013}.
+Die im Folgenden analysierten Genexpressionsdaten beschreiben die Aktivität eines Gens und damit, wann und in welcher Intensität ein Gen abgelesen wird. Dies entscheidet über den Phänotyp einer Zelle, denn auch wenn die Zellen eines Organismus dieselbe genetische Information in Form von DNA enthalten, erfüllen sie doch sehr unterschiedliche Funktionen. Die Genexpression folgt dabei dem Zentralen Dogma der Molekularbiologie, bei der Transkription wird die in der DNA kodierte Information in RNA und anschließend mittels der Translation in Proteine überführt \cite{LeeYoung2013}.
 
-Dieser Prozess der Genexpression unterliegt einer zellinternen Genregulation. Dabei binden Transkriptionsfaktoren an regulatorische DNA-Abschnitte wie Promotoren und Enhancer und rekrutieren drüber die RNA-Polymerase, welche das Ablesen des jeweiligen Genabschnitts startet. Je nach gebundenem Transkriptionsfaktor wird die Transkription gehemmt oder aktiviert, es kommt also entweder zum Ablesen oder nicht. Transkriptionsfaktoren sind dabei selbst Proteine, die als Genprodukt anderer Gene entstehen. Je nach Zelltyp, Entwicklungsstadium und äußeren Signalen sind verschiedene Transkiptionsfaktoren vorhanden und aktiv. Diese kaskadierenden Genregulationsnetzwerke erklären, warum trotz identischer DNA in jeder Zelle andere Gene ausgelesen werden \cite{LeeYoung2013}.
+Dieser Prozess der Genexpression unterliegt einer zellinternen Genregulation. Dabei binden Transkriptionsfaktoren an regulatorische DNA-Abschnitte wie Promotoren und Enhancer und rekrutieren darüber die RNA-Polymerase, welche das Ablesen des jeweiligen Genabschnitts startet. Je nach gebundenem Transkriptionsfaktor wird die Transkription gehemmt oder aktiviert, es kommt also entweder zum Ablesen oder nicht. Transkriptionsfaktoren sind dabei selbst Proteine, die als Genprodukte anderer Gene entstehen. Je nach Zelltyp, Entwicklungsstadium und äußeren Signalen sind verschiedene Transkriptionsfaktoren vorhanden und aktiv. Diese kaskadierenden Genregulationsnetzwerke erklären, warum trotz identischer DNA in jeder Zelle andere Gene ausgelesen werden \cite{LeeYoung2013}.
 
-Die Feinjustierung der Genexpression umfasst mehrere nachgelagerte Ebenen. Post-transkriptionell wird beispielsweise durch microRNAs oder alternatives Spleißen reguliert, diese Prozesse entscheiden welche und wie viel mRNA für die Translation zur Verfügung steht. Translational wird die Proteinbiosyntheserate kontrolliert, welche bestimmt, wie viele funktionale Proteine aus einer gegebenen mRNA-Menge tatsächlich entstehen. In der post-translationaler Ebene findet schließlich die Proteinmodifikation (z.\,B. Phosphorylierung, Ubiquitinierung) statt. Eine Abnormalität in einer dieser Kontrollebenen kann zur Fehlregulation der Genexpression und in Folge dessen zu Krankheitsbildern führen \cite{LeeYoung2013}.
+Die Feinjustierung der Genexpression umfasst mehrere nachgelagerte Ebenen. Post-transkriptionell wird beispielsweise durch microRNAs oder alternatives Spleißen reguliert, diese Prozesse entscheiden welche und wie viel mRNA für die Translation zur Verfügung steht. Translational wird die Proteinbiosyntheserate kontrolliert, welche bestimmt, wie viele funktionale Proteine aus einer gegebenen mRNA-Menge tatsächlich entstehen. In der post-translationalen Ebene findet schließlich die Proteinmodifikation (z.\,B. Phosphorylierung, Ubiquitinierung) statt. Eine Abnormalität in einer dieser Kontrollebenen kann zur Fehlregulation der Genexpression und infolgedessen zu Krankheitsbildern führen \cite{LeeYoung2013}.
 
-Die Datenerhebung der möglicherweise dafür verantwortlichen RNA-Mengen erfolgt nach heutigem Stand der Technik meist über das High-Throughput-Verfahren des Next-Generation-Sequencing (RNA-Seq). In Ausnahmefällen werden noch ältere Microarray-Technologien verwendet, diese haben allerdings eine geringere Sensitivität und einen eingeschränkteren dynamischen Messbereich als RNA-Seq \cite{Wang2009}. Der bioinformatische Workflow führt dabei von der RNA-Isolation über das Alignment an ein Referenzgenom bis hin zur Generierung einer rohen Count-Matrix \cite{Kukurba2015}. Diese Matrix bildet das Ergebnis der Sequenzierung ab, sie enthält für jedes Gen (Zeilen) und jede untersuchte Probe oder jeden Patienten (Spalten) die Anzahl der Reads. Eine solches tabellarische Format erwartet auch der CSV-Upload des, in dem diesem Projekt entwickelten Dashboard (siehe Kap.~\ref{gui}).
+Die Datenerhebung der möglicherweise dafür verantwortlichen RNA-Mengen erfolgt nach heutigem Stand der Technik meist über das High-Throughput-Verfahren des Next-Generation-Sequencing (RNA-Seq). In Ausnahmefällen werden noch ältere Microarray-Technologien verwendet, diese haben allerdings eine geringere Sensitivität und einen eingeschränkteren dynamischen Messbereich als RNA-Seq \cite{Wang2009}. Der bioinformatische Workflow führt dabei von der RNA-Isolation über das Alignment an ein Referenzgenom bis hin zur Generierung einer rohen Count-Matrix \cite{Kukurba2015}. Diese Matrix bildet das Ergebnis der Sequenzierung ab, sie enthält für jedes Gen (Zeilen) und jede untersuchte Probe oder jeden Patienten (Spalten) die Anzahl der Reads. Ein solches tabellarische Format erwartet auch der CSV-Upload des, in diesem Projekt entwickelten Dashboards (siehe Kap.~\ref{gui}).
 
 Bei diesen Rohdaten kommt es jedoch unweigerlich zu systematischen Verzerrungen, bedingt durch variierende Genlängen und stark schwankende Sequenziertiefen zwischen den einzelnen Probenläufen. Die Sequenziertiefe bezeichnet dabei die Gesamtzahl der in einem Lauf erzeugten Reads für eine Probe und kann zwischen den Proben stark variieren. Ein direkter Vergleich zweier Proben unterschiedlicher Sequenziertiefen würde also fälschlicherweise einen Unterschied in der Genaktivität suggerieren, obwohl dieser lediglich an der Datenmenge liegt. Für eine valide biologische Vergleichbarkeit müssen die Datensätze daher zwingend mathematisch normalisiert werden, bevor sie miteinander verglichen werden können (siehe Kap.~\ref{normalisierung}) \cite{Oshlack2010}.
 
@@ -61,14 +68,15 @@ Da viele biologische Prozesse jedoch nicht monogen ablaufen, reicht die Betracht
 
 Eine der wichtigsten Referenzdatenbanken, welche hunderte dieser kuratierten Pathways für unterschiedlichste Organismen bereithält, ist die Kyoto Encyclopedia of Genes and Genomes (KEGG) \cite{Kanehisa2023}. KEGG bildet Signalwege, Stoffwechselwege und krankheitsassoziierte Prozesse als standardisierte grafische annotierte Netzwerke ab und beinhaltet pro Pathway die zusammengehörigen Gene. Damit können die Genexpressionsdaten direkt auf die bekannten biologischen Zusammenhänge abgebildet werden. 
 
-Das in diesem Projekt entwickelte Dashboard erlaubt es den Nutzern verschiedenste Pathways der KEGG-Datenbank auszuwählen. Damit können die interessanten Aktivitätsmuster gezielt und ohne Umwege über die vollständige Genexpressionsmatrix untersucht werden. Genaueres zur technischen Implementierung ist in Kapitel~\ref{pathways} zu finden.
+Das in diesem Projekt entwickelte Dashboard erlaubt es den Nutzern verschiedenste Pathways der KEGG-Datenbank auszuwählen. Damit lässt sich die Analyse gezielt auf die für einen bestimmten Signalweg relevanten Gene eingrenzen, anstatt anstatt alle in der Count-Matrix enthaltenen Gene gemeinsam betrachten zu müssen. Genaueres zur technischen Implementierung ist in Kapitel~\ref{pathways} zu finden.
+
 
 \subsection{Medizinische Grundlagen}
 \label{medizin-grundlagen}
 
 \subsubsection{Klinische Relevanz der Genexpressionanalyse}
 
-Das entwickelte Tumorboard Dashboard findet vorrangig im klinischen Kontext, bei der Entwicklung personalisierter Therapiepläne, Anwendung. Ärzte sind hierbei besonders an der Genexpression und deren Regulation interessiert, da herkömmliche histopathologische, also rein visuelle Untersuchungen des Tumorgewebes die molekulare Heterogenität von Tumoren meist nicht vollständig abbilden können \cite{Vogelstein2013}. Denn zwei histologisch identische Tumore können auf molekularer Ebene vollkommen unterschiedliche Aktivitätsprofile aufweisen und entsprechend unterschiedlich auf verschiedene Therapien ansprechen. Diese Informationsebene kommt im klinischen Bereich besonders für die Diagnosen, die Prognoseabschätzung und die Vorhersage der Erfolgschancen bei Therapieansätzen zum Einsatz \cite{NarrandesXu2018}. Beispiele aus der heutigen Zeit für den Einsatz der Genexpressionsdaten sind die Bestimmung des Ursprungsgewebes bei Tumoren unbekannter Herkunft, die Therapieentscheidung bei Brustkrebs sowie die Einschätzung des Rezidivrisikos, also der Wahrscheinlichkeit, dass die Erkrankung nach erfolgreicher Genesung erneut auftritt \cite{NarrandesXu2018}.
+Das entwickelte Tumorboard-Dashboard findet vorrangig im klinischen Kontext, bei der Entwicklung personalisierter Therapiepläne, Anwendung. Ärzte sind hierbei besonders an der Genexpression und deren Regulation interessiert, da herkömmliche histopathologische, also rein visuelle Untersuchungen des Tumorgewebes die molekulare Heterogenität von Tumoren meist nicht vollständig abbilden können \cite{Vogelstein2013}. Denn zwei histologisch identische Tumore können auf molekularer Ebene vollkommen unterschiedliche Aktivitätsprofile aufweisen und entsprechend unterschiedlich auf verschiedene Therapien ansprechen. Diese Informationsebene kommt im klinischen Bereich besonders für die Diagnosen, die Prognoseabschätzung und die Vorhersage der Erfolgschancen bei Therapieansätzen zum Einsatz \cite{NarrandesXu2018}. Beispiele aus der heutigen Zeit für den Einsatz der Genexpressionsdaten sind die Bestimmung des Ursprungsgewebes bei Tumoren unbekannter Herkunft, die Therapieentscheidung bei Brustkrebs sowie die Einschätzung des Rezidivrisikos, also der Wahrscheinlichkeit, dass die Erkrankung nach erfolgreicher Genesung erneut auftritt \cite{NarrandesXu2018}.
 
 \subsubsection{Das Molekulare Tumorboard}
 
@@ -142,16 +150,25 @@ Das Ziel des interdisziplinären Gremiums besteht dementsprechend darin, die gen
 \fancyhead{}
 \fancyhead[L]{Johanna}
 \subsection{Farben}
-
 \subsubsection{Kontrast- und Wahrnehmungsanforderungen}
-Die visuelle Aufbereitung der komplexen Darstellungen fordern fehlerfrei Interpretierbarkeit, Barrierefreiheit und visuelle Ausgeglichenheit/Neutralität. Dadurch sollen kognitive Verzerrungen durch ungleiche Signalwirkung vermieden werden und die Übersichtlichkeit beibehalten werden. Um dies zu erreichen muss sichergestellt werden, dass die Extrempunkte einer Messreihe visuell mit exakt derselben Intensität wahrgenommen werden, dies wird durch die selbe Leutdichte und Sättigung gewährleistet. Ist dies nicht gewährleistet würde das zu klinischen Fehlinterpetation bezüglich der Relevanz bestimmter Cluster führen. Die Berücksichtigung von Sehschwächen, insbesondere der Rot-Grün-Blindheit wurde für einen höheren Grad der Barrierefreiheit zu erlangen \cite{Crameri2020}.
 
-Diese datenbezogenen Kontraste dürfen zudem nicht mit der Grafikoberfläche konkurrieren. Aus diesem Grund wurde für das gesamte Layout der GUI ein bewusst neutrales, grau-weißes Farbschema gewählt. Diese chromatische Zurückhaltung der Steuerungselemente minimiert die visuelle Ermüdung bei längerer Bildschirmnutzung und stellt sicher, dass der Fokus des Anwenders unverzerrt auf den biologischen Mustern im Grafikpanel liegt \cite{Tufte1983}.
+Die visuelle Aufbereitung der komplexen Darstellungen fordert fehlerfreie Interpretierbarkeit, Barrierefreiheit, visuelle Ausgeglichenheit und Neutralität. Dadurch sollen kognitive Verzerrungen durch ungleiche Signalwirkung vermieden und die Übersichtlichkeit beibehalten werden. Um dies zu erreichen, muss sichergestellt werden, dass die Extrempunkte einer Messreihe visuell mit exakt derselben Intensität wahrgenommen werden, was durch dieselbe Leuchtdichte und Sättigung gewährleistet wird. Ist dies nicht gewährleistet, kann das zu klinischen Fehlinterpretationen bezüglich der Relevanz bestimmter Labels führen. Die Berücksichtigung von Sehschwächen, insbesondere der Rot-Grün-Blindheit, wurde ebenfalls einbezogen, um einen höheren Grad der Barrierefreiheit zu erlangen \cite{Crameri2020}.
+
+Diese datenbezogenen Kontraste dürfen zudem nicht mit der Grafikoberfläche konkurrieren. Aus diesem Grund wurde für das gesamte Layout der GUI ein bewusst neutrales Farbschema aus Grau-, Weiß- und Beigetönen gewählt. Diese zurückhaltenden Farben minimieren die visuelle Ermüdung bei längerer Bildschirmnutzung und stellen sicher, dass der Fokus des Anwenders unverzerrt auf den biologischen Mustern im Grafikpanel liegt \cite{Tufte1983}.
+
+Da das Dashboard primär für die Betrachtung auf Bildschirmen konzipiert ist, wurden die Farben für den dabei verwendeten additiven RGB-Farbraum ausgelegt. Für den möglichen Farbdruck der exportierten PDF-Dateien, welcher im subtraktiven CMYK-Farbraum stattfindet, muss deshalb berücksichtigt werden, dass keine exakte Farbtreue zu erwarten ist \cite{Crameri2020}.
 
 \subsubsection{Farbpaletten}
-Für die Wahl der Farbpaletten wurden sowohl theoretische als auch subjektive Farbwahrnehmungsaspekte in Betracht gezogen. Letztendlich wurden vier Farbtabellen ausgewählt, welche für die Heatmap zur Verfügung stehen. Sie werden über die R-Pakete \texttt{RColorBrewer} \cite{HarrowerBrewer2003} und  \texttt{viridis} angesteuert. 
+Für die Wahl der Farbpaletten wurden sowohl theoretische als auch subjektive Farbwahrnehmungsaspekte in Betracht gezogen. Letztendlich wurden vier Farbpaletten ausgewählt, welche sowohl für die Heatmap als auch, in leicht abgewandelter Form, für das Dendrogramm verwendet wurden. Sie werden über die R-Pakete \texttt{RColorBrewer} \cite{HarrowerBrewer2003} und \texttt{viridis} \cite{Viridis} angesteuert.
 
-\begin{table}[htbp]
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{farbpaletten.png}
+\caption{Übersicht der vier verwendeten Farbpaletten, erzeugt mit den R-Paketen \texttt{RColorBrewer} \cite{HarrowerBrewer2003} und \texttt{viridis} \cite{Viridis}.}
+\label{fig:farbpaletten}
+\end{figure}
+
+\begin{table}[H]
 \centering
 \small
 \caption{Vergleich der implementierten Farbpaletten für die Heatmap-Generierung.}
@@ -161,49 +178,50 @@ Für die Wahl der Farbpaletten wurden sowohl theoretische als auch subjektive Fa
 \toprule
 \textbf{Palette} & \textbf{Typ} & \textbf{Einsatzzweck und Begründung} \\
 \midrule
-\texttt{RdYlBu} & Divergierend & Bietet durch das helle, gelbe Zentrum einen neutralen Mittelpunkt für zweiseitige Abweichungen. Die äußeren Maxima entfalten eine visuell gleichwertige Intensität. \\
+\texttt{RdYlBu} & Divergierend & Bietet durch das helle, gelbe Zentrum einen neutralen Mittelpunkt für zweiseitige Abweichungen. Die äußeren Maxima sind bewusst mit annähernd gleicher visueller Intensität gewählt. \\
 \addlinespace
-\texttt{RdBu} & Divergierend & Ein klassisches, in der Genexpressionsanalyse bewährtes Farbschema. Es liefert maximale Kontraste und verzichtet zur Vermeidung von Rot-Grün-Fehlsichtigkeiten auf Grünanteile. \\
+\texttt{RdBu} & Divergierend & Ein klassisches, in der Genexpressionsanalyse bewährtes Farbschema, das maximale Kontraste liefert. Da die Palette auf Grünanteile verzichtet, ist sie zudem für Personen mit Rot-Grün-Schwäche gut differenzierbar. \\
 \addlinespace
-\texttt{PRGn} & Divergierend & Dient als barrierefreie und kontrastreiche Alternative zu traditionellen Skalen. Die Kombination aus Violett und Grün ist für farbfehlsichtige Personen präzise differenzierbar. \\
+\texttt{PRGn} & Divergierend & Dient als kontrastreiche Alternative zu traditionellen Skalen. Da die Unterscheidung von Violett und Grün nicht auf der Rot-Grün-Achse, sondern zusätzlich über die Blau-Gelb-Wahrnehmung erfolgt, ist die Kombination für Personen mit der deutlich häufigeren Rot-Grün-Sehschwäche gut differenzierbar. \\
 \addlinespace
-\texttt{viridis} & Sequentiell & Zeichnet sich durch einen absolut linearen Verlauf der Luminanz (Helligkeit) aus. Die visuelle Information bleibt auch bei Konvertierung in Graustufen oder Schwarz-Weiß-Druck vollständig erhalten. \\
+\texttt{viridis} & Sequentiell & Zeichnet sich durch einen gleichmäßigen, monoton steigenden Verlauf der Luminanz (Helligkeit) aus. Die visuelle Information bleibt auch bei Konvertierung in Graustufen oder Schwarz-Weiß-Druck vollständig erhalten. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-%Abstufungen
-%GUI
+Die drei divergierenden Paletten \texttt{RdYlBu}, \texttt{RdBu} und \texttt{PRGn} sind dabei gezielt so konstruiert, dass ihre beiden äußeren Farbwerte eine annähernd gleiche Sättigung und Helligkeit aufweisen \cite{HarrowerBrewer2003}. Dadurch wird vermieden, dass eine der beiden Richtungen einer Abweichung, etwa Über- oder Unterexpression eines Gens, allein aufgrund der Farbwahl visuell stärker gewichtet oder als bedeutsamer wahrgenommen wird als die andere.
 
-\subsubsection{Dendrogramm}
-%Überarbeiten
-Die Farbgebung der des Dendrogramms orientiert sich an den gewählten Farbpaletten. Allerdings mussten die hellen mittleren Farben ausgeschlossen werden, da sie zu hell für die Darstellung sind. Deshalb gibt es nur 9 Farben, auf die die Labels dann zurück greifen können. Falls es mehr Farben geben sollte wird auf die "default-colors" zurück gegriffen, die von mir zusammengesetllt wurden. 
+Für die Heatmap wird von den Farbpaletten jeweils der vollständige, elfstufige Verlauf verwendet, bei der farblichen Kennzeichnung der Labels im Dendrogramm ergibt sich hingegen eine andere Anforderung. Während für die Heatmap eine sequentielle bzw. divergierende Ordnung kontinuierlicher Expressionswerte abgebildet werden muss, ist für die qualitative Kennzeichnung der Patienten eine unbekannte Anzahl von diskreten Gruppen, ohne natürliche Rangfolge nötig \cite{HarrowerBrewer2003}. Um ein harmonisches Bild zu erzeugen orientiert sich die Farbgebung des Dendrogramms zwar an den Farbpaletten der Heatmap, verwendet jedoch nur neun der elf Farbabstufungen, da die mittleren hellen Töne oftmals nicht zuverlässig erkennbar und unterscheidbar sind. 
 
-\begin{verbatim}
-default_colors <- c(
-    "#0000FF", "#FF6C00", "#005300", "#A100FA", "#B2DF8A", "#FFD300",
-    "#0096FF", "#9B4D00", "#00FFD2", "#FDBF6F", "#7B8100", "#960000",
-    "#00646B", "#D60072", "#00FF00", "#FF0000", "#540066", "#00A278",
-    "#000094", "#FFC0CB"
-)
-\end{verbatim}
+Da es aber durchaus vorkommen kann, dass die Anzahl der zu kennzeichnenden Labels diese neun Farben übersteigt, existiert für diesen Fall ein sogenannter \texttt{default\_colors}-Vektor. Er enthält 20 gut unterscheidbare Farben. Dabei wurde auf folgende Kriterien geachtet. Es wurden kaum stark leuchtende Neonfarben verwendet, da diese bei längerer Betrachtung zu visueller Ermüdung führen und unangemessen stark hervortreten würden \cite{Tufte1983}. Pastelltöne und schwer unterscheidbare Farben wurden ebenfalls ausgeschlossen, da sie auf dem hellen GUI-Hintergrund zu wenig Kontrast bieten würden. Zusätzlich wurde die Reihenfolge der Farben in der Liste so angepasst, dass stets ein deutlicher Farbabstand zwischen zwei aufeinanderfolgenden Labels besteht, um auch bei direkt benachbarter Vergabe eine gute Unterscheidbarkeit zu gewährleisten.
+ 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{default_colors.png}
+\caption{Übersicht der 20 Farben des \texttt{default\_colors}-Vektors.}
+\label{fig:default-colors}
+\end{figure}
 
-\begin{table}[]
+\subsubsection{Schwierigkeiten}
+Gut unterscheidbare Farbpaletten zu finden, die alle Anforderungen, vor allem die der Verzerrungsfreiheit erfüllen, aber auch die \texttt{default\_colors} gut unterscheidbar auszuwählen, war nicht immer leicht. Die größten fachlichen Schwierigkeiten in diesem Projekt hat mir allerdings die farbliche Darstellung des Dendrogramms bereitet. Da die Linien dort sehr dünn auf weißem Hintergrund dargestellt werden, waren helle Farben aus den ausgewählten Farbpaletten häufig nicht gut erkennbar. Deshalb mussten die Abstufungen für das Dendrogramm entsprechend angepasst werden. Dieses Problem wurde leider auch erst vergleichsweise spät im Projektverlauf sichtbar, da die konzipierte Farbgebung erst spät ins Dendrogramm eingebaut wurde. Mit dem letztendlich erzielten Ergebnis bin ich zwar zufrieden, denke aber, dass sich eine noch feinere Abstimmung hätte erarbeiten lassen, wenn die getroffenen Absprachen von Beginn an konsequenter und fristgerecht eingehalten worden wären.
+
+
+\begin{table}[H]
 	\begin{tabular}{l|l|l}
 		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
 		\hline
-		Recherche Farbdarstellungen             & Johanna   & 4 Stunden               \\
+		Recherche Farbdarstellungen             & Johanna   & 7 Stunden               \\
 		Testen verschiedener Farbtabellen     & Johanna   & 2 Stunden               \\ 
-		Zusammenstellen der default-coulors             & Johanna   & 1,5 Stunden      \\ 
+		Zusammenstellen der default-colors             & Johanna   & 1,5 Stunden      \\ 
 		Grundlagen Kapitel Biologie verfasst              & Johanna   & 10 Stunden               \\ 
 		Grundlagen Kapitel Medizin  verfasst              & Johanna   & 8 Stunden               \\ 
-		Kommunikation zwischen den Teams   & Johanna   & 2 Stunden      \\ 
+        Ausarbeitung Farben verfasst              & Johanna   & 8 Stunden               \\
+		Kommunikation zwischen den Teams   & Johanna   & 4 Stunden      \\ 
         Meetings mit Adrika                & Johanna   & 3 Stunden    \\ 
         Absprachen mit Visualisierungsteam                & Johanna   & 3 Stunden    \\ 
         Gruppenmeetings                & Johanna   & 19,5 Stunden    \\ 
 	\end{tabular}
 \end{table}
-
 
 \newpage
 
