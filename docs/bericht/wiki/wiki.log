@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  13 JUL 2026 18:09
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  13 JUL 2026 19:18
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -523,13 +523,13 @@ LaTeX Warning: No positions in optional float specifier.
                Default added (so using `tbp') on input line 94.
 
 
-Overfull \hbox (9.93684pt too wide) in paragraph at lines 111--113
+Overfull \hbox (9.93684pt too wide) in paragraph at lines 111--115
 \OT1/cmr/m/n/12 Bei Gen-ex-pres-si-ons-da-ten han-delt es sich um kon-ti-nu-ier
 -li-che Da-ten, de-ren Abst[]ande f[]ur gew[]ohnlich
  []
 
 
-Overfull \hbox (10.84915pt too wide) in paragraph at lines 188--191
+Overfull \hbox (10.84915pt too wide) in paragraph at lines 182--185
 \OT1/cmr/m/n/12 Linkage ([][]\OT1/cmtt/m/n/12 "complete"[]\OT1/cmr/m/n/12 ) zur
  Verf[]ugung, so-wie ei-ne be-nut-zer-de-fi-nier-te Linkage-Funktion ([][]\OT1/
 cmtt/m/n/12 "custom"[]\OT1/cmr/m/n/12 ).
@@ -543,11 +543,6 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [5]
-Overfull \hbox (13.68272pt too wide) in paragraph at lines 198--199
-\OT1/cmr/m/n/12 Das Complete-Linkage-Verfahren ist ge-wis-ser-ma-^^Yen das Ge-g
-enst[]uck zum Single-Linkage-Verfahren
- []
-
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -556,6 +551,11 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [6]
+Overfull \hbox (13.68272pt too wide) in paragraph at lines 192--193
+\OT1/cmr/m/n/12 Das Complete-Linkage-Verfahren ist ge-wis-ser-ma-^^Yen das Ge-g
+enst[]uck zum Single-Linkage-Verfahren
+ []
+
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -596,11 +596,11 @@ L3 programming layer <2025-12-24>
 Here is how much of TeX's memory you used:
  7496 strings out of 467871
  122595 string characters out of 5418377
- 575638 words of memory out of 5000000
+ 577638 words of memory out of 5000000
  36240 multiletter control sequences out of 15000+600000
  637621 words of font info for 78 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 68i,21n,90p,677b,393s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 68i,21n,90p,773b,393s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/
 cmbx12.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/ams
 fonts/cm/cmex10.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/p
@@ -614,7 +614,7 @@ wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C
 :/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti
 12.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfont
 s/cm/cmtt12.pfb>
-Output written on wiki.pdf (10 pages, 144662 bytes).
+Output written on wiki.pdf (10 pages, 145900 bytes).
 PDF statistics:
  90 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
