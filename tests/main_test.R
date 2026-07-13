@@ -26,6 +26,7 @@ source("R/visualization/final_dendrogram.R")
 source("R/visualization/saving_functions.R")
 source("R/visualization/wrapper_functions.R")
 source("R/visualization/Grafikpanel.R")
+source("R/utils/na_preprocessing.R")
 
 # ============================================================
 # DATENBANK und DATENSATZ
@@ -39,6 +40,26 @@ dataset_kidney <- read.csv("data/TCGA_kidney_unnormalized_meta.csv")
 dataset_ship <- read.csv("data/SHIPP_microarray.csv")
 
 # ============================================================
+# Datensatz und NA Preprozess
+# ============================================================
+### In meiner Funktion ließt er den Datensatz ein deswegen kann die oberen Datasets nicht verwenden, zum 
+# ! Zum Testen Datapath hier verändern !
+dataset_path <- "data/SHIPP_microarray.csv"
+
+uploaded <- read_uploaded_csv(dataset_path)
+cleaned <- auto_clean_na_upload(uploaded$df)
+
+cleaned <- User_handle_na_decision(
+  df = cleaned$df,
+  info = cleaned$info,
+  action = "mean" # Hardcoded auf mean "drop" auch möglich mean= Mittelwert // drop = Remove
+)
+
+Na_removed_dataset <- cleaned$df
+na_info <- cleaned$info
+
+
+# ============================================================
 # PATHWAYS und INTEGRATION
 # ============================================================
 
@@ -46,7 +67,7 @@ dataset_ship <- read.csv("data/SHIPP_microarray.csv")
 meine_pathways <- c("Pathways in cancer")
 message("Nutze Pathway: ", meine_pathways)
 
-preprocess        <- preprocess_general(dataset_ship)
+preprocess        <- preprocess_general(Na_removed_dataset)
 data_preprocessed <- preprocess$dataset_preprocessed
 
 result <- run_data_integration(
