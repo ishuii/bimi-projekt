@@ -48,9 +48,12 @@ ui <- dashboardPage(
             choices = c(
               "Keine Normalisierung",
               "normalize_log_zscore",
+              "normalize_zscore",
               "normalize_log_only",
               "normalize_log_median_centering",
-              "normalize_log_mad"
+              "normalize_median_centering",
+              "normalize_log_mad",
+              "normalize_mad"
             )
           ),
           
@@ -370,7 +373,6 @@ ui <- dashboardPage(
     color: white !important;
     border: none !important;
     }
-  
     "))
     ),
     
@@ -550,9 +552,12 @@ ui <- dashboardPage(
               choices = c(
                 "Keine Normalisierung",
                 "normalize_log_zscore",
+                "normalize_zscore",
                 "normalize_log_only",
                 "normalize_log_median_centering",
-                "normalize_log_mad"
+                "normalize_median_centering",
+                "normalize_log_mad",
+                "normalize_mad"
               )
             ),
             
@@ -613,30 +618,23 @@ ui <- dashboardPage(
         navset_card_underline(
           nav_panel(
             "Grafikpanel",
-            withSpinner(
-              plotlyOutput("grafikpanel", height = "85vh", width = "100%"),
+              plotlyOutput("grafikpanel", height = "85vh", width = "100%", reportTheme = FALSE),
               type = 6,
               color = "#000000"
-            )
           ),
           
           nav_panel(
             "Dendrogram: Patient",
-            withSpinner(
               plotlyOutput("patientDendrogram", height = "85vh", width = "100%"),
               type = 6,
               color = "#000000"
-            )
           ),
           
           nav_panel(
             "Dendrogram: Gene",
-            withSpinner(
-              plotlyOutput("geneDendrogram", height = "85vh", width = "100%")
-              ,
+              plotlyOutput("geneDendrogram", height = "85vh", width = "100%"),
               type = 6,
               color = "#000000"
-            )
           )
         ),
 
