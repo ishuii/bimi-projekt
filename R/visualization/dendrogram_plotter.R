@@ -1,6 +1,7 @@
-####===========================================================================
+###===========================================================================
 # This is the main entry point for the dendrogram rendering engines.
 #
+# - get_color()            : generates a named color vector based on class labels and a palette
 # - plot_dendro_ggplot() : takes pre-calculated data and renders a ggplot2 object
 # - plot_dendro_plotly() : takes pre-calculated data and renders a plotly object
 #
@@ -8,6 +9,73 @@
 #    - generate_dendro_data() from your data script
 #####===========================================================================
 
+####===========================================================================
+#                               GET_COLOR
+#
+# Generates a named color vector mapping each unique class to a specific hex code.
+# Dynamically samples from viridis, RColorBrewer, or a custom default fallback list.
+# Returns a translation vector that guarantees "Default" maps to black.
+#####===========================================================================
+get_color <- function(class_labels, palette) {
+  
+  # check input validity; return default black early if vectors are missing
+  if (is.null(class_labels) || is.null(palette)) {
+    return(c("Default" = "black"))
+  }
+  
+  # extract unique groups and clean the vector by removing empty strings, NAs AND "Default"
+  detected_classes <- unique(class_labels)
+  # OPTIMIERUNG: Hier filtern wir "Default" direkt aus den Paletten-Klassen heraus!
+  detected_classes <- detected_classes[!is.na(detected_classes) & detected_classes != "" & detected_classes != "Default"]
+  n <- length(detected_classes)
+  
+  # if no classes remain after cleaning, fall back to default black mapping
+  if (n == 0) {
+    return(c("Default" = "black"))
+  }
+  
+  # define standard hex colors as a backup if no library palette is selected
+  default_colors <- c(
+    "#0000FF", "#FF6C00", "#005300", "#A100FA", "#B2DF8A",
+    "#FFD300", "#0096FF", "#9B4D00", "#00FFD2", "#FDBF6F",
+    "#7B8100", "#960000", "#00646B", "#D60072", "#00FF00",
+    "#FF0000", "#540066", "#00A278", "#000094", "#FFC0CB"
+  )
+  
+  # if palette is given => get color vectors
+  if (!is.null(palette)) {
+    colors <- switch(
+      palette,
+      "viridis" = viridis::viridis(n, end = 0.8),
+      "RdYlBu"  = {
+        full <- RColorBrewer::brewer.pal(11, "RdYlBu")
+        full <- full[-c(5, 6, 7)]                 
+        full[round(seq(1, length(full), length.out = n))]
+      },
+      "RdBu"    = {
+        full <- RColorBrewer::brewer.pal(11, "RdBu")
+        full <- full[-c(5, 6, 7)]                 
+        full[round(seq(1, length(full), length.out = n))]
+      },
+      "PRGn"    = {
+        full <- RColorBrewer::brewer.pal(11, "PRGn")
+        full <- full[-c(5, 6, 7)]                 
+        full[round(seq(1, length(full), length.out = n))]
+      },
+      {
+        warning(paste("Unbekannte Palette:", palette, "-> verwende Standardfarben"))
+        default_colors[1:n]
+      }
+    )
+  } else {
+    colors <- default_colors[1:n]
+  }
+  
+  # build the final translation vector and explicitly bind "Default" to black
+  color_vector <- c(setNames(colors, detected_classes), "Default" = "black")
+  
+  return(color_vector)
+}
 #####===========================================================================
 #                         PLOT_DENDRO_GGPLOT
 #
@@ -17,12 +85,15 @@
 #####===========================================================================
 #                         PLOT_DENDRO_GGPLOT
 #####===========================================================================
-plot_dendro_ggplot <- function(dendro_data, title="", names_vector=NULL, show_legend=FALSE, show_x_axis=TRUE, show_y_axis=TRUE) {
+plot_dendro_ggplot <- function(dendro_data, title="", names_vector=NULL, palette_name="RdBu", show_legend=FALSE, show_x_axis=TRUE, show_y_axis=TRUE) {
   
   segments_df <- dendro_data$draw_result$segments
   labels_df   <- dendro_data$draw_result$labels
   max_height  <- dendro_data$max_height
-  palette     <- dendro_data$color_vector
+  
+  # Palette dynamic generation at runtime
+  all_classes <- c(segments_df$class, labels_df$class)
+  palette     <- get_color(all_classes, palette_name)
   
   labels_df$label <- if (!is.null(names_vector)) {
     names_vector[labels_df$id]
@@ -93,126 +164,201 @@ plot_dendro_ggplot <- function(dendro_data, title="", names_vector=NULL, show_le
   
   return(plot)
 }
-
 #####===========================================================================
 #                         PLOT_DENDRO_PLOTLY
 #####===========================================================================
-plot_dendro_plotly <- function(dendro_data, title="", names_vector=NULL, show_legend=FALSE, show_x_axis=TRUE, show_y_axis=TRUE) {
+plot_dendro_plotly <- function(
+    dendro_data, 
+    side = "top",         # "top" (oben) oder "left" (links)
+    names_vector = NULL,  # Die echten Namen für die Achsenbeschriftung
+    palette_name = "RdBu", # Palette dynamic parameter introduction
+    show_legend = FALSE,
+    show_x_axis = TRUE,   # Kontrolliert die Namen unten
+    show_y_axis = TRUE    # Kontrolliert die Distanz-Skala
+) {
   
+  # 1. Daten und Variablen entpacken
   segments_df <- dendro_data$draw_result$segments
   labels_df   <- dendro_data$draw_result$labels
   max_height  <- dendro_data$max_height
-  palette     <- dendro_data$color_vector
+  elements    <- nrow(labels_df)
   
-  # resolving display names => falling back to raw id if no names provided
-  labels_df$label <- if (!is.null(names_vector)) {
-    names_vector[labels_df$id]
-  } else {
-    as.character(labels_df$id)
+  if (is.null(segments_df) || nrow(segments_df) == 0) {
+    return(plotly::plot_ly())
   }
   
-  # calculate dynamic font sizes based on the dataset size
-  n_elements <- nrow(labels_df)
-  axis_title_size <- max(8, min(14, 14 - (n_elements / 30)))
-  axis_text_size  <- max(6, min(10, 10 - (n_elements / 40)))
+  # Palette dynamic generation at runtime
+  all_classes <- c(segments_df$class, labels_df$class)
+  palette     <- get_color(all_classes, palette_name)
   
-  # initialize the plotly object
+  # 2. Native Plotly-Fläche initialisieren
   plot <- plotly::plot_ly()
   
-  # layer 1 & 2: drawing branch segments and text labels grouped by class to preserve coloring
-  # To map the colors exactly, we loop through the unique classes and add them as grouped traces
+  # 3. Äste zeichnen mit dynamischem Hover-Text
   unique_classes <- unique(segments_df$class)
-  
-  for (classes in unique_classes) {
-    classes_segments <- segments_df[segments_df$class == classes, ]
-    classes_color <- if (classes %in% names(palette)) palette[classes] else "black"
+  for (cl in unique_classes) {
+    cl_segs  <- segments_df[segments_df$class == cl, ]
+    cl_color <- if (cl %in% names(palette)) palette[cl] else "black"
     
-    # We need to structure the coordinates for vector-optimized line drawing in plotly:
-    # alternating x0, x1, NA and y0, y1, NA creates disconnected segments within a single trace
-    x_coords <- as.vector(t(cbind(classes_segments$x0, classes_segments$x1, NA)))
-    y_coords <- as.vector(t(cbind(classes_segments$y0, classes_segments$y1, NA)))
+    if (nrow(cl_segs) == 0) next
     
-    # evaluate legend visibility for specific classes analogously to scale_color_manual breaks
-    is_default <- (classes == "Default")
-    include_in_legend <- show_legend && !is_default
+    if (side == "top") {
+      x_coords <- as.vector(t(cbind(cl_segs$x0, cl_segs$x1, NA)))
+      y_coords <- as.vector(t(cbind(cl_segs$y0, cl_segs$y1, NA)))
+    } else {
+      x_coords <- as.vector(t(cbind(-cl_segs$y0, -cl_segs$y1, NA)))
+      y_coords <- as.vector(t(cbind(cl_segs$x0, cl_segs$x1, NA)))
+    }
+    
+    # DYNAMISCHER HOVER-TEXT FÜR ÄSTE: Keine Gruppe bei "Default"
+    hover_texts <- if (cl == "Default") {
+      paste0("Distanz: <b>", round(y_coords, 3), "</b>")
+    } else {
+      paste0("Gruppe: <b>", cl, "</b><br>Distanz: <b>", round(y_coords, 3), "</b>")
+    }
     
     plot <- plot %>% plotly::add_lines(
-      x = x_coords,
-      y = y_coords,
-      line = list(color = classes_color, width = 1.5),
-      name = classes,
-      legendgroup = classes,
-      showlegend = include_in_legend,
-      hoverinfo = "none"
-      
+      x = x_coords, y = y_coords,
+      line = list(color = cl_color, width = 1.5),
+      name = as.character(cl),
+      legendgroup = as.character(cl),
+      showlegend = (show_legend && cl != "Default"),
+      hoverinfo = "text",
+      text = hover_texts
     )
     
-    if (show_x_axis) {
-      font_size_plotly <- max(8, min(18, 180 / n_elements))
-      class_labels_df <- labels_df[labels_df$class == classes, ]
+    # --- 4. ANNOTATIONS & HOVER AN DEN ENDPUNKTEN (OHNE AUSDÜNNUNG) ---
+    cl_labels <- labels_df[labels_df$class == cl, ]
+    
+    if (nrow(cl_labels) > 0) {
+      all_names <- if (!is.null(names_vector)) names_vector[cl_labels$id] else as.character(cl_labels$id)
       
-      if (nrow(class_labels_df) > 0) {
-        plot <- plot %>% plotly::add_annotations(
-          x = class_labels_df$x,
-          y = rep(0, nrow(class_labels_df)), # Bleibt mathematisch exakt auf der Nulllinie
-          text = class_labels_df$label,
-          showarrow = FALSE,
-          textangle = -90,                 # Text verläuft senkrecht von oben nach unten
-          xanchor = "center",              # ERZWINGT: Absolut kein Links-/Rechts-Versatz mehr!
-          yanchor = "bottom",              # Dockt die Basis des Texts (das Textende) an y=0 an
-          yshift = -15,                    # KORREKTUR: Schiebt das Textende starr im Raum nach unten
-          font = list(
-            size = font_size_plotly,        
-            color = classes_color
-          ),
-          legendgroup = classes,
-          showlegend = FALSE,
-          hoverinfo = "none"
+      # Hover-Netz (Nutzt alle Patienten der Klasse)
+      leaf_hover_text <- if (cl == "Default") {
+        paste0("Name: <b>", all_names, "</b>")
+      } else {
+        paste0("Name: <b>", all_names, "</b><br>Gruppe: <b>", cl, "</b>")
+      }
+      
+      if (side == "top") {
+        plot <- plot %>% plotly::add_trace(
+          type = "scatter", mode = "markers",
+          x = cl_labels$x, y = 0,
+          marker = list(size = 4, color = cl_color, opacity = 0), 
+          hoverinfo = "text", text = leaf_hover_text, showlegend = FALSE
+        )
+      } else {
+        plot <- plot %>% plotly::add_trace(
+          type = "scatter", mode = "markers",
+          x = 0, y = cl_labels$x,
+          marker = list(size = 4, color = cl_color, opacity = 0),
+          hoverinfo = "text", text = leaf_hover_text, showlegend = FALSE
         )
       }
+      
+      # ------------------------------------------------------------------------
+      # Text-Achsenbeschriftung: Zeigt JEDEN Namen ohne Ausnahme an
+      # ------------------------------------------------------------------------
+      if (show_x_axis) {
+        
+        # Berechnet die Schriftgröße weiterhin dynamisch basierend auf der Gesamtanzahl,
+        # damit es bei vielen Elementen zumindest versucht, lesbar zu bleiben.
+        dynamic_size <- max(6.5, min(12, 13 - (elements / 20)))
+        
+        # Kosmetik: Wenn der Datensatz klein ist (< 100 Elemente), fetten wir den Text
+        display_names <- all_names
+        if (elements < 100) {
+          display_names <- paste0("<b>", display_names, "</b>")
+        }
+        
+        if (side == "top") {
+          plot <- plot %>% plotly::add_annotations(
+            x = cl_labels$x, y = 0,
+            xref = "data", yref = "paper",
+            text = display_names,
+            showarrow = FALSE, textangle = -90,          
+            xanchor = "center", yanchor = "top",          
+            font = list(color = cl_color, size = dynamic_size),
+            hoverinfo = "none"
+          )
+        } else {
+          plot <- plot %>% plotly::add_annotations(
+            x = 0, y = cl_labels$x,
+            xref = "paper", yref = "data",
+            text = display_names,
+            showarrow = FALSE, textangle = 0,            
+            xanchor = "right", yanchor = "middle",
+            font = list(color = cl_color, size = dynamic_size),
+            hoverinfo = "none"
+          )
+        }
+      }
+      # ------------------------------------------------------------------------
     }
   }
-  # layer 4: clean white background, removing grid, axis lines and x ticks
-  # Setting up the layout configuration to exactly mimic theme_classic()
-  xaxis_config <- list(
-    title = "",
-    showgrid = FALSE,
-    showline = FALSE,
-    zeroline = FALSE,
-    showticklabels = FALSE,
-    ticks = "",
-    range = c(0.5, n_elements + 0.5)
+  
+  # ============================================================================
+  # 5. GRANULIERTE ACHSEN-SEGMENTIERUNG (nticks = 18)
+  # ============================================================================
+  max_char_len <- if (!is.null(names_vector)) max(nchar(as.character(names_vector)), na.rm = TRUE) else 10
+  dynamic_margin <- max(80, max_char_len * 5.0)
+  
+  clean_axis <- list(
+    showgrid = FALSE, showline = FALSE, zeroline = FALSE, 
+    showticklabels = FALSE, ticks = "", title = "", fixedrange = FALSE
   )
   
-  yaxis_config <- list(
-    title = list(text = "Distance", font = list(size = axis_title_size)),
-    showgrid = FALSE,
-    showline = FALSE,
-    zeroline = FALSE,
-    showticklabels = show_y_axis,
-    ticks = "",
-    tickvals = seq(0, max_height, by = 5),
-    tickfont = list(size = axis_text_size),
-    range = c(-8, max_height)
-  )
+  xaxis_config <- clean_axis
+  yaxis_config <- clean_axis
   
-  if (!show_y_axis) {
-    yaxis_config$title <- list(text = "")
+  if (side == "top") {
+    xaxis_config$range <- c(0.5, elements + 0.5)
+    yaxis_config$range <- c(0, max_height * 1.05)
+    
+    if (show_y_axis) {
+      yaxis_config$showticklabels <- TRUE
+      yaxis_config$nticks         <- 18 
+      
+      plot <- plot %>% plotly::add_annotations(
+        x = -0.06, y = 0.5, xref = "paper", yref = "paper",
+        text = "Distance", showarrow = FALSE, textangle = -90,
+        font = list(size = 12, color = "black"), hoverinfo = "none"
+      )
+    }
+  } else {
+    yaxis_config$range <- c(0.5, elements + 0.5)
+    xaxis_config$range <- c(-max_height * 1.05, 0)
+    
+    if (show_y_axis) {
+      xaxis_config$showticklabels <- TRUE
+      xaxis_config$nticks         <- 18
+      
+      plot <- plot %>% plotly::add_annotations(
+        x = 0.5, y = -0.06, xref = "paper", yref = "paper",
+        text = "Distance", showarrow = FALSE, textangle = 0,
+        font = list(size = 12, color = "black"), hoverinfo = "none"
+      )
+    }
   }
   
-  # assembling the final plot layout
-  plot <- plot %>% plotly::layout(
-    title = list(
-      text = paste0("<b>", title, "</b>"),
-      font = list(size = axis_title_size + 2)
-    ),
-    xaxis = xaxis_config,
-    yaxis = yaxis_config,
-    plot_bgcolor = "white",
-    paper_bgcolor = "white",
-    showlegend = show_legend,
-    margin = list(b = if (show_x_axis) 160 else 40, l = 60, r = 40, t = 60)
-  )
+  # ============================================================================
+  # 6. LAYOUT GENERIEREN
+  # ============================================================================
+  plot <- plot %>% 
+    plotly::layout(
+      xaxis         = xaxis_config, 
+      yaxis         = yaxis_config,
+      plot_bgcolor  = "white",  
+      paper_bgcolor = "white",
+      showlegend    = show_legend,
+      margin        = list(
+        b = if (show_x_axis && side == "top") dynamic_margin else 40,
+        l = if (show_x_axis && side == "left") dynamic_margin else 75,
+        r = 40,
+        t = 40
+      )
+    ) %>% 
+    plotly::config(scrollZoom = TRUE)
   
   return(plot)
 }

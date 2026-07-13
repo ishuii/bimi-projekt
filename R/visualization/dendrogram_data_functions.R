@@ -1,9 +1,9 @@
+
 #####===========================================================================
 # This script contains the core functions for rendering the dendrogram data.
 #
 # - calculate_coords()     : calculates x/y coordinates for each node in the tree
 # - draw_segments()        : traverses the tree and collects all line segments and leaf metadata
-# - get_color()            : generates a named color vector based on class labels and a palette
 # - generate_dendro_data() : runs the full data pipeline and prepares the final data package
 #####===========================================================================
 
@@ -112,71 +112,6 @@ draw_segments <- function(node_coords, tree, order, height, class_labels) {
   ))
 }
 
-
-
-####===========================================================================
-#                               GET_COLOR
-#
-# Generates a named color vector mapping each unique class to a specific hex code.
-# Dynamically samples from viridis, RColorBrewer, or a custom default fallback list.
-# Returns a translation vector that guarantees "Default" maps to black.
-#####===========================================================================
-get_color <- function(class_labels, palette) {
-  
-  # check input validity; return default black early if vectors are missing
-  if (is.null(class_labels) || is.null(palette)) {
-    return(c("Default" = "black"))
-  }
-  
-  # extract unique groups and clean the vector by removing empty strings and NAs
-  detected_classes <- unique(class_labels)
-  detected_classes <- detected_classes[!is.na(detected_classes) & detected_classes != ""]
-  n <- length(detected_classes)
-  
-  # if no classes remain after cleaning, fall back to default black mapping
-  if (n == 0) {
-    return(c("Default" = "black"))
-  }
-  
-  # define standard hex colors as a backup if no library palette is selected
-  default_colors <- c(
-    "#0000FF", "#FF0000", "#00FF00", "#D60072", "#B2DF8A",
-    "#005300", "#FFD300", "#0096FF", "#9B4D00", "#00FFD2", 
-    "#A100FA", "#7B8100", "#960000", "#00646B", "#FDBF6F",
-    "#FF6C00", "#540066", "#00A278", "#000094", "#FFC0CB"
-  )
-  
-  # evaluate palette selection; handle viridis natively first
-  if (palette == "viridis") {
-    colors <- viridis::viridis(n, end = 0.8)
-    
-    # for brewer palettes, extract the full scale to resample from it later
-  } else if (palette %in% c("RdYlBu", "RdBu", "PRGn")) {
-    full <- switch(palette,
-                   "RdYlBu" = RColorBrewer::brewer.pal(11, "RdYlBu")[-c(5, 6, 8)], # remove muddy center colors
-                   "RdBu"   = RColorBrewer::brewer.pal(11, "RdBu"),
-                   "PRGn"   = RColorBrewer::brewer.pal(11, "PRGn")
-    )
-    # interpolate the brewer palette to match the exact number of detected classes
-    colors <- if (n <= length(full)) {
-      full[round(seq(1, length(full), length.out = n))]
-    } else {
-      default_colors[1:n] # fallback to defaults if n exceeds brewer limits
-    }
-    
-    # trigger warning for unsupported palette strings and apply default colors
-  } else {
-    warning(paste("Unbekannte Palette:", palette, "-> verwende Standardfarben"))
-    colors <- default_colors[1:n]
-  }
-  
-  # build the final translation vector and explicitly bind "Default" to black
-  color_vector <- c(setNames(colors, detected_classes), "Default" = "black")
-  
-  return(color_vector)
-}
-
-
 #####===========================================================================
 #                         GENERATE_DENDRO_DATA
 #
@@ -185,11 +120,8 @@ get_color <- function(class_labels, palette) {
 # Returns a packaged list containing all structural and aesthetic components
 # required by the final rendering engines (ggplot/plotly).
 #####===========================================================================
-generate_dendro_data <- function(cluster_result, tree_result, order_vector, class_labels = NULL, palette = NULL) {
+generate_dendro_data <- function(cluster_result, tree_result, order_vector, class_labels = NULL) {
   cluster_height <- cluster_result$matched_at
-  
-  # 1. generating named color vector (e.g. c("ClassA" = "#FF0000", "Default" = "black"))
-  color_vector   <- get_color(class_labels, palette)
   
   # 2. calculating root coordinates and collecting all branch segments
   coords         <- calculate_coords(tree_result, order_vector, cluster_height)
@@ -204,8 +136,7 @@ generate_dendro_data <- function(cluster_result, tree_result, order_vector, clas
   # returning pre-calculated structure and mapping table for the plotting functions
   return(list(
     draw_result  = draw_result,
-    max_height   = max(cluster_height),
-    color_vector = color_vector
+    max_height   = max(cluster_height)
   ))
 }
 
