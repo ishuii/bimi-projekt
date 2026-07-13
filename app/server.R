@@ -28,7 +28,9 @@ server <- function(input, output, session) {
   heatmap_store <- reactiveVal(NULL)
   patient_store <- reactiveVal(NULL)
   gene_store <- reactiveVal(NULL)
-  
+
+  dataset_name <- reactiveVal(NULL)
+
   clust_config <- reactiveValues(
     method = "Single-Linkage",
     normalisation = "normalize_log_zscore",
@@ -83,6 +85,8 @@ server <- function(input, output, session) {
         
         uploaded <- read_uploaded_csv(input$Datei_csv$datapath)
         
+        dataset_name(tools::file_path_sans_ext(input$Datei_csv$name))
+        
         incProgress(0.5, detail = "NA-Werte werden geprüft")
         
         cleaned <- auto_clean_na_upload(uploaded$df)
@@ -116,7 +120,7 @@ server <- function(input, output, session) {
       div(
         style = "font-size: 16px; font-weight: bold; color: #000000; margin-top: 10px;",
         icon("check-circle"),
-        "Datei erfolgreich hochgeladen und automatisch auf leere NA-Zeilen/Spalten geprüft."
+        "Datei erfolgreich hochgeladen und geprüft."
       )
     })
     
@@ -470,18 +474,13 @@ server <- function(input, output, session) {
   
   run_analysis <- function() {
     cat("Analysis started\n")
-    
-    
-    output$analysis_status <- renderUI({
-      div(style = "font-size: 18px; color: black;", icon("spinner", class = "fa-spin"), 
-          "Analyse wurde gestartet, bitte warten...")
-    })
+ 
     
     withProgress(
       message = "Analyse gestartet...",
       value = 0,
       {
-        incProgress(0.15, detail = "Daten werden verarbeitet")
+        incProgress(0.2, detail = "Daten werden verarbeitet")
         
         tryCatch({
           req(daten())
@@ -502,7 +501,8 @@ server <- function(input, output, session) {
           selected_pathways <- input$pathways
           req(selected_pathways)
           req(length(selected_pathways) > 0)
-             #------------------ PREPROCESS + INTEGRATION OF DATA -------------------
+          
+          #------------------ PREPROCESS + INTEGRATION OF DATA -------------------
           
           preprocess <- preprocess_general(data)
           data_preprocessed <- preprocess$dataset_preprocessed
@@ -525,9 +525,12 @@ server <- function(input, output, session) {
             clust_config$normalisation,
             "Keine Normalisierung" = 0,
             "normalize_log_zscore" = 1,
-            "normalize_log_only" = 2,
-            "normalize_log_median_centering" = 3,
-            "normalize_log_mad" = 4,
+            "normalize_zscore" = 2,
+            "normalize_log_only" = 3,
+            "normalize_log_median_centering" = 4,
+            "normalize_median_centering" = 5,
+            "normalize_log_mad" = 6,
+            "normalize_mad" = 7,
             0
           )
           cat("norm_number:", norm_number, "\n")
@@ -540,12 +543,13 @@ server <- function(input, output, session) {
           
           prepared_data(df_prepared)
           
-          patient_names_vec <- colnames(df_normalized)
+          patient_names_vec <- colnames(result$meta_data)
           updateSelectizeInput(session, "focus_patient", choices = patient_names_vec, selected = character(0), server = TRUE)
           
           gene_names_vec <- result$gene_names
           
-          class_labels_vec <- as.character(metaDaten_gefiltert["Meta_labels", patient_names_vec])
+          label_row <- grep("lab", rownames(result$meta_data), ignore.case = TRUE, value = TRUE)[1]
+          class_labels_vec <- if(!is.na(label_row)) as.character(result$meta_data[label_row, ]) else NULL
           cat("Class labels:", paste(unique(class_labels_vec), collapse = ", "), "\n")
           
           #--------------- DISTANCE + CLUSTERING ----------------------------------
@@ -582,8 +586,6 @@ server <- function(input, output, session) {
           } else
             NULL
           
-          
-          incProgress(0.7, detail = "Daten werden Visualisiert")          
           
           #---------------------DISTANCE MATRIX CACHE ------------------------
           
@@ -630,6 +632,8 @@ server <- function(input, output, session) {
             key = cache_key
           ))
           
+          incProgress(0.7, detail = "Daten werden Visualisiert")          
+          
           #---------------------CLUSTERING ------------------------
           
           cluster_pat <- hierarchical_clustering(
@@ -638,11 +642,16 @@ server <- function(input, output, session) {
             custom_params = custom_params
           )
           
+          cluster_pat$height <- cluster_pat$matched_at
+          
+          
           cluster_genes <- hierarchical_clustering(
             dist_mat_genes,
             method_name,
             custom_params = custom_params
           )
+          
+          cluster_genes$height <- cluster_genes$matched_at
           
           #---------------------DENDROGRAM PREP ----------------------------------
           
@@ -651,51 +660,64 @@ server <- function(input, output, session) {
           
           tree_genes <- build_tree(cluster_genes)
           order_genes <- get_order_vector(tree_genes)
-          
 
           #--------------------BUILD PLOTS ---------------------------------------
           
-          heatmap_plot <- generate_heatmap_plotly(
-            data_matrix = df_normalized,
-            gene_order = order_genes,
-            patient_order = order_pat,
-            gene_names = gene_names_vec,
-            palette = clust_config$palette,
-            show_x_axis = TRUE
-          )
-          
-          patient_dendro <- generate_dendro_plotly(
+          dendro_data_pat <- generate_dendro_data(
             cluster_result = cluster_pat,
             tree_result = tree_pat,
             order_vector = order_pat,
-            title = "TCGA Kidney Cancer: Patient Clustering",
-            names_vector = patient_names_vec,
-            class_labels = class_labels_vec,
-            palette = clust_config$palette,
-            show_x_axis = TRUE,
-            show_y_axis = TRUE
+            class_labels = class_labels_vec
           )
           
-          gene_dendro <- generate_dendro_plotly(
+          dendro_data_genes <- generate_dendro_data(
             cluster_result = cluster_genes,
             tree_result = tree_genes,
             order_vector = order_genes,
-            title = "TCGA Kidney Cancer: Gene Clustering",
-            names_vector = gene_names_vec,
-            class_labels = NULL,
+            class_labels = NULL
+          )
+          
+          patient_dendro <- plot_dendro_plotly(
+            dendro_data = dendro_data_pat,
+            side = "top",
+            names_vector = patient_names_vec,
+            palette_name = clust_config$palette,
+            show_legend = TRUE,
             show_x_axis = TRUE,
             show_y_axis = TRUE
-          )
+          ) %>%
+            layout(title = paste("Patient Dendrogram: ", dataset_name()),
+                   title = list(x=0.5, font = list(size=20)))
+          
+          gene_dendro <- plot_dendro_plotly(
+            dendro_data = dendro_data_genes,
+            side = "top",
+            names_vector = gene_names_vec,
+            palette_name = NULL,
+            show_legend = FALSE,
+            show_x_axis = TRUE,
+            show_y_axis = TRUE
+          ) %>%
+            layout(title = paste("Gene Dendrogram: ", dataset_name()),
+                   title = list(x=0.5, font = list(size=20)))
           
           final_plot <- grafikpanel(
-            heatmap_plot = heatmap_plot,
-            patient_dendro = patient_dendro,
-            gene_dendro = gene_dendro,
+            gene_dendro_data = dendro_data_genes,
+            patient_dendro_data = dendro_data_pat,
             gene_order = order_genes,
-            patient_order = order_pat
-          )
+            patient_order = order_pat,
+            data_matrix = df_normalized,
+            metaDaten_gefiltert = result$meta_data,
+            gene_names = gene_names_vec,
+            patient_names = patient_names_vec,
+            palette_name = clust_config$palette
+          ) %>%
+            layout(title = paste("Grafikpanel: ", dataset_name()),
+                   title = list(x=0.5, font = list(size=20)))
           
-          heatmap_store(final_plot)
+          system.time({
+            heatmap_store(final_plot)
+          })
           patient_store(patient_dendro)
           gene_store(gene_dendro)
           
@@ -710,15 +732,15 @@ server <- function(input, output, session) {
           order_gene(order_genes)
           gene_names(gene_names_vec)
           
-          shinyjs::delay(100, {
-            updateTabItems(session, "tabs", selected = "heatmap")
-          })
+          cat("Before tab switch\n")
+          incProgress(0.8, detail = "Visualisierung wird geladen...")
           
-          cat("tab switch triggered\n")
+          updateTabItems(session, "tabs", selected = "heatmap")
+          cat("After switch\n")
           
-
           incProgress(1, detail = "Fertig")
           
+
         }, error = function(e) {
           cat("\n=== ERROR after step above ===\n")
           cat("Message:", conditionMessage(e), "\n")
@@ -730,6 +752,8 @@ server <- function(input, output, session) {
       
     
   }
+  
+  
   
   observeEvent(input$run, {
     req(inputs_valid())
@@ -1090,14 +1114,14 @@ server <- function(input, output, session) {
     
     n_genes <- length(order_gene())
     
-    plot %>%
-      add_trace(type = "scatter", mode = "lines", 
-                x=c(patient_index-0.5, patient_index+0.5, patient_index+0.5, patient_index-0.5, patient_index-0.5),
-                y=c(0.5, 0.5, n_genes+0.5, n_genes+0.5, 0.5),
-                fill = "toself", fillcolor = "rgba(0, 0, 0, 0)",
-                line = list(color = "black", width = 3),
-                hoverinfo = "skip", xaxis = "x", yaxis = "y", showlegend = FALSE
-                )
+    plot <- layout(
+      plot,
+      shapes = list(
+        list(type = "rect", xref = "x", yref = "y", x0 = patient_index-0.5, x1 = patient_index+0.5,
+             y0=0.5, y1 = n_genes+0.5, line = list(color= "black",width=1.5),
+             fillcolor = "rgba(0,0,0,0)")
+      )
+    )
   })
   
   output$grafikpanel <- renderPlotly({
