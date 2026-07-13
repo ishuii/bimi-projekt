@@ -48,7 +48,7 @@ normalization <- function(df, norm_method) {
         "Fehler: Zeilen mit Standardabweichung 0 gefunden. Diese Normalisierungsmethode ist nicht passend."
       )
     }
-    df_norm <- t(scale(t(df_log)))
+    df_norm <- t(scale(t(df)))
     return(df_norm)
   }
   
