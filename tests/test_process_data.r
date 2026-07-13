@@ -97,10 +97,9 @@ pathway_names <- get_pathwaynames_from_database(con = con)
 # Coverage Analyse nur relevant für Adrika
 # gibt neben der Matrix auch einen Vektor mit den IDs zurück , die nicht abgedeckt wurden im Datensatz
 
-coverage_list <- analyze_pathways_coverage(c("Biosynthesis of amino acids", "Pentose and glucuronate interconversions"),data_preprocessed, con)
+coverage_list <- analyze_pathways_coverage("Pentose and glucuronate interconversions",data_preprocessed, con)
 matrix_unused_per_pathway <- coverage_list$matrix_unused
 ids_unused <- coverage_list$missing_ids
-
 
 
 #Diese Funktion ist die Hauptfunktion!!
@@ -109,7 +108,7 @@ ids_unused <- coverage_list$missing_ids
 #- Liste der von User gewählten Pathways hier Beispielhaft zwei 
 # - Con Objekt 
 result  <- run_data_integration(
-  dataset          = data_preprocessed,
+  dataset          = dataset_SHIPP_ID,
   chosen_pathways  = c("Biosynthesis of amino acids", "Pentose and glucuronate interconversions"),
   con              = con
 )
@@ -125,6 +124,7 @@ gefilteterDatensatz <- result$filtered_dataset
 metaDaten_gefiltert <- result$meta_data
 gene_vektor <- result$gene_vector
 gene_name <- result$gene_names
+
 
 
 
