@@ -190,5 +190,7 @@ grafikpanel <- function(
     yaxis3 = list(domain = c(0, 0.82), range = gene_range, matches = "y", type = "linear", showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE)
   )
   
+  final_panel <- config(final_panel, scrollZoom = TRUE)
+  
   return(final_panel)
 }

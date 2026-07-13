@@ -28,7 +28,7 @@ source("R/visualization/dendrogram_plotter.R")
 source("R/visualization/heatmap_final.R")
 source("R/visualization/graphics_panel.R")
 source("R/visualization/saving_functions.R")
-source("R/visualization/generate_plotly_graphics.R")
+
 
 
 # ============================================================
@@ -86,11 +86,11 @@ class_labels <- if (!is.na(label_row)) as.character(result$meta_data[label_row, 
 
 # patients transposed so columns (patients) are clustered
 dist_mat_pat <- dist_cpp(t(df_normalized), "euclidean")
-cluster_pat  <- hierarchical_clustering(dist_mat_pat, "complete")
+cluster_pat  <- hierarchical_clustering(dist_mat_pat, "average")
 
 # genes
 dist_mat_genes <- dist_cpp(df_normalized, "euclidean")
-cluster_genes  <- hierarchical_clustering(dist_mat_genes, "complete")
+cluster_genes  <- hierarchical_clustering(dist_mat_genes, "average")
 
 
 # ============================================================
@@ -192,8 +192,11 @@ print(final_plotly_den)
 # Globale Wunschpalette für das gesamte Panel definieren
 wunsch_palette <- "viridis" 
 
-# Der Parameter 'heatmap_plot' wurde entfernt, da die Erstellung
-# von 'generate_heatmap_plotly' jetzt intern in grafikpanel stattfindet.
+#"viridis" = viridis::viridis(100),
+#"RdYlBu"  = brewer.pal(11,"RdYlBu"),
+#"RdBu"    = brewer.pal(11,"RdBu"),
+#"PRGn"    = brewer.pal(11,"PRGn"),
+
 mein_panel <- grafikpanel(
   gene_dendro_data     = dendro_data_genes, 
   patient_dendro_data  = dendro_data_pat,   
