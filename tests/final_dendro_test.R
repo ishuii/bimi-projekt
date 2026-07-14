@@ -28,7 +28,6 @@ source("R/visualization/dendrogram_plotter.R")
 source("R/visualization/heatmap_final.R")
 source("R/visualization/graphics_panel.R")
 source("R/visualization/saving_functions.R")
-source("R/visualization/generate_plotly_graphics.R")
 
 
 # ============================================================
@@ -38,7 +37,7 @@ source("R/visualization/generate_plotly_graphics.R")
 con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 
 # dataset always placed under data/ so this path works for everyone
-dataset_kidney_meta <- read.csv("data/SHIPP_microarray.csv", header = TRUE)
+dataset_kidney_meta <- read.csv("data/TCGA_kidney_unnormalized_meta.csv", header = TRUE)
 
 # ============================================================
 # PATHWAY SELECTION AND DATA INTEGRATION
@@ -75,7 +74,7 @@ df_normalized <- normalization(df_prepared, 3)
 patient_names <- colnames(result$meta_data)
 gene_names    <- result$gene_names
 
-# Matcht: "labels", "meta_labels", "my_lab", "CLASS_LABEL", etc.
+# Matcht: "labels", "meta_labels"
 label_row    <- grep("lab", rownames(result$meta_data), ignore.case = TRUE, value = TRUE)[1]
 class_labels <- if (!is.na(label_row)) as.character(result$meta_data[label_row, ]) else NULL
 
@@ -208,3 +207,25 @@ mein_panel <- grafikpanel(
 
 # Plot im Viewer anzeigen
 print(mein_panel)
+
+
+# ============================================================
+# PDF EXPORT (Stufenloser Zoom für den Bericht)
+# ============================================================
+
+# Dein persönlicher Dokumenten-Pfad auf Windows
+mein_pfad <- "C:/Users/domif/OneDrive/Dokumente" 
+
+# 1. Patienten-Dendrogramm exportieren
+save_dendro_pdf(
+  plot      = final_plot_pat, 
+  dateiname = "patient_clustering_large", 
+  pfad      = mein_pfad
+)
+
+# 2. Gen-Dendrogramm exportieren
+save_dendro_pdf(
+  plot      = final_plot_den, 
+  dateiname = "gene_clustering_large", 
+  pfad      = mein_pfad
+)

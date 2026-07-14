@@ -101,30 +101,43 @@ plot_dendro_ggplot <- function(dendro_data, title="", names_vector=NULL, palette
     as.character(labels_df$id)
   }
   
-  # pushing labels just below the leaf lines
-  labels_df$y <- -0.1
+  # Set start of labels slightly below 0 (always 1% of the tree height)
+  labels_df$y <- - (max_height * 0.01)
   
-  # calculate dynamic font sizes based on the dataset size
+  # FESTES Y-LIMIT FÜR DEN BAUM:
+  y_min <- - (max_height * 0.05)
+  
+  # Beautiful rounded breaks for the distance axis
+  y_breaks <- pretty(c(0, max_height), n = 5)
+  final_max_y <- max(max(y_breaks), max_height)
+  
+  # ELEMENT COUNT & DYNAMIC SIZING FOR CONTENT ONLY:
   n_elements <- nrow(labels_df)
-  axis_title_size <- max(8, min(14, 14 - (n_elements / 30)))
-  axis_text_size  <- max(6, min(10, 10 - (n_elements / 40)))
   
-  # generate the empty plot and build layer by layer
+  # FESTE SCHRIFTGRÖSSEN FÜR DIE ACHSEN (Keine Skalierung mehr!)
+  axis_title_size <- 12  # Immer perfekt lesbar
+  axis_text_size  <- 10  # Immer perfekt lesbar
+  
+  # Dynamic Line Width (Ast-Dicke schrumpft weiterhin bei vielen Daten)
+  dynamic_line_width <- max(0.15, min(0.7, 0.7 - ((n_elements - 50) * 0.001)))
+  
+  # Generate the plot
   plot <- ggplot() +
-    
-    # layer 1: drawing all branch segments, colored by class
-    geom_segment(data = segments_df, aes(x=x0, y=y0, xend=x1, yend=y1, color=class), linewidth = 0.7) +
-    
-    # layer 2: applying the color palette to both segments and labels
+    geom_segment(
+      data      = segments_df, 
+      aes(x=x0, y=y0, xend=x1, yend=y1, color=class), 
+      linewidth = dynamic_line_width
+    ) +
     scale_color_manual(values = palette, breaks = names(palette)[names(palette) != "Default"]) +
     
-    # layer 3: setting y range => leaving enough space below for the rotated labels
-    scale_y_continuous(limits = c(-8, max_height),
-                       breaks = seq(0, max_height, by = 5)) +
+    scale_y_continuous(breaks = y_breaks) +
+    
+    # Zoom cleanly and PREVENT clipping of long labels
+    coord_cartesian(ylim = c(y_min, final_max_y), expand = FALSE, clip = "off") +
+    
     labs(y = "Distance", x = "") +
     ggtitle(title) +
     
-    # layer 4: clean white background, removing grid, axis lines and x ticks
     theme_classic() +
     theme(
       panel.grid   = element_blank(),
@@ -134,15 +147,15 @@ plot_dendro_ggplot <- function(dendro_data, title="", names_vector=NULL, palette
       axis.ticks.y = element_blank(),
       axis.title.y = element_text(size = axis_title_size),
       axis.text.y  = element_text(size = axis_text_size),
-      plot.title   = element_text(size = axis_title_size + 2, face = "bold")
+      plot.title   = element_text(size = axis_title_size + 2, face = "bold", hjust = 0.5),
+      
+      # Extra margin at the bottom for rotated text
+      plot.margin  = margin(15, 15, 80, 15, "pt") 
     )
   
-  # geom_text always renders an "a" glyph into the legend — suppressed unconditionally
   if (show_x_axis) {
-    
-    n_patients <- nrow(labels_df)
-    
-    font_size <- max(1.2, min(3.5, 120 / n_patients))
+    # Leaf labels still scale so they don't overlap
+    font_size <- max(0.6, min(5.5, 220 / n_elements))
     
     plot <- plot + geom_text(
       data        = labels_df, 
@@ -212,9 +225,9 @@ plot_dendro_plotly <- function(
     
     # DYNAMISCHER HOVER-TEXT FÜR ÄSTE: Keine Gruppe bei "Default"
     hover_texts <- if (cl == "Default") {
-      paste0("Distanz: <b>", round(y_coords, 3), "</b>")
+      paste0("Distance: <b>", round(y_coords, 3), "</b>")
     } else {
-      paste0("Gruppe: <b>", cl, "</b><br>Distanz: <b>", round(y_coords, 3), "</b>")
+      paste0("Group: <b>", cl, "</b><br>Distance: <b>", round(y_coords, 3), "</b>")
     }
     
     plot <- plot %>% plotly::add_lines(
@@ -237,7 +250,7 @@ plot_dendro_plotly <- function(
       leaf_hover_text <- if (cl == "Default") {
         paste0("Name: <b>", all_names, "</b>")
       } else {
-        paste0("Name: <b>", all_names, "</b><br>Gruppe: <b>", cl, "</b>")
+        paste0("Name: <b>", all_names, "</b><br>Group: <b>", cl, "</b>")
       }
       
       if (side == "top") {

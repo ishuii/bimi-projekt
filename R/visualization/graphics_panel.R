@@ -105,10 +105,10 @@ grafikpanel <- function(
         paste0("Group: <b>", current_class, "</b><br>Distance: <b>", round(y_coords, 3), "</b>")
       }
       
-      # OPTIMIERUNG: width von 2 auf 1 gesetzt für dünnere, sauberere Linien
+      # OPTIMIERUNG: width minimal auf 1.3 angehoben
       final_panel <- add_trace(
         final_panel, x = x_coords, y = y_coords, type = "scatter", mode = "lines", connectgaps = FALSE,
-        line = list(color = class_color, width = 1), name = as.character(current_class), 
+        line = list(color = class_color, width = 1.3), name = as.character(current_class), 
         legendgroup = as.character(current_class), showlegend = (current_class != "Default"),
         text = branch_hover, hoverinfo = "text", xaxis = "x2", yaxis = "y2"
       )
@@ -148,10 +148,10 @@ grafikpanel <- function(
       x_coords <- as.vector(t(cbind(-class_segments$y0, -class_segments$y1, NA)))
       y_coords <- as.vector(t(cbind(class_segments$x0, class_segments$x1, NA)))
       
-      # OPTIMIERUNG: width von 2 auf 1 gesetzt für dünnere, sauberere Linien
+      # OPTIMIERUNG: width minimal auf 1.3 angehoben
       final_panel <- add_trace(
         final_panel, x = x_coords, y = y_coords, type = "scatter", mode = "lines", connectgaps = FALSE,
-        line = list(color = "black", width = 1), text = paste0("Distance: <b>", round(abs(x_coords), 3), "</b>"), 
+        line = list(color = "black", width = 1.3), text = paste0("Distance: <b>", round(abs(x_coords), 3), "</b>"), 
         hoverinfo = "text", showlegend = FALSE, xaxis = "x3", yaxis = "y3"
       )
     }
@@ -169,26 +169,28 @@ grafikpanel <- function(
     }
   }
   # ===========================================================================
-  # Step 4: Layout & Dynamische Schriftgrößen (Optimierte Skalierung & Abstände)
+  # Step 4: Layout & Dynamische Schriftgrößen (Dendrogramm-Höhen-Optimierung)
   # ===========================================================================
-  # ERHÖHTE BASISGRÖSSE: Startet bei kleinen Datensätzen deutlich größer (bis zu 18pt)
-  # und fällt selbst bei vielen Patienten nie unter 8pt.
   dynamic_xaxis_size <- max(8, min(18, 700 / total_patients))
   
   final_panel <- layout(
     final_panel, dragmode = "zoom", hovermode = "closest",
-    margin = list(l = 25, r = 80, t = 25, b = 120),
+    # t = 50 gibt dem oberen Dendrogramm echten Pixel-Abstand zum Fensterrand
+    margin = list(l = 25, r = 80, t = 50, b = 120),
     legend = list(orientation = "v", x = 1.01, xanchor = "left", y = 0.5, yanchor = "middle", title = list(text = "<b>Klassen</b>", font = list(size = 11))),
     
     xaxis  = list(domain = c(0.25, 0.88), range = patient_range, type = "linear", tickmode = "array", tickvals = heatmap_xaxis$tickvals, ticktext = heatmap_xaxis$ticktext, tickangle = -90, tickfont = list(size = dynamic_xaxis_size), showticklabels = TRUE, showgrid = FALSE, zeroline = FALSE),
     xaxis2 = list(domain = c(0.25, 0.88), range = patient_range, matches = "x", showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE),
     xaxis3 = list(domain = c(0, 0.25), range = c(-gene_dendro_data$max_height, 0), showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE),
     
-    # Auch die Genbeschriftung (Y-Achse) profitiert hier von einem leichten Boost (von 6 auf 8pt)
-    yaxis  = list(domain = c(0, 0.82), range = gene_range, side = "right", type = "linear", tickmode = "array", tickvals = heatmap_yaxis$tickvals, ticktext = heatmap_yaxis$ticktext, tickfont = list(size = 8), showticklabels = TRUE, showgrid = FALSE, zeroline = FALSE, automargin = TRUE),
-    yaxis2 = list(domain = c(0.82, 1.00), range = c(0, patient_dendro_data$max_height * 1.05), showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE),
-    yaxis3 = list(domain = c(0, 0.82), range = gene_range, matches = "y", type = "linear", showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE)
+    # domain-Ende von 0.82 auf 0.78 gesetzt -> Heatmap wird minimal niedriger
+    yaxis  = list(domain = c(0, 0.78), range = gene_range, side = "right", type = "linear", tickmode = "array", tickvals = heatmap_yaxis$tickvals, ticktext = heatmap_yaxis$ticktext, tickfont = list(size = 8), showticklabels = TRUE, showgrid = FALSE, zeroline = FALSE, automargin = TRUE),
+    # yaxis2 startet jetzt bei 0.78 statt 0.82 -> Das obere Dendrogramm hat nun 22% statt 18% der Gesamthöhe
+    yaxis2 = list(domain = c(0.78, 1.00), range = c(0, patient_dendro_data$max_height * 1.05), showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE),
+    yaxis3 = list(domain = c(0, 0.78), range = gene_range, matches = "y", type = "linear", showticklabels = FALSE, showgrid = FALSE, zeroline = FALSE)
   )
+  
+  final_panel <- config(final_panel, scrollZoom = TRUE)
   
   return(final_panel)
 }
