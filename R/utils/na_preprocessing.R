@@ -335,36 +335,6 @@ make_distance_cache_key <- function(
     sep = "___"
   )
 }
-#------------------------------------Preset loading-------------------------------------
-refresh_presets <- function(session) {
-  
-  if (!dir.exists(preset_dir)) {
-    dir.create(preset_dir, recursive = TRUE)
-  }
-  
-  preset_files <- list.files(
-    preset_dir,
-    pattern = "\\.json$",
-    full.names = TRUE
-  )
-  
-  if (length(preset_files) == 0) {
-    updateSelectInput(
-      session,
-      "preset_datei",
-      choices = character(0),
-      selected = character(0)
-    )
-    return()
-  }
-  
-  preset_names <- tools::file_path_sans_ext(basename(preset_files))
-  
-  updateSelectInput(
-    session,
-    "preset_datei",
-    choices = setNames(preset_files, preset_names),
-    selected = preset_files[1]
-  )
-}
+
+
 
