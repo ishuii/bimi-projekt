@@ -21,10 +21,17 @@ normalization <- function(df, norm_method) {
   #--------------
   #log_zscore
   if (norm_method == 1) {
+    
+    if (any(df <= -1, na.rm = TRUE)) {
+      stop(
+        "Der Datensatz enthält Werte <= -1. Eine Log2(x + 1)-Transformation ist daher nicht möglich. Vermutlich sind die Daten bereits normalisiert oder z-standardisiert."
+      )
+    }
+    
     df_log <- log2(df + 1)
     
     if (any(apply(df_log, 1, sd, na.rm = TRUE) == 0)) {
-      warning(
+      stop(
         "Fehler: Zeilen mit Standardabweichung 0 gefunden. Diese Normalisierungsmethode ist nicht passend."
       )
     }
@@ -44,17 +51,22 @@ normalization <- function(df, norm_method) {
   #zscore only
   if (norm_method == 2) {
     if (any(apply(df, 1, sd, na.rm = TRUE) == 0)) {
-      warning(
+      stop(
         "Fehler: Zeilen mit Standardabweichung 0 gefunden. Diese Normalisierungsmethode ist nicht passend."
       )
     }
-    df_norm <- t(scale(t(df_log)))
+    df_norm <- t(scale(t(df)))
     return(df_norm)
   }
   
   #--------------
   # log only
   if (norm_method == 3) {
+    if (any(df <= -1, na.rm = TRUE)) {
+      stop(
+        "Der Datensatz enthält Werte <= -1. Eine Log2(x + 1)-Transformation ist daher nicht möglich. Vermutlich sind die Daten bereits normalisiert oder z-standardisiert."
+      )
+    }
     return(log2(df + 1))
     
   }
@@ -67,10 +79,17 @@ normalization <- function(df, norm_method) {
   
   # log median-centering
   if (norm_method == 4) {
+    
+    if (any(df <= -1, na.rm = TRUE)) {
+      stop(
+        "Der Datensatz enthält Werte <= -1. Eine Log2(x + 1)-Transformation ist daher nicht möglich. Vermutlich sind die Daten bereits normalisiert oder z-standardisiert."
+      )
+    }
+    
     df_log <- log2(df + 1)
     
     df_norm <- t(apply(df_log, 1, function(x) {
-      (x - median(x)) / (max(x) - min(x))
+      (x - median(x)) / ((max(x) - min(x)) + 1e-8)
     }))
     
     return(df_norm)
@@ -87,7 +106,7 @@ normalization <- function(df, norm_method) {
   #median centering only
   if (norm_method == 5) {
     df_norm <- t(apply(df, 1, function(x) {
-      (x - median(x)) / (max(x) - min(x))
+      (x - median(x)) / ((max(x) - min(x)) + 1e-8)
     }))
     
     return(df_norm)
@@ -96,6 +115,13 @@ normalization <- function(df, norm_method) {
   #--------------
   #log mad
   if (norm_method == 6) {
+    
+    if (any(df <= -1, na.rm = TRUE)) {
+      stop(
+        "Der Datensatz enthält Werte <= -1. Eine Log2-Transformation ist daher nicht möglich. Vermutlich sind die Daten bereits normalisiert oder z-standardisiert."
+      )
+    }
+    
     df_log <- log2(df + 1)
     df_norm <- t(apply(df_log, 1, function(x) {
       (x - median(x)) / (mad(x) + 1e-8)
