@@ -179,28 +179,49 @@ Im Projekt wurde eine gemeinsame Funktion für die Berechnung der Distanzmatrix 
 \subsection{Linkagefunktionen}
 \label{linkage-funktionen}
 
-Die eigentliche Clusterung erfolgt mit der Linkage-Funktion \verb*|hierarchical_clustering|. Diese Funktion erhält als Parameter eine Distanzmatrix (Ergebnis der Distanzfunktion, siehe Kapitel \ref{distanzfunktionen}), eine Methode als String, sowie eine Liste aus Parametern. Standardmäßig wird als Methode \verb*|"single"| (siehe \ref{single-linkage}) und für die Parameter \verb*|NULL| übergeben.\\
-Das Ergebnis dieser Funktion ist eine Liste mit zwei Elementen, die für die Visualisierung der Ergebnisse benötigt werden. Das erste Element ist \verb*|matched_at|, ein Vektor, der die Werte enthält, an denen die Cluster zusammengefügt wurden. Dies entspricht der minimalen Distanz an jedem Schritt. Das zweite Element der Output-Liste ist \verb*|merge|, eine \verb*|n-1| mal \verb*|2| Matrix, die in jeder Zeile die zusammengefügten Cluster-Indizes enthält.\\
-Als Methode stehen Single-Linkage (\verb*|"single"|), Average-Linkage (\verb*|"average"|) und Complete-Linkage (\verb*|"complete"|) zur Verfügung, sowie eine benutzerdefinierte Linkage-Funktion (\verb*|"custom"|). Diese Funktionen werden in den Folgenden Unterkapiteln erklärt.
+Die eigentliche Clusterung erfolgt mit der Linkage-Funktion \verb*|hierarchical_clustering|. Diese Funktion erhält als Parameter eine Distanzmatrix \verb*|d_mat| (siehe Kapitel \ref{distanzfunktionen}), den Namen des gewünschten Linkage-Verfahrens \verb*|method| als String, sowie optional eine Liste mit vier Parametern \verb*|custom_params|. Standardmäßig wird als Methode \verb*|"single"| und für die Parameter \verb*|NULL| übergeben.\\
+Das Ergebnis dieser Funktion ist eine Liste mit zwei Elementen, die für die Visualisierung der Ergebnisse benötigt werden. Das erste Element ist \verb*|matched_at|, ein Vektor, der die Werte enthält, an denen die Cluster zusammengefügt wurden. Dies entspricht der minimalen Distanz an jedem Schritt. Das zweite Element der Output-Liste ist \verb*|merge|, eine $n-1$ mal $2$ Matrix, die in jeder Zeile die zusammengefügten Cluster-Indizes enthält.\\
+Als Methoden stehen Single-Linkage (\verb*|single|), Average-Linkage (\verb*|average|) und Complete-Linkage (\verb*|complete|), sowie eine benutzerdefinierte Linkage-Funktion (\verb*|custom|) zur Verfügung. Nach jeder Zusammenführung zweier Cluster wird die Distanzmatrix entsprechend der gewählten Linkage-Methode aktualisiert.
 
-\subsubsection{Single-Linkage}
-\label{single-linkage}
-Das Single-Linkage-Verfahren wird auch als Nearest-Neighbour-Verfahren bezeichnet. Um zwei Cluster zusammenzufügen, wird hierbei der Abstand zwischen ihren nächstgelegenen Elementen (den „nähesten Nachbarn“) betrachtet. Wie Lance und Williams beschreiben, weist dieses Verfahren eine Tendenz dazu auf, eine Verkettung zu bilden. In jedem Schritt der Clusterung werden größere Cluster gebildet, die sich damit anderen Clustern „nähern“; so ist es wahrscheinlicher, dass größere Cluster umso stärker wachsen und sich ausbreiten. Aus diesem Grund spricht man beim Single-Linkage-Verfahren von einer raumverkleinernden Strategie.
-
-\subsubsection{Complete-Linkage}
-\label{complete-linkage}
-Das Complete-Linkage-Verfahren ist gewissermaßen das Gegenstück zum Single-Linkage-Verfahren und wird auch als Furthest-Neighbour-Verfahren bezeichnet. Der Abstand zwischen zwei Clustern ist hierbei über die am weitesten voneinander gelegenen Elemente definiert. Beim Zusammenfassen zu einem Clustern hat dies den Effekt, dass sich der neue Cluster keinem anderen nähert, was das Verfahren zu einer raumausdehnenden Strategie macht. 
-
-\subsubsection{Average-Linkage}
-\label{average-linkage}
-Das Average-Linkage-Verfahren nutzt den Mittelwert der Cluster als Abstandsmaß. Diese Methode gilt als konservierende Strategie, da sie den Raum weder verkleinert noch vergrößert. 
-
-\subsubsection{Benutzerdefinierte Linkage-Funktion}
-\label{custom-linkage}
-Die drei zuvor beschriebenen Methoden lassen sich mit einer einzigen Funktion abdecken, die Lance und Williams \cite{Lance1967a} in ihrem Paper vorstellten:
+\subsubsection{Linkagefunktion nach Lance-Williams}
+\label{lance-williams}
+Die Methode \verb*|custom| implementiert die allgemeine Formel von Lance und Williams \cite{Lance1967a}. Werden zwei Cluster $i$ und $j$ zu einem neuen Cluster $k$ zusammengefasst, so kann die Distanz des neuen Clusters $k$ zu einem weiteren Cluster $h$ durch diese Funktion aktualisiert werden:
 \[ d_{hk} = \alpha_i d_{hi} + \alpha_j d_{hj} + \beta d_{ij} + \gamma |d_{hi}-d_{hj}| \]
-Durch Setzen der Werte für \(\alpha_i\), \(\alpha_j\), \(\beta\) und \(\gamma\) kann die Methode exakt definiert werden.\\
-Für Single-Linkage gilt \(\alpha_a = \alpha_b = 0.5\), \(\beta = 0\) und \(\gamma = -0.5\)- 
+Die vier Parameter \(\alpha_i\), \(\alpha_j\), \(\beta\) und \(\gamma\) bestimmen die Aktualisierung der Distanz. Erst ihre jeweilige Kombination definiert ein konkretes Linkage-Verfahren, wie Single-, Complete- oder Average-Linkage. Tabelle \ref{linkage-parameter} enthält eine Übersicht der erforderlichen Parameter für diese drei Standardverfahren.\\
+Die Implementierung basiert vollständig auf dieser allgemeinen Formel. Dadurch kann die Aktualisierung der Distanzmatrix unabhängig vom konkreten Linkage-Verfahren mit derselben Implementierung erfolgen; lediglich die Parameter unterscheiden sich zwischen den Verfahren. Für die Methoden \verb*|single|,  \verb*|average| und \verb*|complete| werden die zugehörigen Parameter automatisch gesetzt. Wird hingegen \verb*|custom| gewählt, müssen die vier Parameter vom Benutzer über die Eingabemaske angegeben werden. Die Eingabe wird lediglich auf numerische Werte überprüft. Dynamische Ausdrücke wie $n_i/n_k$, die beispielsweise für Average-Linkage verwendet werden, können daher nicht angegeben werden. Ebenso erfolgt keine Überprüfung hinsichtlich der theoretischen Sinnhaftigkeit der gewählten Parameter.
+
+\subsubsection{Bedeutung der Parameter}
+\label{lw-parameter}
+Die Parameter $\alpha_i$ und $\alpha_j$ gewichten den Beitrag der ursprünglichen Cluster $i$ und $j$ auf die neue Distanz $d_{hk}$. Gilt $\alpha_i = \alpha_j$, so werden beide Cluster gleich gewichtet, wie es bei Single- und Complete-Linkage der Fall ist. Beim Average-Linkage-Verfahren werden die Gewichte proportional zu der jeweiligen Clustergröße gewählt. Hierbei entsprechen $n_i$ und $n_j$ jeweils der Anzahl der Elemente im Cluster $i$, bzw. $j$. Es gilt $n_k = n_i + n_j$.\\
+Der Parameter $\beta$ gewichtet zusätzlich die Distanz $d_{ij}$ zwischen den beiden zusammengeführten Clustern. Dadurch kann die Lage der neu berechneten Distanz beeinflusst werden. Für die drei implementierten Standardverfahren gilt $\beta = 0$, daher wirkt sich der Term nicht auf das Ergebnis aus. Lance und Williams diskutieren jedoch die zentrale Rolle dieses Parameters in der sogenannten \textit{Flexiblen Strategie}, wobei $\beta$ im Bereich $ -1 \le \beta < 1$ betrachtet wird, so dass weitere Linkage-Verfahren entstehen.\\
+Der Parameter $\gamma$ gewichtet die absolute Differenz zwischen $d_{hi}$ und $d_{hj}$. Für die Werte $\gamma = -0,5$, bzw. $\gamma = 0,5$ reduziert sich die Lance-Williams-Formel auf das Minimum, bzw. das Maximum der beiden Distanzen. Dadurch erhält man unmittelbar Single-Linkage, bzw. Complete-Linkage. Für $\gamma = 0$ hingegen entfällt dieser Term vollständig, wie es z.B. beim Average-Linkage der Fall ist. 
+
+\begin{table}[ht]
+	\centering
+	\renewcommand{\arraystretch}{1.3}
+	\begin{tabularx}{\textwidth}{lccccX}
+		\toprule
+		Linkage-Verfahren & $\alpha_i$ & $\alpha_j$ & $\beta$ & $\gamma$ & Eigenschaft \\
+		\midrule
+		Single-Linkage    & 0,5 	   & 0,5        & 0       & -0,5     & Minimum  \\
+		Complete-Linkage  & 0,5 	   & 0,5        & 0       &  0,5     & Maximum  \\
+		Average-Linkage   & $n_i/n_k$  & $n_j/n_k$  & 0       &  0       & gewichteter Mittelwert\\
+		\bottomrule
+	\end{tabularx}
+	\caption{Parameter der implementierten Linkageverfahren}
+	\label{linkage-parameter}
+\end{table}
+
+\subsubsection{Eigenschaften der Standard-Linkageverfahren}
+\label{standard-linkage-eigenschaften}
+Das Single-Linkage-Verfahren fügt Cluster mit einer minimalen Distanz zusammen und wird daher auch als Nearest-Neighbor-Verfahren bezeichnet. Es handelt sich um ein raumverkleinerndes Verfahren, das zum sogenannten \textit{Chaining}-Effekt neigt. Hierbei werden einzelne Objekte oder kleinere Cluster schrittweise zu langen Clusterketten verbunden.\\
+Das Complete-Linkage-Verfahren stellt den Gegenpol zum Single-Linkage dar, da es auf einer maximalen Distanz basiert. Es wird auch als Furthest-Neighbor-Verfahren bezeichnet. Dementsprechend verfolgt es eine raumvergrößernde Strategie, die häufig zu kompakteren und stärker voneinander getrennten Clustern führt.\\
+Das Average-Linkage-Verfahren ist ein Beispiel für ein konservierendes Verfahren, das den Raum weder verkleinert noch vergrößert. Es basiert auf dem gewichteten Mittelwert, was alleine durch die Parameter $\alpha_i$ und $\alpha_j$ ausgedrückt wird, während die beiden anderen Terme wegfallen. Damit stellt es einen Kompromiss zwischen Single- und Complete-Linkage dar.\\
+
+Diese drei implementierten Verfahren können somit als Spezialfälle der allgemeinen Lance-Williams-Funktion verstanden werden. Die benutzerdefinierte Linkagefunktion erlaubt darüber hinaus die freie Wahl der vier Parameter und damit die Implementierung weiterer hierarchischer Linkage-Verfahren.
+
+
+
 
 % ----------------------------------------------------------------------------------------------
 \newpage
