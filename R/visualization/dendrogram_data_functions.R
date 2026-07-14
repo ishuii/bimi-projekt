@@ -140,5 +140,39 @@ generate_dendro_data <- function(cluster_result, tree_result, order_vector, clas
   ))
 }
 
-
-
+save_dendro_pdf <- function(plot, dateiname, pfad) {
+  
+  # Append .pdf extension if missing
+  if (!grepl("\\.pdf$", dateiname, ignore.case = TRUE)) {
+    dateiname <- paste0(dateiname, ".pdf")
+  }
+  
+  # Find the text layer inside the ggplot object safely
+  text_layer_idx <- which(sapply(plot$layers, function(l) inherits(l$geom, "GeomText")))
+  
+  if (length(text_layer_idx) > 0) {
+    # Extract the labels directly from the layer's local data
+    labels_vec <- plot$layers[[text_layer_idx[1]]]$data$label
+    max_char_len <- max(nchar(as.character(labels_vec)), na.rm = TRUE)
+  } else {
+    max_char_len <- 10 # Fallback
+  }
+  
+  # DYNAMIC PDF HEIGHT:
+  # Starts at 5 inches for short labels, scales up to 11 inches for very long names
+  dynamic_height <- 4.5 + (max_char_len * 0.12)
+  dynamic_height <- pmin(pmax(dynamic_height, 5), 11) 
+  
+  zielpfad <- file.path(pfad, dateiname)
+  
+  # Save the plot with the perfectly calculated height
+  ggsave(
+    filename  = zielpfad,
+    plot      = plot,
+    width     = 22,             # Wide format for beautiful trees
+    height    = dynamic_height,
+    units     = "in",
+    device    = "pdf",
+    limitsize = FALSE
+  )
+}
