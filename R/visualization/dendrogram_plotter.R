@@ -95,11 +95,20 @@ plot_dendro_ggplot <- function(dendro_data, title="", names_vector=NULL, palette
   all_classes <- c(segments_df$class, labels_df$class)
   palette     <- get_color(all_classes, palette_name)
   
+  # AUTOMATISCHE LEGENDEN-PRÜFUNG:
+  # Wir schauen, welche eindeutigen Klassen existieren (ohne "Default")
+  unique_classes <- unique(all_classes)
+  has_real_classes <- any(unique_classes != "Default") && length(unique_classes) > 0
+  
   labels_df$label <- if (!is.null(names_vector)) {
     names_vector[labels_df$id]
   } else {
     as.character(labels_df$id)
   }
+  
+  # HIER RECHTSCHREIB-FEHLER KORRIGIERT & HOCH-DYNAMISCHE TEXTLÄNGE:
+  # Wir ermitteln die maximale Anzahl an Buchstaben der Labels
+  max_char_len <- max(nchar(labels_df$label), na.rm = TRUE)
   
   # Set start of labels slightly below 0 (always 1% of the tree height)
   labels_df$y <- - (max_height * 0.01)
@@ -114,9 +123,9 @@ plot_dendro_ggplot <- function(dendro_data, title="", names_vector=NULL, palette
   # ELEMENT COUNT & DYNAMIC SIZING FOR CONTENT ONLY:
   n_elements <- nrow(labels_df)
   
-  # FESTE SCHRIFTGRÖSSEN FÜR DIE ACHSEN (Keine Skalierung mehr!)
-  axis_title_size <- 12  # Immer perfekt lesbar
-  axis_text_size  <- 10  # Immer perfekt lesbar
+  # FESTE SCHRIFTGRÖSSEN FÜR DIE ACHSEN 
+  axis_title_size <- 12  
+  axis_text_size  <- 10  
   
   # Dynamic Line Width (Ast-Dicke schrumpft weiterhin bei vielen Daten)
   dynamic_line_width <- max(0.15, min(0.7, 0.7 - ((n_elements - 50) * 0.001)))
@@ -128,7 +137,12 @@ plot_dendro_ggplot <- function(dendro_data, title="", names_vector=NULL, palette
       aes(x=x0, y=y0, xend=x1, yend=y1, color=class), 
       linewidth = dynamic_line_width
     ) +
-    scale_color_manual(values = palette, breaks = names(palette)[names(palette) != "Default"]) +
+    
+    # Hier filtern wir "Default" aus der Legende, falls andere Klassen existieren
+    scale_color_manual(
+      values = palette, 
+      breaks = names(palette)[names(palette) != "Default"]
+    ) +
     
     scale_y_continuous(breaks = y_breaks) +
     
@@ -149,8 +163,9 @@ plot_dendro_ggplot <- function(dendro_data, title="", names_vector=NULL, palette
       axis.text.y  = element_text(size = axis_text_size),
       plot.title   = element_text(size = axis_title_size + 2, face = "bold", hjust = 0.5),
       
-      # Extra margin at the bottom for rotated text
-      plot.margin  = margin(15, 15, 80, 15, "pt") 
+      # DYNAMISCHER UNTERER RAND:
+      # Kurze Namen brauchen nur ~60pt, extrem lange Namen bekommen bis zu 250pt Platz!
+      plot.margin  = margin(15, 15, max(60, max_char_len * 4.5), 15, "pt")
     )
   
   if (show_x_axis) {
@@ -164,13 +179,17 @@ plot_dendro_ggplot <- function(dendro_data, title="", names_vector=NULL, palette
       hjust       = 1, 
       vjust       = 0.5, 
       size        = font_size,    
-      show.legend = FALSE
+      show.legend = FALSE # Verhindert das hässliche "a" in der Legende!
     )
   }
   
-  if (!show_legend) {
+  # ENTSCHEIDUNG: Wann zeigen wir die Legende?
+  if (show_legend && has_real_classes) {
+    plot <- plot + theme(legend.position = "right")
+  } else {
     plot <- plot + theme(legend.position = "none")
   }
+  
   if (!show_y_axis) {
     plot <- plot + theme(axis.text.y = element_blank(), axis.title.y = element_blank())
   }
