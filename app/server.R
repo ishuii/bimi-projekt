@@ -623,19 +623,11 @@ server <- function(input, output, session) {
   run_analysis <- function() {
     cat("Analysis started\n")
     
-    output$analysis_status <- renderUI({
-      div(
-        style = "font-size: 18px; color: black;",
-        icon("spinner", class = "fa-spin"),
-        "Analyse wurde gestartet, bitte warten..."
-      )
-    })
-    
     withProgress(
       message = "Analyse gestartet...",
       value = 0,
       {
-        incProgress(0.2, detail = "Daten werden verarbeitet")
+        incProgress(0.4, detail = "Daten werden verarbeitet")
         
         tryCatch({
           req(daten())
@@ -812,7 +804,7 @@ server <- function(input, output, session) {
             key = cache_key
           ))
           
-          incProgress(0.7, detail = "Daten werden Visualisiert")          
+          incProgress(0.65, detail = "Daten werden Visualisiert")          
           
           #---------------------CLUSTERING ------------------------
           
@@ -1049,7 +1041,10 @@ server <- function(input, output, session) {
           show_legend = TRUE,
           show_x_axis = TRUE,
           show_y_axis = TRUE
-        )
+        )%>%
+          layout(title = paste("Patient Dendrogram: ", dataset_name()),
+                 title = list(x=0.5, font = list(size=20)))
+        
         
         incProgress(
           0.4,
@@ -1064,7 +1059,10 @@ server <- function(input, output, session) {
           show_legend = FALSE,
           show_x_axis = TRUE,
           show_y_axis = TRUE
-        )
+        ) %>%
+          layout(title = paste("Gene Dendrogram: ", dataset_name()),
+                 title = list(x=0.5, font = list(size=20)))
+        
         
         incProgress(
           0.7,
@@ -1081,7 +1079,10 @@ server <- function(input, output, session) {
           gene_names = bundle$gene_names,
           patient_names = bundle$patient_names,
           palette_name = clust_config$palette
-        )
+        ) %>%
+          layout(title = paste("Grafikpanel: ", dataset_name()),
+                 title = list(x=0.5, font = list(size=20)))
+        
         
         incProgress(
           0.9,
@@ -1098,14 +1099,6 @@ server <- function(input, output, session) {
         )
       }
     )
-    
-    output$analysis_status <- renderUI({
-      div(
-        style = "font-size: 18px; color: green;",
-        icon("check-circle"),
-        "Grafik erfolgreich aktualisiert."
-      )
-    })
   }
   
   
