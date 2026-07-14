@@ -448,6 +448,7 @@ ui <- dashboardPage(
       tabItem(
         tabName = "parameter",
         h2("Parameter auswahl für Cluster Analyse"),
+        uiOutput("error_output"),
         
         fluidRow(
           box(
@@ -614,6 +615,7 @@ ui <- dashboardPage(
       tabItem(
         tabName = "heatmap",
         h2("Visualisierung"),
+        uiOutput("error_output"),
         
         navset_card_underline(
           nav_panel(
@@ -638,7 +640,7 @@ ui <- dashboardPage(
           )
         ),
 
-        verbatimTextOutput("debug_matrix"),
+        
 
         tags$script(
           HTML(

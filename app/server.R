@@ -30,6 +30,7 @@ server <- function(input, output, session) {
   gene_store <- reactiveVal(NULL)
 
   dataset_name <- reactiveVal(NULL)
+  error_message <- reactiveVal(NULL)
 
   clust_config <- reactiveValues(
     method = "Single-Linkage",
@@ -49,10 +50,6 @@ server <- function(input, output, session) {
   )
   #-------------------UPLOAD DATASET---------------------
   
-  output$Beispieltext <- renderText({
-    paste("Deine Datei:", input$x)
-  })
-  preset_values <- reactiveVal(list()) #Create reactive variable list
   preset_dir <- "presets"
   session$onFlushed(function() {
     refresh_presets(session)
@@ -191,6 +188,30 @@ server <- function(input, output, session) {
     invisible(NULL)
   })
   
+  output$error_output <- renderUI({
+    
+    msg <- error_message()
+    
+    if (is.null(msg)) {
+      return(NULL)
+    }
+    
+    div(
+      style = "
+      background-color: #F8D7DA;
+      color: #721C24;
+      border: 1px solid #F5C6CB;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      font-weight: bold;
+    ",
+      icon("triangle-exclamation"),
+      " Fehler: ",
+      msg
+    )
+  })
+  
   output$na_decision_ui <- renderUI({
     
     info <- na_infos()
@@ -234,23 +255,50 @@ server <- function(input, output, session) {
     req(daten_aktuell())
     req(na_infos())
     
-    result <- User_handle_na_decision(
-      df = daten_aktuell(),
-      info = na_infos(),
-      action = "mean"
+    withProgress(
+      message = "NA-Werte werden verarbeitet...",
+      value = 0,
+      {
+        
+        incProgress(
+          0.2,
+          detail = "Zeilenmittelwerte werden berechnet"
+        )
+        
+        result <- User_handle_na_decision(
+          df = daten_aktuell(),
+          info = na_infos(),
+          action = "mean"
+        )
+        
+        incProgress(
+          0.8,
+          detail = "Bereinigter Datensatz wird gespeichert"
+        )
+        
+        daten_aktuell(result$df)
+        na_infos(result$info)
+        
+        distance_cache$key <- NULL
+        distance_cache$patient <- NULL
+        distance_cache$gene <- NULL
+        
+        shinyjs::enable("confirm_button")
+        
+        incProgress(
+          1,
+          detail = "Fertig"
+        )
+      }
     )
     
-    daten_aktuell(result$df)
-    na_infos(result$info)
-    
-    distance_cache$key <- NULL
-    distance_cache$patient <- NULL
-    distance_cache$gene <- NULL
-    shinyjs::enable("confirm_button")
-    
     showNotification(
-      "NA-Werte wurden zeilenweise durch Mittelwerte ersetzt.",
-      type = "message"
+      paste(
+        result$info$imputed_values,
+        "NA-Werte wurden durch Zeilenmittelwerte ersetzt."
+      ),
+      type = "message",
+      duration = 5
     )
   })
   
@@ -259,24 +307,54 @@ server <- function(input, output, session) {
     req(daten_aktuell())
     req(na_infos())
     
-    result <- User_handle_na_decision(
-      df = daten_aktuell(),
-      info = na_infos(),
-      action = "drop"
+    withProgress(
+      message = "NA-Werte werden verarbeitet...",
+      value = 0,
+      {
+        
+        incProgress(
+          0.2,
+          detail = "Zeilen und Spalten mit vielen NA-Werten werden entfernt"
+        )
+        
+        result <- User_handle_na_decision(
+          df = daten_aktuell(),
+          info = na_infos(),
+          action = "drop"
+        )
+        
+        incProgress(
+          0.8,
+          detail = "Restliche NA-Werte werden ersetzt"
+        )
+        
+        daten_aktuell(result$df)
+        na_infos(result$info)
+        
+        distance_cache$key <- NULL
+        distance_cache$patient <- NULL
+        distance_cache$gene <- NULL
+        
+        shinyjs::enable("confirm_button")
+        
+        incProgress(
+          1,
+          detail = "Fertig"
+        )
+      }
     )
     
-    daten_aktuell(result$df)
-    na_infos(result$info)
-    
-    distance_cache$key <- NULL
-    distance_cache$patient <- NULL
-    distance_cache$gene <- NULL
-    
-    shinyjs::enable("confirm_button")
-    
     showNotification(
-      "50%-NA-Zeilen und 50%-NA-Spalten wurden entfernt. Restliche NA-Werte wurden zeilenweise durch den Mittelwert ersetzt.",
-      type = "message"
+      paste0(
+        length(result$info$removed_50_rows),
+        " Zeilen und ",
+        length(result$info$removed_50_cols),
+        " Spalten entfernt. ",
+        result$info$imputed_values,
+        " NA-Werte wurden ersetzt."
+      ),
+      type = "message",
+      duration = 6
     )
   })
   
@@ -302,7 +380,11 @@ server <- function(input, output, session) {
                               checkFunc = function () pdf_check(produced_pdfs), valueFunc = function() pdf_value(produced_pdfs))
   
   output$download_pdf <- downloadHandler(
-    filename = paste0("ClusterIt_Report_", Sys.Date(), ".pdf"),
+    filename = paste0(
+      "ClusterIt_Report_",
+      format(Sys.time(), "%Y-%m-%d_%H-%M-%S"),
+      ".pdf"
+    ),
     contentType = "application/pdf",
     content = function(file) {pdf_content(file, watched_pdf, daten_aktuell, input, clust_config)} 
   )
@@ -311,170 +393,243 @@ server <- function(input, output, session) {
   # PDF EXPORT ENDE
   ##############################################################################
   
-  observeEvent(input$anzahlcluster, {
-    # Save User Choice Cluster
-    tmp <- preset_values()
-    tmp$anzahlcluster <- input$anzahlcluster
-    preset_values(tmp)
-  })
-  
+  # Einstellungen der Parameterseite speichern
   observeEvent(input$clusterverfahren, {
-    #Save User Choice Clusterfunction
-    tmp <- preset_values()
-    tmp$clusterverfahren <- input$clusterverfahren
-    preset_values(tmp)
-  })
-  
-  observeEvent(input$distanzmatrix, {
-    #Save User Choice distance
-    tmp <- preset_values()
-    tmp$distanzmatrix <- input$distanzmatrix
-    preset_values(tmp)
-    
-  })
+    clust_config$method <- input$clusterverfahren
+  }, ignoreInit = TRUE)
   
   observeEvent(input$normalisierung, {
-    #Save User Choice Normalisierung
-    tmp <- preset_values()
-    tmp$normalisierung <- input$normalisierung
-    preset_values(tmp)
-  })
-  observeEvent(input$farbpaletten, {
-    #Save User Choice Color
-    tmp <- preset_values()
-    tmp$farbpaletten <- input$farbpaletten
-    preset_values(tmp)
-  })
+    clust_config$normalisation <- input$normalisierung
+  }, ignoreInit = TRUE)
   
-  observeEvent(input$load_preset, {
-    #Load Preset after user choice
-    req(input$preset_datei)
-    
-    preset <- jsonlite::fromJSON(input$preset_datei)
-    
-    if (!is.null(preset$anzahlcluster)) {
-      updateNumericInput(session, "anzahlcluster", value = preset$anzahlcluster)
-    }
-    
-    if (!is.null(preset$clusterverfahren)) {
-      updateSelectInput(session,
-                        "clusterverfahren",
-                        selected = preset$clusterverfahren)
-    }
-    
-    if (!is.null(preset$normalisierung)) {
-      updateSelectInput(session, "normalisierung", selected = preset$normalisierung)
-    }
-    
-    if (!is.null(preset$farbpaletten)) {
-      updateRadioButtons(session, "farbpaletten", selected = preset$farbpaletten)
-    }
-    
-    if (!is.null(preset$distanzmatrix)) {
-      updateSelectInput(session, "distanzmatrix", selected = preset$distanzmatrix)
-    }
-  })
+  observeEvent(input$distanzmatrix, {
+    clust_config$distance <- input$distanzmatrix
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$farbpaletten, {
+    clust_config$palette <- input$farbpaletten
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$alpha_a, {
+    clust_config$alpha_a <- input$alpha_a
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$alpha_b, {
+    clust_config$alpha_b <- input$alpha_b
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$beta, {
+    clust_config$beta <- input$beta
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$gamma, {
+    clust_config$gamma <- input$gamma
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$param_paramtab, {
+    clust_config$minkowski_p <- input$param_paramtab
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$clusterverfahren_sidebar, {
+    clust_config$method <- input$clusterverfahren_sidebar
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$normalisierung_sidebar, {
+    clust_config$normalisation <- input$normalisierung_sidebar
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$distanzmatrix_sidebar, {
+    clust_config$distance <- input$distanzmatrix_sidebar
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$farbpaletten_sidebar, {
+    clust_config$palette <- input$farbpaletten_sidebar
+  }, ignoreInit = TRUE)
+  
+  observeEvent(input$param_heatmap, {
+    clust_config$minkowski_p <- input$param_heatmap
+  }, ignoreInit = TRUE)
+
   
   observeEvent(input$nextpage, {
     updateTabItems(session, "tabs", selected = "datei_hochladen")
   })
   
-  observeEvent(input$clusterverfahren, {
-    clust_config$method <- input$clusterverfahren
-  })
-  
-  observeEvent(input$farbpaletten, {
-    clust_config$palette <- input$farbpaletten
-  })
-  
-  observeEvent(input$distanzmatrix, {
-    clust_config$distance <- input$distanzmatrix
-  })
-  
-  observeEvent(input$normalisierung, {
-    clust_config$normalisation <- input$normalisierung
-  })
   
   
-  observeEvent(input$clusterverfahren_sidebar, {
-    clust_config$method <- input$clusterverfahren_sidebar
-  })
-  
-  observeEvent(input$farbpaletten_sidebar, {
-    clust_config$palette <- input$farbpaletten_sidebar
-  })
-  
-  observeEvent(input$distanzmatrix_sidebar, {
-    clust_config$distance <- input$distanzmatrix_sidebar
-  })
-  
-  observeEvent(input$normalisierung_sidebar, {
-    clust_config$normalisation <- input$normalisierung_sidebar
-  })
-  
-  observeEvent(input$alpha_a, {
-    clust_config$alpha_a <- input$alpha_a
-  })
-  
-  observeEvent(input$alpha_b, {
-    clust_config$alpha_b <- input$alpha_b
-  })
-  
-  observeEvent(input$beta, {
-    clust_config$beta <- input$beta
-  })
-  
-  observeEvent(input$gamma, {
-    clust_config$gamma <- input$gamma
+  observeEvent(input$load_preset, {
+    
+    req(input$preset_datei)
+    
+    preset <- read_preset_file(input$preset_datei)
+    
+    # Werte in den zentralen Zustand übernehmen
+    clust_config$method <- preset$clusterverfahren
+    clust_config$normalisation <- preset$normalisierung
+    clust_config$distance <- preset$distanzmatrix
+    clust_config$palette <- preset$farbpaletten
+    
+    clust_config$alpha_a <- preset$alpha_a
+    clust_config$alpha_b <- preset$alpha_b
+    clust_config$beta <- preset$beta
+    clust_config$gamma <- preset$gamma
+    
+    clust_config$minkowski_p <- preset$minkowski_p
+    
+    # Eingabefelder auf der Parameterseite aktualisieren
+    updateSelectInput(
+      session,
+      "clusterverfahren",
+      selected = preset$clusterverfahren
+    )
+    
+    updateSelectInput(
+      session,
+      "normalisierung",
+      selected = preset$normalisierung
+    )
+    
+    updateSelectInput(
+      session,
+      "distanzmatrix",
+      selected = preset$distanzmatrix
+    )
+    
+    updateRadioButtons(
+      session,
+      "farbpaletten",
+      selected = preset$farbpaletten
+    )
+    
+    updateNumericInput(
+      session,
+      "alpha_a",
+      value = preset$alpha_a
+    )
+    
+    updateNumericInput(
+      session,
+      "alpha_b",
+      value = preset$alpha_b
+    )
+    
+    updateNumericInput(
+      session,
+      "beta",
+      value = preset$beta
+    )
+    
+    updateNumericInput(
+      session,
+      "gamma",
+      value = preset$gamma
+    )
+    
+    updateNumericInput(
+      session,
+      "param_paramtab",
+      value = preset$minkowski_p
+    )
+    
+    # Eingabefelder in der Sidebar aktualisieren
+    updateSelectInput(
+      session,
+      "clusterverfahren_sidebar",
+      selected = preset$clusterverfahren
+    )
+    
+    updateSelectInput(
+      session,
+      "normalisierung_sidebar",
+      selected = preset$normalisierung
+    )
+    
+    updateSelectInput(
+      session,
+      "distanzmatrix_sidebar",
+      selected = preset$distanzmatrix
+    )
+    
+    updateRadioButtons(
+      session,
+      "farbpaletten_sidebar",
+      selected = preset$farbpaletten
+    )
+    
+    updateNumericInput(
+      session,
+      "param_heatmap",
+      value = preset$minkowski_p
+    )
+    
+    # Gespeicherte Pathways auswählen
+    req(pathway_list())
+    
+    updateSelectizeInput(
+      session,
+      "pathways",
+      choices = pathway_list(),
+      selected = preset$pathways,
+      server = TRUE
+    )
+    
+    # Alte Berechnungsergebnisse löschen
+    distance_cache$key <- NULL
+    distance_cache$patient <- NULL
+    distance_cache$gene <- NULL
+    
+    showNotification(
+      paste(
+        "Preset geladen:",
+        basename(input$preset_datei)
+      ),
+      type = "message"
+    )
   })
   
   output$customInfo <- renderUI({
-    
-    if(clust_config$method == "Custom-Linkage"){
-      div(style = "background-color: #f8f9fa; border-left: 4px solid #007bff; padding: 8px 12px;
-          margin-top: 5px; font-size: 14px;",
-          
-          icon("info-circle"),
-          tags$b("Hinweis: "),
-          "Nicht alle Werte sind sinnvoll. Bitte geben Sie nur geeignete Werte ein"
+    if (clust_config$method == "Custom-Linkage") {
+      div(
+        style = paste(
+          "background-color: #f8f9fa;",
+          "border-left: 4px solid #007bff;",
+          "padding: 8px 12px;",
+          "margin-top: 5px;",
+          "font-size: 14px;"
+        ),
+        icon("info-circle"),
+        tags$b("Hinweis: "),
+        "Nicht alle Werte sind sinnvoll. Bitte geben Sie nur geeignete Werte ein."
       )
     }
   })
+  observeEvent(
+    input$focus_patient,
+    {
+      if (
+        is.null(input$focus_patient) ||
+        input$focus_patient == ""
+      ) {
+        selected_patient(NULL)
+      } else {
+        selected_patient(input$focus_patient)
+      }
+    },
+    ignoreNULL = FALSE
+  )
   
-  #---------------------Favorite Patient search---------------------------
-  observeEvent(input$focus_patient, {
-    if(is.null(input$focus_patient) || input$focus_patient == ""){
-      selected_patient(NULL)
-    }else{
-      selected_patient(input$focus_patient)
-    }
-  }, ignoreNULL = FALSE)
   
-  #------------------End of patient search-----------------------------------
-  
-  observe({
-    updateSelectInput(session, "clusterverfahren", selected = clust_config$method)
-    
-    updateSelectInput(session, "clusterverfahren_sidebar", selected = clust_config$method)
-    
-    updateSelectInput(session, "distanzmatrix", selected = clust_config$distance)
-    
-    updateSelectInput(session, "distanzmatrix_sidebar", selected = clust_config$distance)
-    
-    updateSelectInput(session, "normalisierung", selected = clust_config$normalisation)
-    
-    updateSelectInput(session,
-                      "normalisierung_sidebar",
-                      selected = clust_config$normalisation)
-    
-    updateRadioButtons(session, "farbpaletten", selected = clust_config$palette)
-    
-    updateRadioButtons(session, "farbpaletten_sidebar", selected = clust_config$palette)
-  })
   
   run_analysis <- function() {
     cat("Analysis started\n")
- 
+    
+    output$analysis_status <- renderUI({
+      div(
+        style = "font-size: 18px; color: black;",
+        icon("spinner", class = "fa-spin"),
+        "Analyse wurde gestartet, bitte warten..."
+      )
+    })
     
     withProgress(
       message = "Analyse gestartet...",
@@ -546,6 +701,7 @@ server <- function(input, output, session) {
           patient_names_vec <- colnames(result$meta_data)
           updateSelectizeInput(session, "focus_patient", choices = patient_names_vec, selected = character(0), server = TRUE)
           
+          
           gene_names_vec <- result$gene_names
           
           label_row <- grep("lab", rownames(result$meta_data), ignore.case = TRUE, value = TRUE)[1]
@@ -590,7 +746,7 @@ server <- function(input, output, session) {
           #---------------------DISTANCE MATRIX CACHE ------------------------
           
           minkowski_p_for_key <- if (identical(method, "minkowski")) {
-            input$param_paramtab
+            clust_config$minkowski_p
           } else {
             NA
           }
@@ -617,9 +773,33 @@ server <- function(input, output, session) {
             
           } else {
             
-          
-            dist_mat_pat <- dist_cpp(t(df_normalized), method)
-            dist_mat_genes <- dist_cpp(df_normalized, method)
+            if (identical(method, "minkowski")) {
+              
+              dist_mat_pat <- dist_cpp(
+                t(df_normalized),
+                method = method,
+                p = clust_config$minkowski_p
+              )
+              
+              dist_mat_genes <- dist_cpp(
+                df_normalized,
+                method = method,
+                p = clust_config$minkowski_p
+              )
+              
+            } else {
+              
+              dist_mat_pat <- dist_cpp(
+                t(df_normalized),
+                method = method
+              )
+              
+              dist_mat_genes <- dist_cpp(
+                df_normalized,
+                method = method
+              )
+            }
+            
             
             distance_cache$key <- cache_key
             distance_cache$patient <- dist_mat_pat
@@ -676,6 +856,30 @@ server <- function(input, output, session) {
             order_vector = order_genes,
             class_labels = NULL
           )
+          
+          cluster_bundle(list(
+            dendro_data_pat = dendro_data_pat,
+            dendro_data_genes = dendro_data_genes,
+            order_pat = order_pat,
+            order_genes = order_genes,
+            df_normalized = df_normalized,
+            meta_data = result$meta_data,
+            gene_names = gene_names_vec,
+            patient_names = patient_names_vec,
+            
+            settings = list(
+              method = clust_config$method,
+              normalisation = clust_config$normalisation,
+              distance = clust_config$distance,
+              alpha_a = clust_config$alpha_a,
+              alpha_b = clust_config$alpha_b,
+              beta = clust_config$beta,
+              gamma = clust_config$gamma,
+              minkowski_p = clust_config$minkowski_p,
+              pathways = sort(input$pathways)
+            )
+          ))
+          
           
           patient_dendro <- plot_dendro_plotly(
             dendro_data = dendro_data_pat,
@@ -742,10 +946,29 @@ server <- function(input, output, session) {
           
 
         }, error = function(e) {
+          
+          msg <- conditionMessage(e)
+          
           cat("\n=== ERROR after step above ===\n")
-          cat("Message:", conditionMessage(e), "\n")
+          cat("Message:", msg, "\n")
           print(traceback())
           cat("====================\n")
+          
+          error_message(msg)
+          
+          output$analysis_status <- renderUI({
+            div(
+              style = "font-size: 16px; font-weight: bold; color: #721C24;",
+              icon("triangle-exclamation"),
+              " Analyse wurde wegen eines Fehlers abgebrochen."
+            )
+          })
+          
+          showNotification(
+            paste("Fehler in der Analyse:", msg),
+            type = "error",
+            duration = 8
+          )
         })
       }
     )
@@ -758,9 +981,11 @@ server <- function(input, output, session) {
   observeEvent(input$run, {
     req(inputs_valid())
     
-    if (clust_config$distance == "Minkowski-Distanz" &&
-        input$param_paramtab == 1 &&
-        !skip_mink1()) {
+    if (
+      clust_config$distance == "Minkowski-Distanz" &&
+      clust_config$minkowski_p == 1 &&
+      !skip_mink1()
+    ) {
       
       current_warn("p1")
       
@@ -778,9 +1003,11 @@ server <- function(input, output, session) {
           )
         )
       )
-    } else if (clust_config$distance == "Minkowski-Distanz" &&
-              input$param_paramtab == 2 &&
-              !skip_mink2()) {
+    } else if (
+      clust_config$distance == "Minkowski-Distanz" &&
+      clust_config$minkowski_p == 2 &&
+      !skip_mink2()
+    ) {
       
       current_warn("p2")
       
@@ -798,93 +1025,325 @@ server <- function(input, output, session) {
       run_analysis()
     }
   })
+  
+  refresh_plots <- function() {
+    
+    bundle <- cluster_bundle()
+    req(bundle)
+    
+    withProgress(
+      message = "Grafik wird aktualisiert...",
+      value = 0,
+      {
+        
+        incProgress(
+          0.2,
+          detail = "Patienten-Dendrogramm wird erstellt"
+        )
+        
+        patient_dendro <- plot_dendro_plotly(
+          dendro_data = bundle$dendro_data_pat,
+          side = "top",
+          names_vector = bundle$patient_names,
+          palette_name = clust_config$palette,
+          show_legend = TRUE,
+          show_x_axis = TRUE,
+          show_y_axis = TRUE
+        )
+        
+        incProgress(
+          0.4,
+          detail = "Gen-Dendrogramm wird erstellt"
+        )
+        
+        gene_dendro <- plot_dendro_plotly(
+          dendro_data = bundle$dendro_data_genes,
+          side = "top",
+          names_vector = bundle$gene_names,
+          palette_name = NULL,
+          show_legend = FALSE,
+          show_x_axis = TRUE,
+          show_y_axis = TRUE
+        )
+        
+        incProgress(
+          0.7,
+          detail = "Heatmap wird aktualisiert"
+        )
+        
+        final_plot <- grafikpanel(
+          gene_dendro_data = bundle$dendro_data_genes,
+          patient_dendro_data = bundle$dendro_data_pat,
+          gene_order = bundle$order_genes,
+          patient_order = bundle$order_pat,
+          data_matrix = bundle$df_normalized,
+          metaDaten_gefiltert = bundle$meta_data,
+          gene_names = bundle$gene_names,
+          patient_names = bundle$patient_names,
+          palette_name = clust_config$palette
+        )
+        
+        incProgress(
+          0.9,
+          detail = "Grafiken werden angezeigt"
+        )
+        
+        patient_store(patient_dendro)
+        gene_store(gene_dendro)
+        heatmap_store(final_plot)
+        
+        incProgress(
+          1,
+          detail = "Fertig"
+        )
+      }
+    )
+    
+    output$analysis_status <- renderUI({
+      div(
+        style = "font-size: 18px; color: green;",
+        icon("check-circle"),
+        "Grafik erfolgreich aktualisiert."
+      )
+    })
+  }
+  
   
   observeEvent(input$refreshButton, {
+    
     req(inputs_valid())
     
-    if (clust_config$distance == "Minkowski-Distanz" &&
-        input$param_heatmap == 1 &&
-        !skip_mink1()) {
-      
-      current_warn("p1")
-      
-      showModal(
-        modalDialog(
-          title = "Warnung",
-          "hier wird mit Manhattan-Distanz statt Minkowski-Distanz berechnet. Möchten Sie fortfahren?",
-          
-          checkboxInput("dont_show1", "Diese Meldung nicht mehr zeigen", value = FALSE),
-          
-          footer = tagList(
-            modalButton("Abbrechen"),
-            
-            actionButton("confirm_run", "Ja")
-          )
-        )
-      )
-    } else if (clust_config$distance == "Minkowski-Distanz" &&
-               input$param_heatmap == 2 &&
-               !skip_mink2()) {
-      
-      current_warn("p2")
-      
-      showModal(
-        modalDialog(
-          title = "Warnung",
-          "hier wird mit Euklidische Distanz statt Minkowski-Distanz berechnet. Möchten Sie fortfahren?",
-          
-          checkboxInput("dont_show2", "Diese Meldung nicht mehr zeigen", value = FALSE),
-          
-          footer = tagList(modalButton("Abbrechen"), actionButton("confirm_run", "Ja"))
-        )
-      )
-    } else{
-      run_analysis()
-    }
-  })
-  
-  
-  observeEvent(input$save_preset, {
+    bundle <- cluster_bundle()
     
-    req(input$preset_name)
-    
-    if (!dir.exists(preset_dir)) {
-      dir.create(preset_dir, recursive = TRUE)
-    }
-    
-    preset_name_clean <- gsub("[^A-Za-z0-9_\\-]", "_", input$preset_name)
-    pfad <- file.path(preset_dir, paste0(preset_name_clean, ".json"))
-    
-    preset <- list(
-      anzahlcluster = input$anzahlcluster,
-      clusterverfahren = clust_config$method,
-      normalisierung = clust_config$normalisation,
-      distanzmatrix = clust_config$distance,
-      farbpaletten = clust_config$palette,
+    current_settings <- list(
+      method = clust_config$method,
+      normalisation = clust_config$normalisation,
+      distance = clust_config$distance,
       alpha_a = clust_config$alpha_a,
       alpha_b = clust_config$alpha_b,
       beta = clust_config$beta,
       gamma = clust_config$gamma,
       minkowski_p = clust_config$minkowski_p,
-      pathways = input$pathways
+      pathways = sort(input$pathways)
     )
     
-    jsonlite::write_json(
-      preset,
-      path = pfad,
-      auto_unbox = TRUE,
-      pretty = TRUE
-    )
+    # Nur die Farbpalette wurde geändert:
+    # keine neue Analyse, sondern nur Grafiken aktualisieren
+    if (
+      !is.null(bundle) &&
+      identical(bundle$settings, current_settings)
+    ) {
+      
+      cat("Nur Grafik wird aktualisiert\n")
+      
+      refresh_plots()
+      
+      return()
+    }
     
-    showNotification(
-      paste("Preset gespeichert unter:", pfad),
-      type = "message"
-    )
-    
-    refresh_presets(session)
+    # Andere Einstellungen wurden geändert:
+    # Analyse mit den bisherigen Minkowski-Warnungen starten
+    if (
+      clust_config$distance == "Minkowski-Distanz" &&
+      clust_config$minkowski_p == 1 &&
+      !skip_mink1()
+    ) {
+      
+      current_warn("p1")
+      
+      showModal(
+        modalDialog(
+          title = "Warnung",
+          
+          "hier wird mit Manhattan-Distanz statt Minkowski-Distanz berechnet. Möchten Sie fortfahren?",
+          
+          checkboxInput(
+            "dont_show1",
+            "Diese Meldung nicht mehr zeigen",
+            value = FALSE
+          ),
+          
+          footer = tagList(
+            modalButton("Abbrechen"),
+            actionButton("confirm_run", "Ja")
+          )
+        )
+      )
+      
+    } else if (
+      clust_config$distance == "Minkowski-Distanz" &&
+      clust_config$minkowski_p == 2 &&
+      !skip_mink2()
+    ) {
+      
+      current_warn("p2")
+      
+      showModal(
+        modalDialog(
+          title = "Warnung",
+          
+          "hier wird mit Euklidische Distanz statt Minkowski-Distanz berechnet. Möchten Sie fortfahren?",
+          
+          checkboxInput(
+            "dont_show2",
+            "Diese Meldung nicht mehr zeigen",
+            value = FALSE
+          ),
+          
+          footer = tagList(
+            modalButton("Abbrechen"),
+            actionButton("confirm_run", "Ja")
+          )
+        )
+      )
+      
+    } else {
+      
+      cat("Analyse wird aktualisiert\n")
+      
+      run_analysis()
+    }
   })
   
   
+  
+  observeEvent(input$save_preset, {
+    preset_name <- trimws(input$preset_name)
+    
+    if (!nzchar(preset_name)) {
+      showNotification(
+        "Bitte einen Namen für das Preset eingeben.",
+        type = "error"
+      )
+      return()
+    }
+    
+    selected_pathways <- if (is.null(input$pathways)) {
+      character(0)
+    } else {
+      as.character(input$pathways)
+    }
+    
+    preset <- list(
+      preset_version = 1L,
+      saved_at = format(
+        Sys.time(),
+        "%Y-%m-%d %H:%M:%S"
+      ),
+      
+      clusterverfahren = clust_config$method,
+      normalisierung = clust_config$normalisation,
+      distanzmatrix = clust_config$distance,
+      farbpaletten = clust_config$palette,
+      
+      alpha_a = clust_config$alpha_a,
+      alpha_b = clust_config$alpha_b,
+      beta = clust_config$beta,
+      gamma = clust_config$gamma,
+      
+      minkowski_p = clust_config$minkowski_p,
+      pathways = selected_pathways
+    )
+    
+    tryCatch(
+      {
+        preset_path <- write_preset_file(
+          preset = preset,
+          preset_name = preset_name,
+          preset_dir = preset_dir
+        )
+        
+        refresh_presets(
+          session = session,
+          preset_dir = preset_dir,
+          selected = preset_path
+        )
+        
+        updateTextInput(
+          session,
+          "preset_name",
+          value = ""
+        )
+        
+        showNotification(
+          paste(
+            "Preset gespeichert:",
+            basename(preset_path)
+          ),
+          type = "message"
+        )
+      },
+      error = function(e) {
+        showNotification(
+          conditionMessage(e),
+          type = "error",
+          duration = NULL
+        )
+      }
+    )
+  })
+  
+  observe({
+    updateSelectInput(
+      session,
+      "clusterverfahren",
+      selected = clust_config$method
+    )
+    
+    updateSelectInput(
+      session,
+      "clusterverfahren_sidebar",
+      selected = clust_config$method
+    )
+    
+    updateSelectInput(
+      session,
+      "normalisierung",
+      selected = clust_config$normalisation
+    )
+    
+    updateSelectInput(
+      session,
+      "normalisierung_sidebar",
+      selected = clust_config$normalisation
+    )
+    
+    updateSelectInput(
+      session,
+      "distanzmatrix",
+      selected = clust_config$distance
+    )
+    
+    updateSelectInput(
+      session,
+      "distanzmatrix_sidebar",
+      selected = clust_config$distance
+    )
+    
+    updateRadioButtons(
+      session,
+      "farbpaletten",
+      selected = clust_config$palette
+    )
+    
+    updateRadioButtons(
+      session,
+      "farbpaletten_sidebar",
+      selected = clust_config$palette
+    )
+    
+    updateNumericInput(
+      session,
+      "param_paramtab",
+      value = clust_config$minkowski_p
+    )
+    
+    updateNumericInput(
+      session,
+      "param_heatmap",
+      value = clust_config$minkowski_p
+    )
+  })
   
   observe({
     if (input$distanzmatrix != "Minkowski-Distanz") {
@@ -960,18 +1419,6 @@ server <- function(input, output, session) {
     updateSelectizeInput(session, "pathways", choices = pathway_list(), server = TRUE)
   })
   
-
-  observeEvent(input$confirm_button, {
-    if(is.null(input$pathways) || length(input$pathways) == 0) {
-      showNotification(
-        ui = div(style = "font-size: 18px; font-weight: bold; color: #000000;", "Bitte mindestens eine Pathway auswählen!"),
-        type = "error")
-      return()
-    }
-    selected_pathways <- input$pathways
-    print(selected_pathways)
-  })
-  
   observeEvent(input$confirm_run, {
     
     if(current_warn() == "p1" &&
@@ -997,17 +1444,17 @@ server <- function(input, output, session) {
     req(clust_config$distance)
     req(clust_config$palette)
     
-    mink_valid <- TRUE
-    
-    if (input$distanzmatrix == "Minkowski-Distanz") {
-      mink_valid <- !is.null(input$param_paramtab) &&
-        !is.na(input$param_paramtab) &&
-        input$param_paramtab > 0 &&
-        input$param_paramtab <= 10000 &&
-        input$param_paramtab == as.integer(input$param_paramtab)
+    if (clust_config$distance != "Minkowski-Distanz") {
+      return(TRUE)
     }
     
-    TRUE && mink_valid
+    p <- clust_config$minkowski_p
+    
+    !is.null(p) &&
+      !is.na(p) &&
+      p > 0 &&
+      p <= 10000 &&
+      p == as.integer(p)
   })
   
   observe({
@@ -1029,50 +1476,92 @@ server <- function(input, output, session) {
  
   observeEvent(input$confirm_button, {
     
-    req(input$pathways)
+    # Prüfen, ob mindestens ein Pathway ausgewählt wurde
+    if (
+      is.null(input$pathways) ||
+      length(input$pathways) == 0
+    ) {
+      showNotification(
+        ui = div(
+          style = paste(
+            "font-size: 18px;",
+            "font-weight: bold;",
+            "color: #000000;"
+          ),
+          "Bitte mindestens einen Pathway auswählen!"
+        ),
+        type = "error"
+      )
+      
+      return()
+    }
+    
+    # Prüfen, ob ein Datensatz vorhanden ist
     req(daten())
     
+    # Pathway-Abdeckung berechnen
     coverage <- analyze_pathways_coverage(
       chosen_pathways = input$pathways,
       dataset_cleaned = daten(),
       con = con
     )
     
+    # Ergebnis für die Tabelle speichern
     coverage_result(coverage$matrix_unused)
     
-    if(skip_pathways()){
-      updateTabItems(session, "tabs", selected = "parameter")
+    # Wenn die Meldung deaktiviert wurde,
+    # direkt zur Parameterseite wechseln
+    if (skip_pathways()) {
+      updateTabItems(
+        session,
+        "tabs",
+        selected = "parameter"
+      )
+      
       return()
-    
     }
     
+    # Coverage-Warnung anzeigen
     showModal(
       modalDialog(
         title = "Warnung!",
         
         tableOutput("coverage_table"),
         
-        "Möchten Sie mit dem angegebenen Pathways fortfahren?",
+        "Möchten Sie mit den angegebenen Pathways fortfahren?",
         
-        checkboxInput("dont_showBox", "Diese Meldung nicht mehr zeigen", value = FALSE),
+        checkboxInput(
+          inputId = "dont_showBox",
+          label = "Diese Meldung nicht mehr zeigen",
+          value = FALSE
+        ),
         
         footer = tagList(
           modalButton("Andere Pathways auswählen"),
           
-          actionButton("continue_analysis", "Ja")
+          actionButton(
+            inputId = "continue_analysis",
+            label = "Ja"
+          )
         )
       )
     )
   })
   
+  
   observeEvent(input$continue_analysis, {
     
-    if(isTRUE(input$dont_showBox)){
+    if (isTRUE(input$dont_showBox)) {
       skip_pathways(TRUE)
     }
+    
     removeModal()
     
-    updateTabItems(session, "tabs", selected = "parameter")
+    updateTabItems(
+      session,
+      "tabs",
+      selected = "parameter"
+    )
   })
   
   
