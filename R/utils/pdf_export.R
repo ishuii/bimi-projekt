@@ -10,93 +10,205 @@ pdf_check <- function(produced_pdfs) {
 }
 
 pdf_value <- function(produced_pdfs) {
-  files <- list.files( produced_pdfs, pattern = "\\.pdf$", full.names = TRUE, ignore.case = TRUE)
+  
+  files <- list.files(
+    path = produced_pdfs,
+    pattern = "\\.pdf$",
+    full.names = TRUE,
+    ignore.case = TRUE
+  )
   
   if (length(files) == 0) {
     return(NULL)
   }
   
   info <- file.info(files)
-  files <- files[!is.na(info$size) & info$size > 0]
+  
+  files <- files[
+    !is.na(info$size) &
+      info$size > 0
+  ]
   
   if (length(files) == 0) {
     return(NULL)
   }
   
   info <- file.info(files)
-  files[order(info$mtime, decreasing = TRUE)][1]
+  
+  # Älteste PDF zuerst, neueste zuletzt
+  files[order(info$mtime)]
 }
 
 
-pdf_content <- function(file, watched_pdf, daten_aktuell, input, clust_config) {
+pdf_content <- function(
+    file,
+    watched_pdf,
+    daten_aktuell,
+    dataset_name,
+    report_config
+) {
   
   report_pdf <- tempfile(fileext = ".pdf")
+  
   daten_report <- daten_aktuell()
   
-  pdf(report_pdf, width = 8.27, height = 11.69)
+  pdf(
+    report_pdf,
+    width = 8.27,
+    height = 11.69
+  )
   
-  on.exit({try(dev.off(), silent = TRUE)}, add = TRUE)
+  on.exit(
+    try(dev.off(), silent = TRUE),
+    add = TRUE
+  )
   
-  # page 1
-  y <- 0.95
-  new_page("ClusterIt Analyse-Report")
+  # ---------------------------------------------------------------------------
+  # SEITE 1: PARAMETER
+  # ---------------------------------------------------------------------------
   
-  section_title("Übersicht")
-  
-  key_value("Dateiname", if (!is.null(input$Datei_csv)) input$Datei_csv$name else "Keine CSV hochgeladen")
-  key_value("Erstellt am", format(Sys.time(), "%d.%m.%Y um %H:%M Uhr"))
-  key_value("Report-Typ", "Clusteranalyse")
-  
-  y <- y - 0.02
-  section_title("Datensatz")
-  
-  if (!is.null(daten_report)) {
-    first_col_name <- names(daten_report)[1]
-    
-    metric_row(list(
-      list(title = "Zeilen", value = as.character(nrow(daten_report)), subtitle = "aktueller Datensatz", fill = "#FFFFFF"),
-      list(title = "Spalten",value = as.character(ncol(daten_report)), subtitle = "aktueller Datensatz", fill = "#FFFFFF"),
-      list(title = "Geschützte Spalte", value = first_col_name, subtitle = "erste Spalte", fill = "#FFFFFF")
-    ))
-  } else {
-    wrapped_text("Noch keine CSV-Datei hochgeladen.")
-  }
-  
-  # page 2
   new_page("Analyse-Parameter")
   
-  section_title("Gewählte Einstellungen")
+  section_title("Angewendete Einstellungen")
   
-  key_value("Clusterverfahren", clust_config$method)
-  key_value("Distanzmatrix", clust_config$distance)
-  key_value("Normalisierung", clust_config$normalisation)
-  key_value("Farbpalette", input$farbpaletten)
+  key_value(
+    "Datensatz",
+    safe_value(dataset_name, "Unbekannt")
+  )
   
-  if (!is.null(clust_config$distance) && clust_config$distance == "Minkowski-Distanz") {
-    key_value("Minkowski p", input$param_paramtab)
+  key_value(
+    "Erstellt am",
+    format(Sys.time(), "%d.%m.%Y um %H:%M Uhr")
+  )
+  
+  key_value(
+    "Clusterverfahren",
+    report_config$method
+  )
+  
+  key_value(
+    "Distanzmatrix",
+    report_config$distance
+  )
+  
+  key_value(
+    "Normalisierung",
+    report_config$normalisation
+  )
+  
+  key_value(
+    "Farbpalette",
+    report_config$palette
+  )
+  
+  if (
+    !is.null(report_config$distance) &&
+    report_config$distance == "Minkowski-Distanz"
+  ) {
+    key_value(
+      "Minkowski p",
+      report_config$minkowski_p
+    )
   }
   
-  if (!is.null(clust_config$method) && clust_config$method == "Custom-Linkage") {
-    y <- y - 0.02
+  if (
+    !is.null(report_config$method) &&
+    report_config$method == "Custom-Linkage"
+  ) {
+    
+    y <<- y - 0.01
+    
     section_title("Custom-Linkage Parameter")
     
-    key_value("alpha_a", clust_config$alpha_a)
-    key_value("alpha_b", clust_config$alpha_b)
-    key_value("beta", clust_config$beta)
-    key_value("gamma", clust_config$gamma)
+    key_value(
+      "alpha_a",
+      report_config$alpha_a
+    )
+    
+    key_value(
+      "alpha_b",
+      report_config$alpha_b
+    )
+    
+    key_value(
+      "beta",
+      report_config$beta
+    )
+    
+    key_value(
+      "gamma",
+      report_config$gamma
+    )
   }
   
-  if (!is.null(input$pathways) && length(input$pathways) > 0) {
-    y <- y - 0.02
-    list_items("Ausgewählte Pathways", input$pathways, max_items = 20)
+  y <<- y - 0.01
+  
+  section_title("Ausgewählte Pathways")
+  
+  pathways <- report_config$pathways
+  
+  if (
+    is.null(pathways) ||
+    length(pathways) == 0
+  ) {
+    
+    wrapped_text(
+      "Keine Pathways gespeichert."
+    )
+    
+  } else {
+    
+    max_pathways <- 8
+    shown_pathways <- head(
+      pathways,
+      max_pathways
+    )
+    
+    wrapped_text(
+      paste(
+        shown_pathways,
+        collapse = ", "
+      ),
+      width = 90
+    )
+    
+    if (length(pathways) > max_pathways) {
+      
+      wrapped_text(
+        paste0(
+          "... und ",
+          length(pathways) - max_pathways,
+          " weitere Pathways."
+        ),
+        cex = 0.7,
+        col = "#666666"
+      )
+    }
   }
+  
   
   dev.off()
   
   external_pdf <- watched_pdf()
-  qpdf::pdf_combine(input = c(report_pdf, external_pdf), output = file)
+  
+  pdf_files <- report_pdf
+  
+  if (
+    !is.null(external_pdf) &&
+    length(external_pdf) > 0 &&
+    file.exists(external_pdf)
+  ) {
+    pdf_files <- c(
+      report_pdf,
+      external_pdf
+    )
+  }
+  
+  qpdf::pdf_combine(
+    input = pdf_files,
+    output = file
+  )
 }
-
 
 # Design Hilfsfunktionen
 safe_len <- function(x) {

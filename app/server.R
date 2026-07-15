@@ -188,6 +188,15 @@ server <- function(input, output, session) {
     invisible(NULL)
   })
   
+  observe({
+    if (is.null(cluster_bundle())) {
+      shinyjs::hide("download_pdf")
+    } else {
+      shinyjs::show("download_pdf")
+    }
+  })
+  
+  
   output$error_output <- renderUI({
     
     msg <- error_message()
@@ -380,13 +389,35 @@ server <- function(input, output, session) {
                               checkFunc = function () pdf_check(produced_pdfs), valueFunc = function() pdf_value(produced_pdfs))
   
   output$download_pdf <- downloadHandler(
-    filename = paste0(
-      "ClusterIt_Report_",
-      format(Sys.time(), "%Y-%m-%d_%H-%M-%S"),
-      ".pdf"
-    ),
+    filename = function() {
+      paste0(
+        "ClusterIt_Report_",
+        format(Sys.time(), "%Y-%m-%d_%H-%M-%S"),
+        ".pdf"
+      )
+    },
+    
     contentType = "application/pdf",
-    content = function(file) {pdf_content(file, watched_pdf, daten_aktuell, input, clust_config)} 
+    
+    content = function(file) {
+      
+      bundle <- cluster_bundle()
+      
+      if (is.null(bundle)) {
+        stop("Bitte zuerst eine Analyse durchführen.")
+      }
+      
+      report_config <- bundle$settings
+      report_config$palette <- bundle$palette
+      
+      pdf_content(
+        file = file,
+        watched_pdf = watched_pdf,
+        daten_aktuell = daten_aktuell,
+        dataset_name = dataset_name(),
+        report_config = report_config
+      )
+    }
   )
 
   ##############################################################################
@@ -622,7 +653,7 @@ server <- function(input, output, session) {
   
   run_analysis <- function() {
     cat("Analysis started\n")
-    
+    error_message(NULL)
     withProgress(
       message = "Analyse gestartet...",
       value = 0,
@@ -858,6 +889,7 @@ server <- function(input, output, session) {
             meta_data = result$meta_data,
             gene_names = gene_names_vec,
             patient_names = patient_names_vec,
+            palette = clust_config$palette,
             
             settings = list(
               method = clust_config$method,
@@ -948,19 +980,23 @@ server <- function(input, output, session) {
           
           error_message(msg)
           
-          output$analysis_status <- renderUI({
-            div(
-              style = "font-size: 16px; font-weight: bold; color: #721C24;",
-              icon("triangle-exclamation"),
-              " Analyse wurde wegen eines Fehlers abgebrochen."
-            )
-          })
+         
+          output$analysis_status <- renderUI(NULL)
+          
           
           showNotification(
-            paste("Fehler in der Analyse:", msg),
+            ui = div(
+              style = "
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 1.4;
+    ",
+              paste("Fehler in der Analyse:", msg)
+            ),
             type = "error",
             duration = 8
           )
+          
         })
       }
     )
@@ -1092,6 +1128,8 @@ server <- function(input, output, session) {
         patient_store(patient_dendro)
         gene_store(gene_dendro)
         heatmap_store(final_plot)
+        bundle$palette <- clust_config$palette
+        cluster_bundle(bundle)
         
         incProgress(
           1,
