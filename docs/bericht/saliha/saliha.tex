@@ -115,7 +115,9 @@ Die Funktion \texttt{heatmap\_pdf} ermöglicht den Export der Heatmap als PDF-Da
 
 Die Funktion \texttt{generate\_heatmap\_plotly} wandelt die zuvor erstellte \texttt{ggplot2}-Heatmap in eine interaktive Plotly-Darstellung um. Dabei werden Genname, Patientenbezeichnung und Expressionswert als Tooltip übernommen. Zusätzlich werden Zoom- und Verschiebefunktionen aktiviert, wodurch auch große Datensätze interaktiv untersucht werden können.
 
-\subsection{Grafikpanel Versuche}
+\subsection{Grafikpanel}
+
+Die Heatmap wird gemeinsam mit den beiden Dendrogrammen dargestellt, da erst die Kombination aus Farbvisualisierung und Clusterstruktur eine aussagekräftige Interpretation der Genexpressionsdaten ermöglicht. Die Dendrogramme zeigen die Ähnlichkeiten zwischen Genen und Patienten, während die Heatmap deren Expressionswerte visualisiert.
 Für die Umsetzung wurden zunächst zwei Ansätze untersucht. Die Kombination über \texttt{patchwork} konnte nicht verwendet werden, da die GUI auf \texttt{plotly}-Elementen basiert und diese nicht direkt mit \texttt{patchwork}-Objekten kombinierbar sind.
 
 Anschließend wurde die Erstellung über \texttt{plotly} Subplots getestet. Zwar konnten die einzelnen Darstellungen kombiniert werden, jedoch erfolgte das Zoomen jeweils nur für eine einzelne Grafik. Dadurch war keine synchrone Anpassung aller Komponenten möglich.
