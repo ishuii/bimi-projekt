@@ -32,13 +32,14 @@ generate_heatmap <- function(data_matrix,
   
   df_plot$Gene <- factor(
     display_gene_names,
-    levels = rev(display_gene_names)
+    levels = display_gene_names
   )
   
   df_plot$Patient <- factor(
     df_plot$Patient,
     levels = colnames(sorted_matrix)
   )
+  
   
   if (!is.null(palette)) {
     
@@ -78,6 +79,7 @@ generate_heatmap <- function(data_matrix,
       limits = range(df_plot$Expression, na.rm = TRUE)
     ) +
     
+   
     scale_y_discrete(position = "right") +
     
     labs(
@@ -244,14 +246,27 @@ generate_heatmap_plotly <- function(
   
   built <- plotly_build(heatmap_plotly)
   
+  
+  total_genes <- length(gene_order)
+  sorted_matrix <- data_matrix[gene_order, patient_order]
+  real_z <- sorted_matrix
+  
+  for (i in seq_along(built$x$data)){
+    if (!identical(built$x$data[[i]]$type, "heatmap")) next 
+    
+    built$x$data[[i]]$z <- real_z
+    built$x$data[[i]]$zmin <- min(real_z, na.rm = TRUE)
+    built$x$data[[i]]$zmax <-  max(real_z, na.rm = TRUE)
+  }
+  
   built$x$layout$xaxis$fixedrange <- FALSE
   built$x$layout$yaxis$fixedrange <- FALSE
   
   heatmap_plotly <- layout(
     built,
     margin = list(
-      l = 5,
-      r = 60,
+      l = 30,
+      r = 30,
       t = 30,
       b = 5
     ),
@@ -267,3 +282,4 @@ generate_heatmap_plotly <- function(
   
   return(heatmap_plotly)
 }
+
