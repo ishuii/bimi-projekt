@@ -38,20 +38,89 @@
 \fancyhead{}
 \fancyhead[L]{Alisa}
 \section{Pathways und Dateneinlesen}
-\begin{table}[]
-	\begin{tabular}{l|l|l}
-		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
+\label{pathways}
+
+Die Tabelle zeigt, wie groß der Arbeitsaufwand pro Unteraufgabe ausgefallen ist.
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{p{8cm}|l|l}
+		Aufgabe & Zuständig & Arbeitsaufwand \\ 
 		\hline
-		Rechereche zu Pathways          & Alisa    &                \\
-		Daten aus KEGG      			& Alisa    &                \\ 
-		Datenbank entwerfen und  aufsetzen & Alisa    & 7 Stunden      \\ 
-		Funktionen zur Prozessierung        & Alisa    & 6 Stunden      \\ 
-		Datensätze bearbeiten          	& Alisa    &                \\ 
-						              
+		Recherche zu Pathways und Extraktion der Daten von KEGG & Alisa & 5 Stunden \\
+		Datenbank entwerfen und aufsetzen & Alisa & 7 Stunden \\ 
+		Funktionen: Prozessierung, Datenbankabfragen und Integration & Alisa & 17 Stunden \\ 
+		Datensätze bearbeiten & Alisa & 5 Stunden \\          
+		Besprechungstermine & Alle & 19,5 Stunden \\    
+		Berichterstellung & Alisa & 5 Stunden \\    
 	\end{tabular}
 \end{table}
 
-\label{pathways}
+\noindent Der Bereich Pathways und Dateneinlesen untergliedert sich in mehrere Teilbereiche, welche im Folgenden näher erläutert werden.
+
+\subsection{Datenbeschaffung}
+Das zentrale Ziel des Aufgabenbereiches war die semantische Datenintegration biologischer Genexpressionsdatensätze. Konkret sollte es möglich sein, aus einem größeren Genexpressionsdatensatz, gezielt die Gene herauszufiltern, die den vom Nutzer ausgewählten biologischen Pathways zugeordnet sind.
+Voraussetzung dafür ist eine strukturelle Grundlage für die Verknüpfung der Pathways mit ihren zugehörigen Genen. Dafür wurde die KEGG-Datenbank verwendet, welche im Abschnitt \ref{bio-grundlagen} zusammen mit der Funktion der Pathways näher erläutert wird. KEGG stellt eine öffentliche REST-API-Schnittstelle bereit, über die die folgende Informationen abgerufen und als CSV-Dateien gespeichert wurden: 
+\begin{itemize}
+    \item Pathway-Liste: Alle menschlichen Pathways mit ihrer KEGG ID und ihrem Namen. Abgerufen über \texttt{https://\allowbreak rest.\allowbreak kegg.\allowbreak jp/\allowbreak list/\allowbreak pathway/\allowbreak hsa}.
+    \item Gen-Pathway Verknüpfungen: Die Zuordnung von Genen zu ihren entsprechenden Pathways. Abgerufen über \texttt{https://\allowbreak rest.\allowbreak kegg.\allowbreak jp/\allowbreak link/\allowbreak pathway/\allowbreak hsa}.
+\end{itemize}
+\noindent Die CSV-Dateien wurden anschließend in R bereinigt. Präfixe wie \texttt{path:} und \texttt{Homo sapiens} wurden entfernt, um nur die relevanten Informationen abzubilden. 
+
+\noindent Da über die KEGG-API nur Entrez IDs und keine Gennamen bereitgestellt wurden, mussten die zugehörigen Gennamen nachträglich gemappt werden. Hierzu wurden über die Annotationsbibliothek \texttt{org.Hs.eg.db} gezielt die Entrez IDs mit den entsprechenden Gennamen verknüpft, die in den abgerufenen Pathways enthalten sind.
+
+\subsection{Aufbau der lokalen SQLite Datenbank}
+Auf Basis der KEGG-Daten sowie der Zuordnung von Entrez IDs zu Gennamen wurde eine lokale SQLite-Datenbank \texttt{"GeneDatabase.sqlite"} aufgebaut. Diese dient als semantisches Bindeglied zwischen den Genexpressionsdatensätzen und den Pathways. Die Entscheidung für eine relationale Datenbank fiel aufgrund des deutlich effizienteren Datenzugriffs im Vergleich zu CSV- oder Excel-Dateien. Die daraus resultierende Datenbank besteht aus drei Tabellen: 
+\begin{itemize}
+    \item Gene: Enthält die Entrez ID als Primärschlüssel, den vollständigen Gennamen sowie das Gensymbol
+    \item Pathway: Enthält die KEGG- Pathway ID und den Namen des Pathways.
+    \item Lookup\_Gene\_Pathway: Stellt eine N:M Relation zwischen Genen und Pathways dar.
+\end{itemize}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.7\textwidth]{ERM_Modell.jpg}
+\caption{Eigene Darstellung: ERM Modell zum Aufbau der Datenbank}
+\end{figure}
+
+\subsection{Funktionen zur Datenvorverarbeitung und Datenintegration}
+
+\noindent Die gesamte Programmlogik ist modular aufgebaut und gliedert sich funktional in vier zentrale Aufgabenbereiche: Datenvorverarbeitung zur Metadaten-Trennung, Coverage Analyse, Datenbankabfragen sowie die finale Datenintegration.
+Es existieren zwei spezialisierte Vorverarbeitungsfunktionen, die je nach Datentyp der ersten Spalte des Datensatzes aufgerufen werden: \texttt{preprocess\_\allowbreak dataset\_\allowbreak meta()} extrahiert numerische Entrez IDs, während \texttt{preprocess\_\allowbreak dataset\_\allowbreak meta\_\allowbreak gennames()} genutzt wird, wenn Gennamen als \texttt{character} vorliegen. Beide Funktionen implementieren die Trennung von Messwerten und Metadaten über die Identifikation des Präfixes (\texttt{Meta\_}). Dies ermöglicht es die Metainformationen separat von den eigentlichen Genexpressionsdaten zu speichern, sodass andere Teammitglieder für ihre Teilaufgaben direkt darauf zugreifen können.
+
+\subsubsection{Pathway Coverage}
+
+\noindent Bevor die eigentliche Datenintegration durchgeführt wird, kann mit der Funktion \texttt{analyze\_\allowbreak pathways\_\allowbreak coverage()} geprüft werden, wie gut die vom User ausgewählten Pathways durch den hochgeladenen Datensatz abgedeckt werden. Für jeden gewählten Pathway wird anhand einer Datenbankabfrage ermittelt, wie viele der in der Datenbank hinterlegten Gene im Datensatz vorhanden sind und wie viele fehlen. Die Funktion gibt eine Matrix mit den Spalten Gesamtanzahl, gefundene Gene, fehlende Gene sowie der prozentualen Abdeckung (Coverage) zurück. Diese Funktion dient als wichtige Entscheidungsgrundlage, um die Aussagekraft der nachfolgenden Analysen zu bewerten. Bei einer unzureichenden Abdeckung erhält der Nutzer somit die Möglichkeit, die Pathway Auswahl frühzeitig zu optimieren.
+
+\subsubsection{Datenintegration}
+\label{subsec:semantische_integration}
+
+\noindent Die Kernfunktion \texttt{run\_data\_integration()} verbindet alle Hilfsfunktionen und führt die semantische Filterung der Daten nach ausgewählten Pathways durch. Der Ablauf ist wie folgt:
+
+\begin{itemize}
+    \item Der Datensatz wird anhand des Datentyps der ersten Spalte mit der passenden Funktion vorverarbeitet und von den Metadaten separiert.
+    \item Über Datenbankabfragen werden alle relevanten Gene ermittelt, die den vom Nutzer gewählten Pathways zugeordnet sind. Es werden sowohl die IDs als auch die zugehörigen Gennamen in Vektoren gespeichert.
+    \item Mittels der Funktion \texttt{extract\_relevant\_genes()} wird der Datensatz auf diese Gene reduziert. Werden keine Übereinstimmungen gefunden, bricht der Prozess mit einer Fehlermeldung ab. 
+    \item Die Funktion \texttt{rename\_duplikate\_genes()} behandelt mehrfach vorhandene IDs und macht sie über ein Suffix eindeutig (z.\,B. \texttt{"51\_1"}, \texttt{"51\_2"}). Durch diese Eindeutigkeit können die IDs nun als Zeilennamen verwendet werden.
+    \item Als Ergebnis wird eine benannte Liste zurückgegeben, die den gefilterten Datensatz, die Metadaten, den Genvektor sowie die zugehörigen Gennamen enthält.
+\end{itemize}
+
+\subsection{Datensätze}
+
+\noindent Zum Testen der implementierten Funktionen wurden vier Genexpressions-Datensätze bereitgestellt. Zwei dieser Datensätze stammen aus dem TCGA-Register. 
+
+\noindent The Cancer Genome Atlas (TCGA) ist ein großes, öffentliches Forschungsprogramm, welches umfassende genomische Daten und klinische Metadaten von über 33 verschiedenen Krebsarten bereitstellt \cite{TCGA_PanCancer_2013}. 
+
+\noindent Zwei der für dieses Projekt verwendeten Testdatensätze stammen aus diesem Programm: 
+\begin{itemize}
+    \item \textbf{colon\_vs\_pancreas\_meta.csv}: Datensatz, der Proben von Darm- und Bauchspeicheldrüsenkrebs vergleicht.
+    \item \textbf{TCGA\_kidney\_unnormalized\_meta.csv}: Datensatz, der die drei Nierenkrebs-Unterarten: papilläres, chromophobes und klarzelliges Nierenzellkarzinom enthält.
+\end{itemize}
+\noindent Ein weiterer zur Verfügung gestellter Datensatz ist der Golub-Datensatz: \textbf{GOLUB\_microarray.csv}. Dieser enthält Genexpressionsdaten, die genutzt wurden, um Patienten mit zwei verschiedenen Arten von Blutkrebs zu klassifizieren: der akuten myeloischen Leukämie und der akuten lymphatischen Leukämie \cite{golub1999}. 
+
+\noindent Der letzte zur Verfügung gestellte Datensatz ist der SHIPP-Datensatz: \textbf{SHIPP\_microarray.csv}. Dieser enthält zwei Formen von Non-Hodgkin-Lymphomen: das diffuse großzellige B-Zell-Lymphom und das follikuläre Lymphom \cite{shipp2002}.
+
+\noindent Die Datensätze wurden nach einem einheitlichen Schema aufbereitet und für alle Teammitglieder bereitgestellt: Während die erste Spalte immer die numerischen Entrez IDs oder Gennamen enthält, repräsentieren die darauffolgenden Spalten die einzelnen Patientenproben. Zur Erweiterung der Metadaten wurden für alle Datensätze zufällige Werte für Alter und Geschlecht generiert. Um die Metadaten sauber von den eigentlichen Genexpressionsdaten zu trennen, wurden diese einheitlich mit dem Präfix \texttt{Meta\_} versehen.
+
 
 % ----------------------------------------------------------------------------------------------
 \newpage
