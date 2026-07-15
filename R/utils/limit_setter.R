@@ -1,4 +1,4 @@
-limit_setter <- function(df_expression, normalization, clip = 3) {
+limit_setter <- function(df_expression, normalization, clip = NULL) {
   
   df_expression <- df_expression[is.finite(df_expression)]
   
@@ -13,5 +13,5 @@ limit_setter <- function(df_expression, normalization, clip = 3) {
   if (!is.null(clip))
     m <- min(m, clip)
   
-  list(palette = colorRampPalette(rev(RColorBrewer::brewer.pal(11, "RdBu")))(100), limits = c(-m, m), midpoint = 0)
+  list(limits = c(-m, m), midpoint = 0)
 }
