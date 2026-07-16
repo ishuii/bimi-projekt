@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  16 JUL 2026 11:05
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  16 JUL 2026 13:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -520,16 +520,17 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [4]
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 94.
+               Default added (so using `tbp') on input line 93.
 
 
-Overfull \hbox (9.93684pt too wide) in paragraph at lines 111--115
-\OT1/cmr/m/n/12 Bei Gen-ex-pres-si-ons-da-ten han-delt es sich um kon-ti-nu-ier
--li-che Da-ten, de-ren Abst[]ande f[]ur gew[]ohnlich
- []
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-
-Overfull \hbox (4.01474pt too wide) in paragraph at lines 182--185
+[5]
+Overfull \hbox (4.01474pt too wide) in paragraph at lines 187--190
 \OT1/cmr/m/n/12 Nach je-der Zu-sam-menf[]uhrung zwei-er Clu-ster wird die Di-st
 anz-ma-trix ent-spre-chend der gew[]ahlten
  []
@@ -541,16 +542,8 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[5]
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 14.49998pt, for example:
-(fancyhdr)                \setlength{\headheight}{14.49998pt}.
-(fancyhdr)                You might also make \topmargin smaller:
-(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
-
 [6]
-Underfull \hbox (badness 10000) in paragraph at lines 217--220
+Underfull \hbox (badness 10000) in paragraph at lines 222--225
 
  []
 
@@ -600,10 +593,10 @@ L3 programming layer <2025-12-24>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 7496 strings out of 467871
- 122609 string characters out of 5418377
- 577638 words of memory out of 5000000
- 36240 multiletter control sequences out of 15000+600000
+ 7498 strings out of 467871
+ 122635 string characters out of 5418377
+ 575638 words of memory out of 5000000
+ 36242 multiletter control sequences out of 15000+600000
  637621 words of font info for 78 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  68i,21n,90p,861b,393s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -620,7 +613,7 @@ wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C
 :/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti
 12.pfb><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfont
 s/cm/cmtt12.pfb>
-Output written on wiki.pdf (11 pages, 150597 bytes).
+Output written on wiki.pdf (11 pages, 154750 bytes).
 PDF statistics:
  93 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
