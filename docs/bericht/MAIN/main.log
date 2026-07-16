@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  16 JUL 2026 16:33
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  16 JUL 2026 17:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -744,12 +744,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [6]
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 1
-85.
+88.
  (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/lm\ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
-85.
+88.
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -770,7 +770,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 <ERM_Modell.jpg, id=29, 929.4725pt x 513.92pt>
 File: ERM_Modell.jpg Graphic file (type jpg)
 <use ERM_Modell.jpg>
-Package pdftex.def Info: ERM_Modell.jpg  used on input line 202.
+Package pdftex.def Info: ERM_Modell.jpg  used on input line 205.
 (pdftex.def)             Requested size: 338.58632pt x 187.20674pt.
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -780,20 +780,20 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [8 <./ERM_Modell.jpg>]
-Overfull \hbox (21.02771pt too wide) in paragraph at lines 237--238
+Overfull \hbox (21.02771pt too wide) in paragraph at lines 240--241
 []\T1/lmr/bx/n/12 (-20) TCGA_kidney_unnormalized_meta.csv\T1/lmr/m/n/12 (-20) :
  Da-ten-satz, der die drei Nierenkrebs-Unterarten:
  []
 
 
-Overfull \hbox (19.34949pt too wide) in paragraph at lines 239--240
+Overfull \hbox (19.34949pt too wide) in paragraph at lines 242--243
 \T1/lmr/m/n/12 (-20) Ein wei-te-rer zur Ver-fü-gung ge-stell-ter Da-ten-satz is
 t der Golub-Datensatz: \T1/lmr/bx/n/12 (-20) GO-LUB_microarray.csv\T1/lmr/m/n/1
 2 (-20) .
  []
 
 
-Overfull \hbox (0.27014pt too wide) in paragraph at lines 241--242
+Overfull \hbox (0.27014pt too wide) in paragraph at lines 244--245
 \T1/lmr/m/n/12 (-20) Der letz-te zur Ver-fü-gung ge-stell-te Da-ten-satz ist de
 r SHIPP-Datensatz: \T1/lmr/bx/n/12 (-20) SHIPP_microarray.csv\T1/lmr/m/n/12 (-2
 0) .
@@ -898,14 +898,14 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [20]
-Overfull \hbox (7.8424pt too wide) in paragraph at lines 616--617
+Overfull \hbox (7.8424pt too wide) in paragraph at lines 619--620
 []\T1/lmr/m/n/12 (-20) Die Er-geb-nis-se wer-den in \T1/lmtt/m/n/12 generate_de
 ndro_data() \T1/lmr/m/n/12 (-20) als Ob-jekt aus \T1/lmtt/m/n/12 draw_result \T
 1/lmr/m/n/12 (-20) und \T1/lmtt/m/n/12 max_height
  []
 
 
-Overfull \hbox (5.8553pt too wide) in paragraph at lines 616--617
+Overfull \hbox (5.8553pt too wide) in paragraph at lines 619--620
 \T1/lmr/m/n/12 (-20) ge-sam-melt, oh-ne je-den Be-zug zu ei-ner Gra-fik-bi-blio
 -thek. Ge-nau auf die-ser Renderer-Unabhängigkeit
  []
@@ -918,13 +918,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [21]
-Overfull \hbox (52.09872pt too wide) in paragraph at lines 622--625
+Overfull \hbox (52.09872pt too wide) in paragraph at lines 625--628
 []\T1/lmr/m/n/12 (-20) Für die fi-na-le Vi-sua-li-sie-rung sind zwei ver-schie-
 de-ne Plot-Funktionen im-ple-men-tiert: \T1/lmtt/m/n/12 plot_dendro_ggplot()
  []
 
 
-Overfull \hbox (2.8581pt too wide) in paragraph at lines 635--636
+Overfull \hbox (2.8581pt too wide) in paragraph at lines 638--639
 \T1/lmr/m/n/12 (-20) ner Team-part-ne-rin und zeich-net die Den-dro-gram-me auf
  Grund-la-ge von \T1/lmtt/m/n/12 generate_dendro_data()
  []
@@ -982,7 +982,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [27]
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 791.
+               Default added (so using `tbp') on input line 794.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1003,7 +1003,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 <farbpaletten.png, id=109, 645.16031pt x 431.36156pt>
 File: farbpaletten.png Graphic file (type png)
 <use farbpaletten.png>
-Package pdftex.def Info: farbpaletten.png  used on input line 839.
+Package pdftex.def Info: farbpaletten.png  used on input line 842.
 (pdftex.def)             Requested size: 290.22107pt x 194.04509pt.
 
 
@@ -1017,7 +1017,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 <default_colors.png, id=115, 342.5297pt x 73.02281pt>
 File: default_colors.png Graphic file (type png)
 <use default_colors.png>
-Package pdftex.def Info: default_colors.png  used on input line 874.
+Package pdftex.def Info: default_colors.png  used on input line 877.
 (pdftex.def)             Requested size: 290.22107pt x 61.87578pt.
 
 
@@ -1066,11 +1066,11 @@ L3 programming layer <2025-12-24>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 12567 strings out of 467871
- 203738 string characters out of 5418377
- 685103 words of memory out of 5000000
- 40972 multiletter control sequences out of 15000+600000
- 718532 words of font info for 219 fonts, out of 8000000 for 9000
+ 12573 strings out of 467871
+ 203814 string characters out of 5418377
+ 685113 words of memory out of 5000000
+ 40974 multiletter control sequences out of 15000+600000
+ 718790 words of font info for 221 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  68i,21n,90p,1887b,1048s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx10.pf
@@ -1087,7 +1087,7 @@ Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy10.pfb><C:/
 Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy8.pfb><C:/U
 sers/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/U
 sers/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt12.pfb>
-Output written on main.pdf (35 pages, 742842 bytes).
+Output written on main.pdf (35 pages, 744836 bytes).
 PDF statistics:
  205 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

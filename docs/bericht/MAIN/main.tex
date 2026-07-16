@@ -63,7 +63,7 @@
 \section{Einleitung}
 \label{einleitung}
 
-Die Analyse von Genexpressionsdaten spielt eine zentrale Rolle in der Bioinformatik und Molekularbiologie. Durch die Untersuchung von Expressionsmustern lassen sich Zusammenhänge zwischen Genen identifizieren, biologische Prozesse besser verstehen und potenzielle Biomarker für Krankheiten erkennen. Da Genexpressionsdatensätze häufig eine große Anzahl an Genen umfassen, sind geeignete Verfahren zu ihrer Analyse und Visualisierung erforderlich, um aussagekräftige Erkenntnisse aus den Daten zu gewinnen.
+Die Analyse von Genexpressionsdaten spielt eine zentrale Rolle in der Bioinformatik und Molekularbiologie. Durch die Untersuchung von Expressionsmustern lassen sich Zusammenhänge zwischen Genen identifizieren, biologische Prozesse besser verstehen und potenzielle Biomarker für Krankheiten erkennen. Genexpressionsdatensätze enthalten häufig eine große Anzahl an Genen, was eine effiziente Klassifizierung und Visualisierung der Daten erheblich erschwert. 
 
 Im Rahmen dieses Projekts wurde eine Softwareanwendung entwickelt, die den Import von Genexpressionsdaten ermöglicht und diese mithilfe einer hierarchischen Clusteranalyse auswertet. Ziel der Anwendung ist es, ähnliche Gene beziehungsweise Patienten anhand ihrer Expressionsprofile zu gruppieren und die Ergebnisse übersichtlich darzustellen. Die Visualisierung erfolgt in einem interaktiven Dashboard, das sowohl die Dendrogramme als auch eine Heatmap umfasst. Während die Dendrogramme die hierarchischen Beziehungen zwischen den Clustern veranschaulichen, bietet die Heatmap einen intuitiven Überblick über die Expressionswerte und deren Muster.
 
@@ -147,10 +147,13 @@ Das Ziel des interdisziplinären Gremiums besteht dementsprechend darin, die gen
 
 \subsubsection{Informatische Grundlagen}
 \label{info-grundlagen}
-Was ist eine explorative Datenanalyse?
 
-Was ist Clustering?
+Die Analyse von Genexpressionsdaten basiert auf Methoden der Datenanalyse und des maschinellen Lernens, die dazu dienen, große und komplexe Datensätze systematisch auszuwerten. Da Genexpressionsdatensätze häufig eine hohe Anzahl an Genen und Proben enthalten, ist eine strukturierte Analyse erforderlich, um relevante Muster und Zusammenhänge zu erkennen. Zu den grundlegenden Verfahren zählen die explorative Datenanalyse (Exploratory Data Analysis, EDA) sowie Clustering-Methoden, die auch die Basis der in dieser Arbeit entwickelten Anwendung bilden.
+Die explorative Datenanalyse stellt einen der ersten Schritte nach der Datenaufbereitung dar. Ihr Ziel ist es, die Eigenschaften eines Datensatzes zu untersuchen und ein grundlegendes Verständnis für dessen Struktur zu gewinnen. Dabei werden die Daten zunächst ohne vorher festgelegte Hypothesen betrachtet. Mithilfe statistischer Kennzahlen sowie grafischer Darstellungen können Verteilungen, Zusammenhänge, Ausreißer oder andere Auffälligkeiten identifiziert werden. Die explorative Datenanalyse unterstützt somit die Beurteilung der Datenqualität und liefert wichtige Erkenntnisse für die Auswahl geeigneter Analysemethoden. Darüber hinaus können erste Hypothesen über mögliche Beziehungen innerhalb der Daten entwickelt werden \cite{Komorowski2016}.
 
+Ein weiteres zentrales Verfahren ist das Clustering. Es gehört zum Bereich des unüberwachten maschinellen Lernens und dient dazu, Datenobjekte anhand ihrer Ähnlichkeit automatisch zu Gruppen, sogenannten Clustern, zusammenzufassen. Im Gegensatz zur Klassifikation liegen beim Clustering keine vorgegebenen Klassen oder Kategorien vor. Ziel ist es stattdessen, bislang unbekannte Strukturen innerhalb der Daten zu identifizieren. Dabei sollen die Elemente eines Clusters möglichst ähnliche Merkmale aufweisen, während sich verschiedene Cluster möglichst deutlich voneinander unterscheiden \cite{Rokach2005}.
+
+Im Kontext der Genexpressionsanalyse ermöglicht Clustering die Identifikation von Genen oder biologischen Proben mit ähnlichen Expressionsmustern. Die so gewonnenen Gruppen können anschließend mithilfe geeigneter Visualisierungstechniken dargestellt und interpretiert werden. Die Kombination aus explorativer Datenanalyse, Clustering und Visualisierung bildet die Grundlage für die in dieser Arbeit entwickelte Anwendung zur Analyse von Genexpressionsdatensätzen.
 
 
 % ----------------------------------------------------------------------------------------------
@@ -275,8 +278,8 @@ Die folgende Tabelle zeigt, welche Aufgaben von wem übernommen wurden und wie g
 		Testen (inkl. GUI- und Visualisierungsfunktionen)   & Wiktoria  & 25 Stunden  \\ 
 		Besprechungen 				 						& Wiktoria  & 19,5 Stunden  \\
 		Protokollvor- und Nachbereitung 					& Wiktoria  & 3 Stunden \\
-		Berichterstellung (eigenes Kapitel)					& Wiktoria  & 10 Stunden \\
-		Bericht zusammenfügen und Korrektur                 & Wiktoria  & 3 Stunden \\
+		Berichterstellung (eigenes Kapitel)					& Wiktoria  & 12 Stunden \\
+		Bericht zusammenfügen und Korrektur                 & Wiktoria  & 5 Stunden \\
 		Folien zusammenfügen und Korrektur 					& Wiktoria  & 1 Stunde \\
 		Repository-Pflege 									& Wiktoria  & 3 Stunden \\
 		Erstellen einer Library 							& Wiktoria  & NOCH OFFEN \\

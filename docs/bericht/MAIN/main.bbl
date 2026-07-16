@@ -103,6 +103,12 @@ Purvesh Khatri, Marina Sirota, and Atul~J. Butte.
   challenges.
 \newblock {\em PLoS Computational Biology}, 8(2):e1002375, 2012.
 
+\bibitem{Komorowski2016}
+Matthieu Komorowski, Dominic~C. Marshall, Justin~D. Salciccioli, and Yves
+  Crutain.
+\newblock {\em Exploratory Data Analysis}, pages 185--203.
+\newblock Springer International Publishing, Cham, 2016.
+
 \bibitem{Kukurba2015}
 Kimberly~R. Kukurba and Stephen~B. Montgomery.
 \newblock Rna sequencing and analysis.
@@ -151,6 +157,11 @@ Julia Perera-Bel, Benjamin Hutter, Priya Balasubramanian, and et~al.
 {R Core Team}.
 \newblock {\em R: A Language and Environment for Statistical Computing}.
 \newblock R Foundation for Statistical Computing, Vienna, Austria, 2026.
+
+\bibitem{Rokach2005}
+Lior Rokach and Oded Maimon.
+\newblock {\em Clustering Methods}, pages 321--352.
+\newblock Springer US, Boston, MA, 2005.
 
 \bibitem{Schmidt}
 Stefan Schmidt.
