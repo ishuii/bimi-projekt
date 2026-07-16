@@ -85,7 +85,6 @@ Was ist Clustering?
 
 \section{Clusteranalyse}
 \label{clusteranalyse}
-% TODO: theoretische Erklärung des Algorithmus
 
 \subsection{Arbeitsverteilung}
 \label{cluster-arbeitsverteilung}
@@ -99,19 +98,25 @@ Der Bereich der Clusteranalyse unterteilt sich in mehrere Unteraufgaben. Zunäch
 		Normalisierungsfunktionen     & Rosina    &                \\ 
 		Distanzfunktionen             & Wiktoria  & 7 Stunden      \\ 
 		Linkagefunktionen			  & Rosina    &                \\
-		Linkagefunktionen allgemein   & Wiktoria  & 10 Stunden     \\
-		Testen                        & Wiktoria  &                \\ 
+		Linkagefunktionen allgemein   & Wiktoria  & 13 Stunden     \\
+		Testen (inkl. GUI- und Visualisierungsfunktionen)    & Wiktoria  & 30 Stunden     \\ 
 		Besprechungen 				  & Wiktoria  & 20 Stunden     \\
+		Verwaltungsaufgaben           & Wiktoria  & 10 Stunden     \\
+		
 	\end{tabular}
 \end{table}
 
 
 \subsection{Berechnung der Distanzmatrix}
 \label{distanzfunktionen}
-Bei Genexpressionsdaten handelt es sich um kontinuierliche Daten, deren Abstände für gewöhnlich mit Hilfe von Distanzmaßen bestimmt werden. Durch Berechnen der zeilenweisen Distanzen  \( \delta_{ij} \) entsteht eine symmetrische Distanzmatrix \( \mathbf{D}\), wobei \( \delta_{ii}  = 0\) für alle \( i \) gilt. Es muss sowohl eine Distanzmatrix für die Gene als auch für die Patienten berechnet werden. Im zweiten Fall wird der Datensatz zunächst transponiert, so dass zeilenweise gearbeitet werden kann.\\
+Für das Zusammenfügen der Cluster muss zunächst bestimmt werden, wie ähnlich, bzw. nah diese zueinander sind. Da es sich bei den in diesem Projekt verwendeten Genexpressionsdaten um kontinuierliche Daten handelt, wird ihre Nähe mit Hilfe von Distanzmaßen bestimmt. Für ein Distanzmaß $\delta_{ij}$ muss die Dreiecksungleichung gelten, d.h. für drei Elemente $i$, $j$ und $m$: 
+\[ \delta_{ij} + \delta_{im} \ge \delta_{jm} \]
+Durch Berechnen der zeilenweisen Distanzen  \( \delta_{ij} \), für welche diese Bedingung gilt, entsteht eine symmetrische Distanzmatrix \( \mathbf{D}\), wobei \( \delta_{ii}  = 0\) für alle \( i \) gilt \cite{Everitt2011}. Es muss sowohl eine Distanzmatrix für die Gene als auch für die Patienten berechnet werden. Im zweiten Fall wird der Datensatz zunächst transponiert, so dass zeilenweise gearbeitet werden kann.\\
 Es gibt eine Vielzahl an Distanzmaßen, die verwendet werden können. In dem Projekt wurden die folgenden sechs Distanzfunktionen implementiert: euklidische Distanz, Manhattan-Distanz, Minkowski-Distanz, Canberra-Distanz, Pearson-Korrelation und Winkeldistanz (Angular Separation). Eine Übersicht der Distanzfunktionen befindet sich in Tabelle \ref{distanzfunktionen-tabelle}. Hierbei sind \( x_{ik} \) und \( x_{jk} \) jeweils die \(k\)-te Variablen der \(p\)-dimensionalen Beobachtungen der Variablen \(i\) und \(j\). Die Auswahl entstammt Everitt et al. \cite{Everitt2011}, verzichtet allerdings auf Gewichte.\\
+Die euklidische Distanz (D1) gilt häufig als das gängigste Distanzmaß. Sie hat die Eigenschaft, dass die berechnete Distanz als ein Abstand zwischen zwei Punkten im $p$-dimensionalen Raum verstanden werden kann \cite{Everitt2011}. Die Manhattan-Distanz (D2) ist ähnlich, definiert den Abstand allerdings ausschließlich über geradlinige Verbindungen. D1 und D2 sind Spezialfälle der Minkowski-Distanz (D3), für $r = 2$, bzw. $r = 1$. Dem Nutzer wird bei Auswahl von D3 die Möglichkeit gegeben, einen eigenen Wert für $r$ einzugeben, wobei Werte $<1$ nicht zulässig sind.\\
+Die Canberra-Distanz (D4) ist besonders sensitiv für kleine Veränderungen nahe 0 \cite{Everitt2011}. \\
 Mit D5 und D6 stehen auch zwei Korrelationsmaße als Distanzfunktionen zur Verfügung. Für die Korrelation \( \phi_{ij}\) gilt \( -1 \le \phi_{ij} \le 1 \), wobei 1 die größte positive Korrelation und -1 die größte negative Korrelation darstellt. Die Korrelation kann in eine Distanz \( \delta_{ij} \) im Intervall \( [0,1] \) umgerechnet werden. Korrelationsmaße eignen sich für Daten, die auf der gleichen Skala gemessen wurden, sowie deren exakten Werte nur insofern von Interesse sind, als sie Aufschluss über das relative Profil geben. So hat z.B. die Winkeldistanz (D6) die Eigenschaft, dass nur dann eine minimale Distanz von 0 zwischen zwei Zeilen entsteht, wenn die Werte der einen Zeilen Mehrfache der Werte der anderen Zeile sind.\\
-Im Projekt wurde eine gemeinsame Funktion für die Berechnung der Distanzmatrix in C++ implementiert. Dafür wurde ein separates Repository erschaffen. Das Paket Rcpp ermöglicht die Einbindung des C++-Codes in einer R-Umgebung. Die eigentliche Funktion heißt \verb*|dist_cpp| und bekommt drei Parameter übergeben: eine numerische Matrix \verb*|mat| (den normalisierten Datensatz), einen String \verb*|method| für das Distanzmaß, und einen Integer \verb*|p|. Letzter entspricht dem Parameter \(r\) in der Minkowski-Distanz (D3).
+Im Projekt wurde eine gemeinsame Funktion für die Berechnung der Distanzmatrix in C++ implementiert. Dafür wurde ein separates Repository erschaffen. Das Paket \verb*|Rcpp| \cite{Eddelbuettel2026} ermöglicht die Einbindung des C++-Codes in eine R-Umgebung. Die eigentliche Funktion heißt \verb*|dist_cpp| und bekommt drei Parameter übergeben: eine numerische Matrix \verb*|mat| (den normalisierten Datensatz), einen String \verb*|method| für das gewählte Distanzmaß, und einen Integer \verb*|p|. Letzter entspricht dem Parameter \(r\) in der Minkowski-Distanz (D3). Die Implementierung entspricht den mathematischen Formeln und ist entsprechend einfach.
 
 \begin{table}[ht]
 	\centering

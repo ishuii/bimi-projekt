@@ -1,0 +1,134 @@
+\begin{thebibliography}{10}
+
+\bibitem{Conesa2016}
+Ana Conesa, Pedro Madrigal, Sonia Tarazona, David Gomez-Cabrero, Alejandra
+  Cervera, Andrew McPherson, Micha{\l}~W. Szcze{\'{s}}niak, Daniel~J. Gaffney,
+  Laura~L. Elo, Xuegong Zhang, and Ali Mortazavi.
+\newblock A survey of best practices for rna-seq data analysis.
+\newblock {\em Genome Biology}, 17(1):13, 2016.
+
+\bibitem{Crameri2020}
+Fabio Crameri, Grace~E. Shephard, and Philip~J. Heron.
+\newblock The misuse of colour in science communication.
+\newblock {\em Nature Communications}, 11:5444, 2020.
+
+\bibitem{Eddelbuettel2026}
+Dirk Eddelbuettel, Romain Fran\c{c}ois, {JJ} Allaire, Kevin Ushey, Qiang Kou,
+  Nathan Russell, I\~{n}aki Ucar, Doug Bates, and John Chambers.
+\newblock {\em {Rcpp: Seamless R and C++ Integration}}, 2026.
+\newblock R package version 1.1.2.
+
+\bibitem{Everitt2011}
+Brian~S. Everitt, Sabine Landau, Morven Leese, and Daniel Stahl.
+\newblock {\em Cluster Analysis}.
+\newblock Wiley, Chichester, 5 edition, 2011.
+
+\bibitem{Viridis}
+Simon Garnier, Noam Ross, Robert Rudis, Antônio~P. Camargo, Marco Sciaini, and
+  Cédric Scherer.
+\newblock viridis(lite) -- colorblind-friendly color maps for r, 2024.
+\newblock R package.
+
+\bibitem{golub1999}
+Todd~R. Golub, Donna~K. Slonim, Pablo Tamayo, Christine Huard, Michelle
+  Gaasenbeek, Jill~P. Mesirov, Hilary Coller, Mignon~L. Loh, James~R. Downing,
+  Michael~A. Caligiuri, Clara~D. Bloomfield, and Eric~S. Lander.
+\newblock Molecular classification of cancer: class discovery and class
+  prediction by gene expression monitoring.
+\newblock {\em Science}, 286(5439):531--537, 1999.
+
+\bibitem{HarrowerBrewer2003}
+Mark Harrower and Cynthia~A. Brewer.
+\newblock Colorbrewer.org: An online tool for selecting colour schemes for
+  maps.
+\newblock {\em The Cartographic Journal}, 40(1):27--37, 2003.
+
+\bibitem{Horak2021}
+Peter Horak, Christoph Heining, Sabrina Kreutzfeldt, Barbara Hutter, Annika
+  Mock, Hamid H{\"o}ck, et~al.
+\newblock Clinical outcomes of molecular tumor boards: a systematic review.
+\newblock {\em JCO Precision Oncology}, 5:e21000495, 2021.
+
+\bibitem{Kanehisa2023}
+Minoru Kanehisa, Yoko Sato, and Masayuki Kawashima.
+\newblock Kegg for taxonomy-based analysis of pathways and genomes.
+\newblock {\em Nucleic Acids Research}, 51(D1):D587--D592, 2023.
+
+\bibitem{Khatri2012}
+Purvesh Khatri, Marina Sirota, and Atul~J. Butte.
+\newblock Ten years of pathway analysis: Current approaches and outstanding
+  challenges.
+\newblock {\em PLoS Computational Biology}, 8(2):e1002375, 2012.
+
+\bibitem{Kukurba2015}
+Kimberly~R. Kukurba and Stephen~B. Montgomery.
+\newblock Rna sequencing and analysis.
+\newblock {\em Cold Spring Harbor Protocols}, 2015(11):pdb--top083808, 2015.
+
+\bibitem{Lance1967}
+G.~N. Lance and W.~T. Williams.
+\newblock {A general theory of classificatory sorting strategies: {I.}
+  Hierarchical systems}.
+\newblock {\em The Computer Journal}, 9(4):373--380, 1967.
+
+\bibitem{LeeYoung2013}
+Tong~Ihn Lee and Richard~A. Young.
+\newblock Transcriptional regulation and its misregulation in disease.
+\newblock {\em Cell}, 152(6):1237--1251, 2013.
+
+\bibitem{Mosele2020}
+F.~Mosele, J.~Remon, J.~Mateo, and et~al.
+\newblock Recommendations for the use of next-generation sequencing (ngs) for
+  patients with metastatic cancers: a report from the esmo precision medicine
+  working group.
+\newblock {\em Annals of Oncology}, 31(11):1491--1505, 2020.
+
+\bibitem{NarrandesXu2018}
+Shavira Narrandes and Wayne Xu.
+\newblock Gene expression detection assay for cancer clinical use.
+\newblock {\em Journal of Cancer}, 9(13):2249--2265, 2018.
+
+\bibitem{Oshlack2010}
+Alicia Oshlack, Mark~D. Robinson, and Matthew~D. Young.
+\newblock From rna-seq reads to differential expression.
+\newblock {\em Genome Biology}, 11(12):220, 2010.
+
+\bibitem{PereraBel2018}
+Julia Perera-Bel, Benjamin Hutter, Priya Balasubramanian, and et~al.
+\newblock gmtb: A software tool for integrating tumor molecular profiles into
+  clinical decision-making.
+\newblock {\em BMC Medical Informatics and Decision Making}, 18(1):72, 2018.
+
+\bibitem{shipp2002}
+Margaret~A. Shipp, Kenneth~N. Ross, Pablo Tamayo, Andrew~P. Weng, Jeffrey~L.
+  Kutok, Renato C.~T. Aguiar, Michelle Gaasenbeek, Michael Angelo, Michael
+  Reich, Geraldine~S. Pinkus, Tapan~S. Ray, Michael~A. Koval, Kim~W. Last,
+  Andrew Norton, T.~Andrew Lister, Jill Mesirov, Donna~S. Neuberg, Eric~S.
+  Lander, Jon~C. Aster, and Todd~R. Golub.
+\newblock Diffuse large b-cell lymphoma outcome prediction by gene-expression
+  profiling and supervised machine learning.
+\newblock {\em Nature Medicine}, 8(1):68--74, 2002.
+
+\bibitem{Tamborero2020}
+David Tamborero, Rodrigo Dienstmann, Mohamed Rachid, and et~al.
+\newblock Support tools to guide clinical decision-making in precision
+  oncology: the molecular tumor board.
+\newblock {\em NPJ Precision Oncology}, 4(1):22, 2020.
+
+\bibitem{Tufte1983}
+Edward~R. Tufte.
+\newblock {\em The Visual Display of Quantitative Information}.
+\newblock Graphics Press, Cheshire, CT, 1983.
+
+\bibitem{Vogelstein2013}
+Bert Vogelstein, Nickolas Papadopoulos, Victor~E. Velculescu, Shibin Zhou,
+  Luis~A. Diaz, and Kenneth~W. Kinzler.
+\newblock Cancer genome landscapes.
+\newblock {\em Science}, 339(6127):1546--1558, 2013.
+
+\bibitem{Wang2009}
+Zhong Wang, Mark Gerstein, and Michael Snyder.
+\newblock Rna-seq: a revolutionary tool for transcriptomics.
+\newblock {\em Nature Reviews Genetics}, 10(1):57--63, 2009.
+
+\end{thebibliography}
