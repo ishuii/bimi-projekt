@@ -9,46 +9,48 @@ Warning--entry type for "Schmidt" isn't style-file defined
 --line 609 of file bibliography.bib
 Warning--entry type for "LSE2026" isn't style-file defined
 --line 741 of file bibliography.bib
+Warning--to sort, need author or key in ControlWidgets
+Warning--to sort, need author or key in CustomCSS
 Warning--can't use both author and editor fields in Rokach2005
-You've used 37 entries,
+You've used 45 entries,
             2118 wiz_defined-function locations,
-            757 strings with 11388 characters,
-and the built_in function-call counts, 13845 in all, are:
-= -- 1284
-> -- 889
+            794 strings with 12493 characters,
+and the built_in function-call counts, 15727 in all, are:
+= -- 1454
+> -- 995
 < -- 2
-+ -- 356
-- -- 314
-* -- 1121
-:= -- 2393
-add.period$ -- 110
-call.type$ -- 37
-change.case$ -- 260
++ -- 400
+- -- 350
+* -- 1229
+:= -- 2709
+add.period$ -- 132
+call.type$ -- 45
+change.case$ -- 296
 chr.to.int$ -- 0
-cite$ -- 38
-duplicate$ -- 412
-empty$ -- 934
-format.name$ -- 314
-if$ -- 2752
+cite$ -- 48
+duplicate$ -- 480
+empty$ -- 1088
+format.name$ -- 350
+if$ -- 3136
 int.to.chr$ -- 0
-int.to.str$ -- 37
+int.to.str$ -- 45
 missing$ -- 37
-newline$ -- 187
-num.names$ -- 74
-pop$ -- 257
+newline$ -- 225
+num.names$ -- 86
+pop$ -- 309
 preamble$ -- 1
-purify$ -- 230
+purify$ -- 264
 quote$ -- 0
-skip$ -- 285
+skip$ -- 343
 stack$ -- 0
-substring$ -- 766
-swap$ -- 58
+substring$ -- 806
+swap$ -- 72
 text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 136
-warning$ -- 1
-while$ -- 118
-width$ -- 39
-write$ -- 401
-(There were 3 warnings)
+type$ -- 168
+warning$ -- 3
+while$ -- 130
+width$ -- 47
+write$ -- 475
+(There were 5 warnings)

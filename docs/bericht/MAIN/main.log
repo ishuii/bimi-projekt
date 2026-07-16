@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  16 JUL 2026 17:33
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  16 JUL 2026 18:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -385,6 +385,25 @@ Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \@float@everytoks=\toks35
 \@floatcapt=\box60
 )
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/caption\caption.sty
+Package: caption 2023/08/05 v3.6o Customizing captions (AR)
+
+(C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/caption\caption3.sty
+Package: caption3 2023/07/31 v2.4d caption3 kernel (AR)
+\caption@tempdima=\dimen197
+\captionmargin=\dimen198
+\caption@leftmargin=\dimen199
+\caption@rightmargin=\dimen256
+\caption@width=\dimen257
+\caption@indent=\dimen258
+\caption@parindent=\dimen259
+\caption@hangindent=\dimen260
+Package caption Info: Standard document class detected.
+)
+\c@caption@flags=\count314
+\c@continuedfloat=\count315
+Package caption Info: float package is loaded.
+)
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/base\fontenc.sty
 Package: fontenc 2025/07/18 v2.1d Standard LaTeX package
 )
@@ -427,16 +446,16 @@ LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
 Package: microtype 2026/03/01 v3.2d Micro-typographical refinements (RS)
 \MT@toks=\toks36
 \MT@tempbox=\box61
-\MT@count=\count314
+\MT@count=\count316
 LaTeX Info: Redefining \noprotrusionifhmode on input line 1084.
 LaTeX Info: Redefining \leftprotrusion on input line 1085.
 \MT@prot@toks=\toks37
 LaTeX Info: Redefining \rightprotrusion on input line 1104.
 LaTeX Info: Redefining \textls on input line 1449.
-\MT@outer@kern=\dimen197
+\MT@outer@kern=\dimen261
 LaTeX Info: Redefining \microtypecontext on input line 2053.
 LaTeX Info: Redefining \textmicrotypecontext on input line 2070.
-\MT@listname@count=\count315
+\MT@listname@count=\count317
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/microtype\microtype-pdf
 tex.def
@@ -455,26 +474,26 @@ LaTeX Info: Redefining \microtypesetup on input line 3065.
 ) (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/parskip\parskip.sty
 Package: parskip 2021-03-14 v2.0h non-zero parskip adjustments
 ) (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/listings\listings.sty
-\lst@mode=\count316
+\lst@mode=\count318
 \lst@gtempboxa=\box62
 \lst@token=\toks38
-\lst@length=\count317
-\lst@currlwidth=\dimen198
-\lst@column=\count318
-\lst@pos=\count319
-\lst@lostspace=\dimen199
-\lst@width=\dimen256
-\lst@newlines=\count320
-\lst@lineno=\count321
-\lst@maxwidth=\dimen257
+\lst@length=\count319
+\lst@currlwidth=\dimen262
+\lst@column=\count320
+\lst@pos=\count321
+\lst@lostspace=\dimen263
+\lst@width=\dimen264
+\lst@newlines=\count322
+\lst@lineno=\count323
+\lst@maxwidth=\dimen265
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstpatch.sty
 File: lstpatch.sty 2025/11/14 1.11b (Carsten Heinz)
 )
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstmisc.sty
 File: lstmisc.sty 2025/11/14 1.11b (Carsten Heinz)
-\c@lstnumber=\count322
-\lst@skipnumbers=\count323
+\c@lstnumber=\count324
+\lst@skipnumbers=\count325
 \lst@framebox=\box63
 )
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/listings\listings.cfg
@@ -489,12 +508,12 @@ Package: listings 2025/11/14 1.11b (Carsten Heinz)
     so I'm assuming it got fixed.
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/csquotes\csquotes.sty
 Package: csquotes 2026-05-19 v5.2p context-sensitive quotations (JAW)
-\csq@reset=\count324
-\csq@gtype=\count325
-\csq@glevel=\count326
-\csq@qlevel=\count327
-\csq@maxlvl=\count328
-\csq@tshold=\count329
+\csq@reset=\count326
+\csq@gtype=\count327
+\csq@glevel=\count328
+\csq@qlevel=\count329
+\csq@maxlvl=\count330
+\csq@tshold=\count331
 \csq@ltx@everypar=\toks39
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/csquotes\csquotes.def
@@ -508,7 +527,7 @@ File: csquotes.cfg
 ))
 Package babel-german Info: Using contemporary glottonyms
 (babel-german)             `german' denotes post-1996 spelling. on input line 5
-4.
+5.
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/generic/babel/locale/de\babel
 -german.tex
@@ -517,13 +536,13 @@ Package babel Info: Importing basic data for german
 )
 
 Package babel-german Warning: Hyphenation patterns `ngerman-x-latest', requeste
-d by german, not available. Falling back to legacy! on input line 54.
+d by german, not available. Falling back to legacy! on input line 55.
 
 Package csquotes Info: Checking for multilingual support...
 Package csquotes Info: ... found 'babel' package.
 Package csquotes Info: Adjusting default style.
 Package csquotes Info: Redefining alias 'default' -> 'german'.
-LaTeX Font Info:    Trying to load font information for T1+lmr on input line 54
+LaTeX Font Info:    Trying to load font information for T1+lmr on input line 55
 .
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmr.fd
 File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -531,27 +550,27 @@ File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdf
 tex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count330
+\l__color_backend_stack_int=\count332
 ) (main.aux
 Package babel Info: 'german' activates 'german' shorthands.
 (babel)             Reported on input line 5.
 )
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 54.
-LaTeX Font Info:    ... okay on input line 54.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 54.
-LaTeX Font Info:    ... okay on input line 54.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 54.
-LaTeX Font Info:    ... okay on input line 54.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 54.
-LaTeX Font Info:    ... okay on input line 54.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 54.
-LaTeX Font Info:    ... okay on input line 54.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 54.
-LaTeX Font Info:    ... okay on input line 54.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 54.
-LaTeX Font Info:    ... okay on input line 54.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -591,16 +610,16 @@ LaTeX Font Info:    ... okay on input line 54.
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mk
 ii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count331
-\scratchdimen=\dimen258
+\scratchcounter=\count333
+\scratchdimen=\dimen266
 \scratchbox=\box64
-\nofMPsegments=\count332
-\nofMParguments=\count333
+\nofMPsegments=\count334
+\nofMParguments=\count335
 \everyMPshowfont=\toks40
-\MPscratchCnt=\count334
-\MPscratchDim=\dimen259
-\MPnumerator=\count335
-\makeMPintoPDFobject=\count336
+\MPscratchCnt=\count336
+\MPscratchDim=\dimen267
+\MPnumerator=\count337
+\makeMPintoPDFobject=\count338
 \everyMPtoPDFconversion=\toks41
 )
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/pdflscape\pdflscape.sty
@@ -616,13 +635,16 @@ Package: lscape 2020/05/28 v3.02 Landscape Pages (DPC)
 )
 Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
 ))
-LaTeX Info: Redefining \microtypecontext on input line 54.
-Package microtype Info: Applying patch `item' on input line 54.
-Package microtype Info: Applying patch `toc' on input line 54.
-Package microtype Info: Applying patch `eqnum' on input line 54.
-Package microtype Info: Applying patch `footnote' on input line 54.
-Package microtype Info: Applying patch `verbatim' on input line 54.
-LaTeX Info: Redefining \microtypesetup on input line 54.
+Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: listings package is loaded.
+Package caption Info: End \AtBeginDocument code.
+LaTeX Info: Redefining \microtypecontext on input line 55.
+Package microtype Info: Applying patch `item' on input line 55.
+Package microtype Info: Applying patch `toc' on input line 55.
+Package microtype Info: Applying patch `eqnum' on input line 55.
+Package microtype Info: Applying patch `footnote' on input line 55.
+Package microtype Info: Applying patch `verbatim' on input line 55.
+LaTeX Info: Redefining \microtypesetup on input line 55.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -638,38 +660,38 @@ Package microtype Info: No adjustment of character kerning.
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman 
 (RS)
 )
-\c@lstlisting=\count337
+\c@lstlisting=\count339
 LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 5
-7.
+8.
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/lm\ot1lmr.fd
 File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OML+lmm on input line 5
-7.
+8.
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/lm\omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-57.
+58.
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/lm\omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-57.
+58.
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/lm\omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <14.4> on input line 57.
+(Font)              <14.4> on input line 58.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 57.
+(Font)              <10> on input line 58.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 57.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 57.
+(Font)              <7> on input line 58.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 58.
 
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd
@@ -678,7 +700,7 @@ File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/microtype\mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 57.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 58.
 
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
@@ -692,11 +714,11 @@ File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 {C:/Users/wikto/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Users/wikt
 o/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ec.enc}]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 74.
+(Font)              <12> on input line 75.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 74.
+(Font)              <8> on input line 75.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 74.
+(Font)              <6> on input line 75.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -706,7 +728,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [2]
-Overfull \hbox (5.3285pt too wide) in paragraph at lines 106--107
+Overfull \hbox (5.3285pt too wide) in paragraph at lines 107--108
 []\T1/lmr/m/n/12 (-20) Die Fe-in-ju-stie-rung der Gen-ex-pres-si-on um-fasst me
 h-re-re nach-ge-la-ger-te Ebe-nen. Post-transkriptionell
  []
@@ -744,12 +766,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [6]
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 1
-88.
+89.
  (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/lm\ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
-88.
+89.
 
 (C:\Users\wikto\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -770,7 +792,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 <ERM_Modell.jpg, id=29, 929.4725pt x 513.92pt>
 File: ERM_Modell.jpg Graphic file (type jpg)
 <use ERM_Modell.jpg>
-Package pdftex.def Info: ERM_Modell.jpg  used on input line 205.
+Package pdftex.def Info: ERM_Modell.jpg  used on input line 206.
 (pdftex.def)             Requested size: 338.58632pt x 187.20674pt.
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -780,20 +802,20 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [8 <./ERM_Modell.jpg>]
-Overfull \hbox (21.02771pt too wide) in paragraph at lines 240--241
+Overfull \hbox (21.02771pt too wide) in paragraph at lines 241--242
 []\T1/lmr/bx/n/12 (-20) TCGA_kidney_unnormalized_meta.csv\T1/lmr/m/n/12 (-20) :
  Da-ten-satz, der die drei Nierenkrebs-Unterarten:
  []
 
 
-Overfull \hbox (19.34949pt too wide) in paragraph at lines 242--243
+Overfull \hbox (19.34949pt too wide) in paragraph at lines 243--244
 \T1/lmr/m/n/12 (-20) Ein wei-te-rer zur Ver-fü-gung ge-stell-ter Da-ten-satz is
 t der Golub-Datensatz: \T1/lmr/bx/n/12 (-20) GO-LUB_microarray.csv\T1/lmr/m/n/1
 2 (-20) .
  []
 
 
-Overfull \hbox (0.27014pt too wide) in paragraph at lines 244--245
+Overfull \hbox (0.27014pt too wide) in paragraph at lines 245--246
 \T1/lmr/m/n/12 (-20) Der letz-te zur Ver-fü-gung ge-stell-te Da-ten-satz ist de
 r SHIPP-Datensatz: \T1/lmr/bx/n/12 (-20) SHIPP_microarray.csv\T1/lmr/m/n/12 (-2
 0) .
@@ -898,14 +920,14 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [20]
-Overfull \hbox (7.8424pt too wide) in paragraph at lines 619--620
+Overfull \hbox (7.8424pt too wide) in paragraph at lines 620--621
 []\T1/lmr/m/n/12 (-20) Die Er-geb-nis-se wer-den in \T1/lmtt/m/n/12 generate_de
 ndro_data() \T1/lmr/m/n/12 (-20) als Ob-jekt aus \T1/lmtt/m/n/12 draw_result \T
 1/lmr/m/n/12 (-20) und \T1/lmtt/m/n/12 max_height
  []
 
 
-Overfull \hbox (5.8553pt too wide) in paragraph at lines 619--620
+Overfull \hbox (5.8553pt too wide) in paragraph at lines 620--621
 \T1/lmr/m/n/12 (-20) ge-sam-melt, oh-ne je-den Be-zug zu ei-ner Gra-fik-bi-blio
 -thek. Ge-nau auf die-ser Renderer-Unabhängigkeit
  []
@@ -918,13 +940,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [21]
-Overfull \hbox (52.09872pt too wide) in paragraph at lines 625--628
+Overfull \hbox (52.09872pt too wide) in paragraph at lines 626--629
 []\T1/lmr/m/n/12 (-20) Für die fi-na-le Vi-sua-li-sie-rung sind zwei ver-schie-
 de-ne Plot-Funktionen im-ple-men-tiert: \T1/lmtt/m/n/12 plot_dendro_ggplot()
  []
 
 
-Overfull \hbox (2.8581pt too wide) in paragraph at lines 638--639
+Overfull \hbox (2.8581pt too wide) in paragraph at lines 639--640
 \T1/lmr/m/n/12 (-20) ner Team-part-ne-rin und zeich-net die Den-dro-gram-me auf
  Grund-la-ge von \T1/lmtt/m/n/12 generate_dendro_data()
  []
@@ -972,6 +994,10 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [26]
+Overfull \hbox (19.61234pt too wide) in paragraph at lines 815--838
+ [][] 
+ []
+
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -980,9 +1006,87 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [27]
+<pathways.png, id=103, 424.58624pt x 300.12125pt>
+File: pathways.png Graphic file (type png)
+<use pathways.png>
+Package pdftex.def Info: pathways.png  used on input line 856.
+(pdftex.def)             Requested size: 169.29684pt x 119.66628pt.
+
+Underfull \hbox (badness 10000) in paragraph at lines 857--857
+[]\T1/lmr/m/n/12 (+20) Abbildung 2: |Bei-spiel der
+ []
+
+<patientsuchen.png, id=105, 275.0275pt x 273.02pt>
+File: patientsuchen.png Graphic file (type png)
+<use patientsuchen.png>
+Package pdftex.def Info: patientsuchen.png  used on input line 863.
+(pdftex.def)             Requested size: 145.11053pt x 144.05418pt.
+<runButton.png, id=106, 141.52875pt x 54.2025pt>
+File: runButton.png Graphic file (type png)
+<use runButton.png>
+Package pdftex.def Info: runButton.png  used on input line 870.
+(pdftex.def)             Requested size: 96.73788pt x 37.04909pt.
+
+Underfull \hbox (badness 4819) in paragraph at lines 871--871
+\T1/lmr/m/n/12 (+20) spiel der Ac-ti-on
+ []
+
+<parameter.png, id=107, 1376.14125pt x 569.12625pt>
+File: parameter.png Graphic file (type png)
+<use parameter.png>
+Package pdftex.def Info: parameter.png  used on input line 878.
+(pdftex.def)             Requested size: 474.02086pt x 196.03613pt.
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[28 <./pathways.png> <./patientsuchen.png> <./runButton.png>]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[29 <./parameter.png>]
+Overfull \hbox (0.92195pt too wide) in paragraph at lines 897--898
+\T1/lmr/m/n/12 (-20) Den-dro-gram-me die al-ler-wich-tig-sten. Hier wur-den 3 S
+ub-Tabs in-ner-halb des groÿen Visualisierungs-
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[30]
+<fehler.png, id=121, 183.68625pt x 87.32625pt>
+File: fehler.png Graphic file (type png)
+<use fehler.png>
+Package pdftex.def Info: fehler.png  used on input line 912.
+(pdftex.def)             Requested size: 193.47578pt x 91.98708pt.
+<modal.png, id=122, 562.1pt x 216.81pt>
+File: modal.png Graphic file (type png)
+<use modal.png>
+Package pdftex.def Info: modal.png  used on input line 919.
+(pdftex.def)             Requested size: 241.84843pt x 93.28271pt.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[31 <./fehler.png> <./modal.png>]
 
 LaTeX Warning: No positions in optional float specifier.
-               Default added (so using `tbp') on input line 794.
+               Default added (so using `tbp') on input line 939.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -991,7 +1095,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[28]
+[32]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -999,11 +1103,11 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[29]
-<farbpaletten.png, id=109, 645.16031pt x 431.36156pt>
+[33]
+<farbpaletten.png, id=135, 645.16031pt x 431.36156pt>
 File: farbpaletten.png Graphic file (type png)
 <use farbpaletten.png>
-Package pdftex.def Info: farbpaletten.png  used on input line 842.
+Package pdftex.def Info: farbpaletten.png  used on input line 987.
 (pdftex.def)             Requested size: 290.22107pt x 194.04509pt.
 
 
@@ -1013,11 +1117,11 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[30 <./farbpaletten.png>]
-<default_colors.png, id=115, 342.5297pt x 73.02281pt>
+[34 <./farbpaletten.png>]
+<default_colors.png, id=140, 342.5297pt x 73.02281pt>
 File: default_colors.png Graphic file (type png)
 <use default_colors.png>
-Package pdftex.def Info: default_colors.png  used on input line 877.
+Package pdftex.def Info: default_colors.png  used on input line 1022.
 (pdftex.def)             Requested size: 290.22107pt x 61.87578pt.
 
 
@@ -1027,7 +1131,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[31]
+[35]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1035,7 +1139,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[32 <./default_colors.png>] (main.bbl
+[36 <./default_colors.png>] (main.bbl
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1043,7 +1147,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[33]
+[37]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1051,7 +1155,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[34])
+[38])
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1059,20 +1163,20 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[35] (main.aux)
+[39] (main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 12573 strings out of 467871
- 203814 string characters out of 5418377
- 685113 words of memory out of 5000000
- 40974 multiletter control sequences out of 15000+600000
- 718790 words of font info for 221 fonts, out of 8000000 for 9000
+ 13986 strings out of 467871
+ 230995 string characters out of 5418377
+ 706362 words of memory out of 5000000
+ 42351 multiletter control sequences out of 15000+600000
+ 720309 words of font info for 236 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 68i,21n,90p,1887b,1048s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 68i,21n,90p,1887b,1052s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx10.pf
 b><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx12.pf
 b><C:/Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmex10.pf
@@ -1087,9 +1191,9 @@ Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy10.pfb><C:/
 Users/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy8.pfb><C:/U
 sers/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10.pfb><C:/U
 sers/wikto/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt12.pfb>
-Output written on main.pdf (35 pages, 744836 bytes).
+Output written on main.pdf (39 pages, 944285 bytes).
 PDF statistics:
- 205 PDF objects out of 1000 (max. 8388607)
+ 232 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 50192 words of extra memory for PDF output out of 51595 (max. 10000000)
+ 50222 words of extra memory for PDF output out of 51595 (max. 10000000)
 

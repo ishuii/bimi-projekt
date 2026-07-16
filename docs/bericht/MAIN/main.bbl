@@ -1,11 +1,37 @@
 \begin{thebibliography}{10}
 
+\bibitem{ControlWidgets}
+Control widgets in shiny.
+\newblock https://shiny.posit.co/r/getstarted/shiny-basics/lesson3/.
+
+\bibitem{CustomCSS}
+Using custom css in your app.
+\newblock https://shiny.posit.co/r/articles/build/css/.
+
+\bibitem{Attali2022}
+Dean Attali.
+\newblock {\em shinyjs: Easily Improve the User Experience of Your Shiny Apps
+  in Seconds}, 2022.
+\newblock R package version 2.1.0.
+
+\bibitem{Bailey2026}
+Eric Bailey.
+\newblock {\em shinyBS: Extra Twitter Bootstrap Components for Shiny}, 2026.
+\newblock R package version 0.65.0.
+
 \bibitem{CGARN2013}
 {Cancer Genome Atlas Research Network}, John~N. Weinstein, Eric~A. Collisson,
   Gordon~B. Mills, Kenna~R. Shaw, Bradley~A. Ozenberger, Kyle Ellrott, Ilya
   Shmulevich, Chris Sander, and Joshua~M. Stuart.
 \newblock The {Cancer Genome Atlas Pan-Cancer} analysis project.
 \newblock {\em Nature Genetics}, 45(10):1113--1120, 2013.
+
+\bibitem{Chang2026}
+Winston Chang, Joe Cheng, JJ~Allaire, Carson Sievert, Barret Schloerke, Garrick
+  Aden-Buie, Yihui Xie, Jeff Allen, Jonathan McPherson, Alan Dipert, and
+  Barbara Borges.
+\newblock {\em shiny: Web Application Framework for R}, 2026.
+\newblock R package version 1.14.0.9000.
 
 \bibitem{Conesa2016}
 Ana Conesa, Pedro Madrigal, Sonia Tarazona, David Gomez-Cabrero, Alejandra
@@ -183,6 +209,17 @@ Carson Sievert.
   shiny}.
 \newblock Chapman and Hall/CRC, 2020.
 
+\bibitem{Sievert2023}
+Carson Sievert.
+\newblock {\em bsicons: Easily Work with 'Bootstrap' Icons}, 2023.
+\newblock R package version 0.1.2.
+
+\bibitem{Sievert2026}
+Carson Sievert, Joe Cheng, and Garrick Aden-Buie.
+\newblock {\em bslib: Custom 'Bootstrap' 'Sass' Themes for 'shiny' and
+  'rmarkdown'}, 2026.
+\newblock R package version 0.11.0.
+
 \bibitem{Tamborero2020}
 David Tamborero, Rodrigo Dienstmann, Mohamed Rachid, and et~al.
 \newblock Support tools to guide clinical decision-making in precision
@@ -206,6 +243,12 @@ Bert Vogelstein, Nickolas Papadopoulos, Victor~E. Velculescu, Shibin Zhou,
   Luis~A. Diaz, and Kenneth~W. Kinzler.
 \newblock Cancer genome landscapes.
 \newblock {\em Science}, 339(6127):1546--1558, 2013.
+
+\bibitem{Wang2026}
+Zhengjia Wang.
+\newblock {\em dipsaus: A Dipping Sauce for Data Analysis and Visualizations},
+  2026.
+\newblock R package version 0.3.4, https://dipterix.org/dipsaus/.
 
 \bibitem{Wang2009}
 Zhong Wang, Mark Gerstein, and Michael Snyder.
