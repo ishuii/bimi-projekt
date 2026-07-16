@@ -1,8 +1,5 @@
 #####===========================================================================
-# Test file for the dendrogram visualization.
-#
-# - Patient dendrogram : colored by class labels, legend shown
-# - Gene dendrogram    : no class labels, everything in black
+# This script drives the complete dendrogram pipeline for testing
 #####===========================================================================
 
 library(ggplot2)
@@ -13,6 +10,7 @@ library(reshape2)
 library(plotly)
 library(RColorBrewer)
 library(colorspace)
+library(viridis)
 
 # ============================================================
 # SOURCES
@@ -37,14 +35,12 @@ source("R/visualization/saving_functions.R")
 
 con <- dbConnect(RSQLite::SQLite(), "GeneDatabase.sqlite")
 
-# dataset always placed under data/ so this path works for everyone
 dataset_kidney_meta <- read.csv("data/SHIPP_microarray.csv", header = TRUE)
 
 # ============================================================
 # PATHWAY SELECTION AND DATA INTEGRATION
 # ============================================================
 
-# hardcoded here for testing — normally selected via the GUI
 meine_pathways <- c("Biosynthesis of amino acids")
 message("Using pathway for kidney test: ", meine_pathways)
 
@@ -57,15 +53,13 @@ result <- run_data_integration(
   con             = con
 )
 
-dbDisconnect(con)
-
 
 # ============================================================
 # PREPARE AND NORMALIZE
 # ============================================================
 
 df_prepared   <- prepare_data(result$filtered_dataset)
-df_normalized <- normalization(df_prepared, 3)
+df_normalized <- normalization(df_prepared, 4)
 
 
 # ============================================================
@@ -75,7 +69,6 @@ df_normalized <- normalization(df_prepared, 3)
 patient_names <- colnames(result$meta_data)
 gene_names    <- result$gene_names
 
-# Matcht: "labels", "meta_labels"
 label_row    <- grep("lab", rownames(result$meta_data), ignore.case = TRUE, value = TRUE)[1]
 class_labels <- if (!is.na(label_row)) as.character(result$meta_data[label_row, ]) else NULL
 
@@ -84,33 +77,30 @@ class_labels <- if (!is.na(label_row)) as.character(result$meta_data[label_row, 
 # DISTANCE MATRICES AND CLUSTERING
 # ============================================================
 
-# patients transposed so columns (patients) are clustered
 dist_mat_pat <- dist_cpp(t(df_normalized), "euclidean")
 cluster_pat  <- hierarchical_clustering(dist_mat_pat, "average")
 
-# genes
 dist_mat_genes <- dist_cpp(df_normalized, "euclidean")
 cluster_genes  <- hierarchical_clustering(dist_mat_genes, "average")
 
 
 # ============================================================
 # BUILD TREES
-# cluster result contains the merge matrix and heights — both needed for build_tree
 # ============================================================
 
-# patients
 baum_patienten  <- build_tree(cluster_pat)
 order_patienten <- get_order_vector(baum_patienten)
 
-# genes
 baum_gene  <- build_tree(cluster_genes)
 order_gene <- get_order_vector(baum_gene)
 
+
+dbDisconnect(con)
+
 # ============================================================
-# DENDROGRAMS (DATEN-GENERIERUNG: Rein mathematisch strukturell)
+# DENDROGRAM DATA
 # ============================================================
 
-# patients — strukturelle Klassenzuweisung wird mitgegeben, aber KEINE Palette
 dendro_data_pat <- generate_dendro_data(
   cluster_result = cluster_pat,
   tree_result    = baum_patienten,
@@ -118,7 +108,6 @@ dendro_data_pat <- generate_dendro_data(
   class_labels   = class_labels
 )
 
-# genes — keine Klassenlabels
 dendro_data_genes <- generate_dendro_data(
   cluster_result = cluster_genes,
   tree_result    = baum_gene,
@@ -128,14 +117,14 @@ dendro_data_genes <- generate_dendro_data(
 
 
 # ============================================================
-# PLOTTING GGPLOT (PLOT-SACHE: Palette wird erst hier übergeben)
+# PLOTTING GGPLOT
 # ============================================================
 
 final_plot_pat <- plot_dendro_ggplot(
   dendro_data  = dendro_data_pat,
   title        = "TCGA Kidney Cancer: Patient Clustering",
   names_vector = patient_names,
-  palette_name = "PRGn",         # <-- Hier übergeben
+  palette_name = "PRGn",
   show_legend  = TRUE,
   show_x_axis  = TRUE,
   show_y_axis  = TRUE
@@ -145,7 +134,7 @@ final_plot_den <- plot_dendro_ggplot(
   dendro_data  = dendro_data_genes,
   title        = "TCGA Kidney Cancer: Gene Clustering",
   names_vector = gene_names,
-  palette_name = NULL,           # <-- Keine Palette (wird standardmäßig schwarz)
+  palette_name = NULL,
   show_legend  = FALSE,
   show_x_axis  = TRUE,
   show_y_axis  = TRUE
@@ -154,31 +143,34 @@ final_plot_den <- plot_dendro_ggplot(
 print(final_plot_pat)
 print(final_plot_den)
 
+heatmap_plot   <- generate_heatmap(data_matrix = df_normalized, gene_order = order_gene,
+                                   patient_order = order_patienten, gene_names = gene_names,
+                                   palette = "PRGn", show_x_axis = TRUE)
+print(heatmap_plot)
+
 
 # ============================================================
-# PLOTTING PLOTLY STANDALONE (PLOT-SACHE)
+# PLOTTING PLOTLY STANDALONE
 # ============================================================
 
-# 1) Patienten-Dendrogramm (Flach oben drüber)
 final_plotly_pat <- plot_dendro_plotly(
   dendro_data  = dendro_data_pat,
   side         = "top",
   names_vector = patient_names,
-  palette_name = "PRGn",         # <-- Hier übergeben
+  palette_name = "PRGn",
   show_legend  = TRUE,
-  show_x_axis  = TRUE,   # Zeigt Patienten-Namen
-  show_y_axis  = TRUE    # Zeigt Distanz-Skala links
+  show_x_axis  = TRUE,
+  show_y_axis  = TRUE
 )
 
-# 2) Gen-Dendrogramm (Soll als Standalone ebenfalls flach bleiben!)
 final_plotly_den <- plot_dendro_plotly(
   dendro_data  = dendro_data_genes,
-  side         = "top",  # Hier wieder "top", damit es flach bleibt
+  side         = "top",
   names_vector = gene_names,
-  palette_name = NULL,           # <-- Keine Palette
+  palette_name = NULL,
   show_legend  = FALSE,
-  show_x_axis  = TRUE,   # Zeigt Gen-Namen
-  show_y_axis  = TRUE    # Zeigt Distanz-Skala links
+  show_x_axis  = TRUE,
+  show_y_axis  = TRUE
 )
 
 print(final_plotly_pat)
@@ -186,10 +178,10 @@ print(final_plotly_den)
 
 
 # ============================================================
-# GRAFIKPANEL — Zusammenführung im koordinierten Grid
+# GRAPHICS PANEL
 # ============================================================
 
-# Globale Wunschpalette für das gesamte Panel definieren
+
 wunsch_palette <- "viridis" 
 
 #"viridis" = viridis::viridis(100),
@@ -204,30 +196,26 @@ mein_panel <- grafikpanel(
   patient_order        = order_patienten,   
   data_matrix          = df_normalized,
   metaDaten_gefiltert  = result$meta_data,  
-  gene_names           = gene_names,        # Für die Achsenbeschriftung rechts
-  patient_names        = patient_names,     # Für die Achsenbeschriftung unten
-  palette_name         = "PRGn"    # Steuert Heatmap & Patientenzweige synchron
+  gene_names           = gene_names,
+  patient_names        = patient_names,
+  palette_name         = "viridis"
 )
 
-# Plot im Viewer anzeigen
 print(mein_panel)
 
 
 # ============================================================
-# PDF EXPORT (Stufenloser Zoom für den Bericht)
+# PDF EXPORT
 # ============================================================
 
-# Dein persönlicher Dokumenten-Pfad auf Windows
 mein_pfad <- "C:/Users/domif/OneDrive/Dokumente" 
 
-# 1. Patienten-Dendrogramm exportieren
 save_dendro_pdf(
   plot      = final_plot_pat, 
   dateiname = "patient_clustering_large", 
   pfad      = mein_pfad
 )
 
-# 2. Gen-Dendrogramm exportieren
 save_dendro_pdf(
   plot      = final_plot_den, 
   dateiname = "gene_clustering_large", 

@@ -3,6 +3,7 @@
 # needed for the dendrogram visualization.
 #
 # - build_tree()       : converts the clustering merge matrix into a binary tree
+#                         (see function header for the merge matrix sign convention)
 # - get_order_vector() : extracts the leaf order from that tree (left to right)
 #####===========================================================================
 
@@ -13,6 +14,9 @@
 # Takes the merge matrix from hierarchical clustering and converts it into
 # a nested binary tree. Each node stores its left/right children and the
 # height at which the merge happened. Leaves store their original observation ID.
+#
+# Merge matrix convention: (-id) => original observation (leaf), 
+#                           (id)  => result of an earlier merge step (internal node)
 #####===========================================================================
 
 build_tree <- function(cluster_result) {
@@ -31,8 +35,9 @@ build_tree <- function(cluster_result) {
     left_index  <- mergematrix[i, 1]
     right_index <- mergematrix[i, 2]
     
-    ## --- LEFT NODE ---
-    # negative index means this is a leaf (original observation)
+    ##### LEFT NODE ################################################################
+    
+    # negative index => this is a leaf (original observation)
     if (left_index < 0) {
       left_node <- list(
         left   = NULL,
@@ -41,11 +46,14 @@ build_tree <- function(cluster_result) {
         id     = abs(left_index)
       )
     } else {
-      # positive index means this subtree was already built earlier
+      
+      # positive index => this subtree was already built earlier
       left_node <- nodes[[left_index]]
     }
     
-    ## --- RIGHT NODE ---
+    ##### RIGHT NODE ###############################################################
+    
+    # same logic as for left node
     if (right_index < 0) {
       right_node <- list(
         left   = NULL,
@@ -57,7 +65,8 @@ build_tree <- function(cluster_result) {
       right_node <- nodes[[right_index]]
     }
     
-    ## --- MERGE INTO NEW INTERNAL NODE ---
+    ##### MERGE INTO NEW INTERNAL NODE #############################################
+    
     # internal nodes have no id 
     new_node <- list(
       left   = left_node,
