@@ -152,7 +152,7 @@ Das Ziel des interdisziplinären Gremiums besteht dementsprechend darin, die gen
 \subsection{Farben}
 \subsubsection{Kontrast- und Wahrnehmungsanforderungen}
 
-Die visuelle Aufbereitung der komplexen Darstellungen fordert fehlerfreie Interpretierbarkeit, Barrierefreiheit, visuelle Ausgeglichenheit und Neutralität. Dadurch sollen kognitive Verzerrungen durch ungleiche Signalwirkung vermieden und die Übersichtlichkeit beibehalten werden. Um dies zu erreichen, muss sichergestellt werden, dass die Extrempunkte einer Messreihe visuell mit exakt derselben Intensität wahrgenommen werden, was durch dieselbe Leuchtdichte und Sättigung gewährleistet wird. Ist dies nicht gewährleistet, kann das zu klinischen Fehlinterpretationen bezüglich der Relevanz bestimmter Labels führen. Die Berücksichtigung von Sehschwächen, insbesondere der Rot-Grün-Blindheit, wurde ebenfalls einbezogen, um einen höheren Grad der Barrierefreiheit zu erlangen \cite{Crameri2020}.
+Die visuelle Aufbereitung der komplexen Darstellungen fordert fehlerfreie Interpretierbarkeit, Barrierefreiheit, visuelle Ausgeglichenheit und Neutralität. Dadurch sollen kognitive Verzerrungen durch ungleiche Signalwirkung vermieden und die Übersichtlichkeit beibehalten werden. Um dies zu erreichen, muss sichergestellt werden, dass die Extrempunkte einer Messreihe visuell mit derselben Intensität wahrgenommen werden. Ist dies nicht gewährleistet, kann das zu klinischen Fehlinterpretationen bezüglich der Relevanz bestimmter Labels führen. Die Berücksichtigung von Sehschwächen, insbesondere der Rot-Grün-Blindheit, wurde ebenfalls einbezogen, um einen höheren Grad der Barrierefreiheit zu erlangen \cite{Crameri2020}.
 
 Diese datenbezogenen Kontraste dürfen zudem nicht mit der Grafikoberfläche konkurrieren. Aus diesem Grund wurde für das gesamte Layout der GUI ein bewusst neutrales Farbschema aus Grau-, Weiß- und Beigetönen gewählt. Diese zurückhaltenden Farben minimieren die visuelle Ermüdung bei längerer Bildschirmnutzung und stellen sicher, dass der Fokus des Anwenders unverzerrt auf den biologischen Mustern im Grafikpanel liegt \cite{Tufte1983}.
 
@@ -160,6 +160,13 @@ Da das Dashboard primär für die Betrachtung auf Bildschirmen konzipiert ist, w
 
 \subsubsection{Farbpaletten}
 Für die Wahl der Farbpaletten wurden sowohl theoretische als auch subjektive Farbwahrnehmungsaspekte in Betracht gezogen. Letztendlich wurden vier Farbpaletten ausgewählt, welche sowohl für die Heatmap als auch, in leicht abgewandelter Form, für das Dendrogramm verwendet wurden. Sie werden über die R-Pakete \texttt{RColorBrewer} \cite{HarrowerBrewer2003} und \texttt{viridis} \cite{Viridis} angesteuert.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{farbpaletten.png}
+\caption{Übersicht der vier verwendeten Farbpaletten, erzeugt mit den R-Paketen \texttt{RColorBrewer} \cite{HarrowerBrewer2003} und \texttt{viridis} \cite{Viridis}.}
+\label{fig:farbpaletten}
+\end{figure}
 
 \begin{figure}[H]
 \centering
@@ -178,9 +185,9 @@ Für die Wahl der Farbpaletten wurden sowohl theoretische als auch subjektive Fa
 \toprule
 \textbf{Palette} & \textbf{Typ} & \textbf{Einsatzzweck und Begründung} \\
 \midrule
-\texttt{RdYlBu} & Divergierend & Bietet durch das helle, gelbe Zentrum einen neutralen Mittelpunkt für zweiseitige Abweichungen. Die äußeren Maxima sind bewusst mit annähernd gleicher visueller Intensität gewählt. \\
+\texttt{RdYlBu} & Divergierend & Bietet durch das helle, gelbe Zentrum einen neutralen Mittelpunkt für zweiseitige Abweichungen. Die Unterscheidung der äußeren Maxima mit Rot und Blau sind bewusst mit annähernd gleicher visueller Intensität gewählt und gut differenzierbar für Menschen mit einer Rot-Grün-Schwäche. \\
 \addlinespace
-\texttt{RdBu} & Divergierend & Ein klassisches, in der Genexpressionsanalyse bewährtes Farbschema, das maximale Kontraste liefert. Da die Palette auf Grünanteile verzichtet, ist sie zudem für Personen mit Rot-Grün-Schwäche gut differenzierbar. \\
+\texttt{RdBu} & Divergierend & Ein klassisches, in der Genexpressionsanalyse bewährtes Farbschema, das maximale Kontraste liefert. Da die Palette mit Rot, Weiß und Blau auf Grünanteile verzichtet, ist sie zudem für Personen mit Rot-Grün-Schwäche gut differenzierbar. \\
 \addlinespace
 \texttt{PRGn} & Divergierend & Dient als kontrastreiche Alternative zu traditionellen Skalen. Da die Unterscheidung von Violett und Grün nicht auf der Rot-Grün-Achse, sondern zusätzlich über die Blau-Gelb-Wahrnehmung erfolgt, ist die Kombination für Personen mit der deutlich häufigeren Rot-Grün-Sehschwäche gut differenzierbar. \\
 \addlinespace
@@ -220,7 +227,7 @@ Gut unterscheidbare Farbpaletten zu finden, die alle Anforderungen, vor allem di
 		Vorbereitung Präsentation              & Johanna   & 5 Stunden               \\
 		Kommunikation zwischen den Teams   & Johanna   & 4 Stunden      \\ 
         Meetings mit Adrika                & Johanna   & 3 Stunden    \\ 
-        Absprachen mit Visualisierungsteam                & Johanna   & 3 Stunden    \\ 
+        Absprachen mit Visualisierungsteam                & Johanna   & 6 Stunden    \\ 
         Gruppenmeetings                & Johanna   & 19,5 Stunden    \\ 
 	\end{tabular}
 \end{table}

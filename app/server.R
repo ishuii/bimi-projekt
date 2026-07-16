@@ -63,6 +63,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$Datei_csv, {
     req(input$Datei_csv)
+    cluster_bundle(NULL)
     
     shinyjs::disable("confirm_button")
     
@@ -90,11 +91,7 @@ server <- function(input, output, session) {
         
         if (!check_50_na(cleaned$info)) {
           
-          cleaned <- User_handle_na_decision(
-            df = cleaned$df,
-            info = cleaned$info,
-            action = "mean"
-          )
+          cleaned <- User_handle_na_decision(df = cleaned$df,info = cleaned$info,action = "mean")
         }
         
         incProgress(0.8, detail = "Datensatz wird gespeichert")
@@ -240,11 +237,7 @@ server <- function(input, output, session) {
     tagList(
       br(),
       
-      actionButton(
-        inputId = "na_replace_mean",
-        label = "50%-Zeilen/Spalten behalten und NA durch Mittelwert ersetzen",
-        class = "na-mean-button"
-      ),
+      actionButton(inputId = "na_replace_mean",label = "50%-Zeilen/Spalten behalten und NA durch Mittelwert ersetzen",class = "na-mean-button"),
       
       br(),
       br(),
@@ -264,9 +257,7 @@ server <- function(input, output, session) {
     req(daten_aktuell())
     req(na_infos())
     
-    withProgress(
-      message = "NA-Werte werden verarbeitet...",
-      value = 0,
+    withProgress(message = "NA-Werte werden verarbeitet...",value = 0,
       {
         
         incProgress(
@@ -379,7 +370,7 @@ server <- function(input, output, session) {
     daten_aktuell()
   })
   
-  produced_pdfs <- "tests/produced_pdfs"
+  produced_pdfs <- "app/produced_pdfs"
   
   if (!dir.exists(produced_pdfs)) {
     dir.create(produced_pdfs, recursive = TRUE)
@@ -389,12 +380,7 @@ server <- function(input, output, session) {
                               checkFunc = function () pdf_check(produced_pdfs), valueFunc = function() pdf_value(produced_pdfs))
   
   output$download_pdf <- downloadHandler(
-    filename = function() {
-      paste0(
-        "ClusterIt_Report_",
-        format(Sys.time(), "%Y-%m-%d_%H-%M-%S"),
-        ".pdf"
-      )
+    filename = function() {paste0("ClusterIt_Report_",format(Sys.time(), "%Y-%m-%d_%H-%M-%S"),".pdf")
     },
     
     contentType = "application/pdf",
@@ -420,11 +406,7 @@ server <- function(input, output, session) {
     }
   )
 
-  ##############################################################################
-  # PDF EXPORT ENDE
-  ##############################################################################
-  
-  # Einstellungen der Parameterseite speichern
+  # save settings paramters
   observeEvent(input$clusterverfahren, {
     clust_config$method <- input$clusterverfahren
   }, ignoreInit = TRUE)
@@ -494,7 +476,7 @@ server <- function(input, output, session) {
     
     preset <- read_preset_file(input$preset_datei)
     
-    # Werte in den zentralen Zustand übernehmen
+    # Loading preset
     clust_config$method <- preset$clusterverfahren
     clust_config$normalisation <- preset$normalisierung
     clust_config$distance <- preset$distanzmatrix
@@ -507,17 +489,11 @@ server <- function(input, output, session) {
     
     clust_config$minkowski_p <- preset$minkowski_p
     
-    # Eingabefelder auf der Parameterseite aktualisieren
-    updateSelectInput(
-      session,
-      "clusterverfahren",
-      selected = preset$clusterverfahren
+    
+    updateSelectInput(session,"clusterverfahren",selected = preset$clusterverfahren
     )
     
-    updateSelectInput(
-      session,
-      "normalisierung",
-      selected = preset$normalisierung
+    updateSelectInput(session,"normalisierung",selected = preset$normalisierung
     )
     
     updateSelectInput(
@@ -532,79 +508,36 @@ server <- function(input, output, session) {
       selected = preset$farbpaletten
     )
     
-    updateNumericInput(
-      session,
-      "alpha_a",
-      value = preset$alpha_a
+    updateNumericInput(session,"alpha_a",value = preset$alpha_a
     )
     
-    updateNumericInput(
-      session,
-      "alpha_b",
-      value = preset$alpha_b
+    updateNumericInput(session,"alpha_b",value = preset$alpha_b
     )
     
-    updateNumericInput(
-      session,
-      "beta",
-      value = preset$beta
+    updateNumericInput(session,"beta",value = preset$beta
     )
     
-    updateNumericInput(
-      session,
-      "gamma",
-      value = preset$gamma
-    )
+    updateNumericInput(session,"gamma",value = preset$gamma)
     
-    updateNumericInput(
-      session,
-      "param_paramtab",
-      value = preset$minkowski_p
-    )
+    updateNumericInput(session,"param_paramtab",value = preset$minkowski_p)
     
-    # Eingabefelder in der Sidebar aktualisieren
-    updateSelectInput(
-      session,
-      "clusterverfahren_sidebar",
-      selected = preset$clusterverfahren
-    )
+    # Update sidebar
+    updateSelectInput(session,"clusterverfahren_sidebar",selected = preset$clusterverfahren)
     
-    updateSelectInput(
-      session,
-      "normalisierung_sidebar",
-      selected = preset$normalisierung
-    )
+    updateSelectInput(session,"normalisierung_sidebar",selected = preset$normalisierung)
     
-    updateSelectInput(
-      session,
-      "distanzmatrix_sidebar",
-      selected = preset$distanzmatrix
-    )
+    updateSelectInput(session,"distanzmatrix_sidebar",selected = preset$distanzmatrix)
     
-    updateRadioButtons(
-      session,
-      "farbpaletten_sidebar",
-      selected = preset$farbpaletten
-    )
+    updateRadioButtons(session,"farbpaletten_sidebar",selected = preset$farbpaletten)
     
-    updateNumericInput(
-      session,
-      "param_heatmap",
-      value = preset$minkowski_p
-    )
+    updateNumericInput(session,"param_heatmap",value = preset$minkowski_p)
     
-    # Gespeicherte Pathways auswählen
+    
     req(pathway_list())
     
-    updateSelectizeInput(
-      session,
-      "pathways",
-      choices = pathway_list(),
-      selected = preset$pathways,
-      server = TRUE
-    )
+    updateSelectizeInput(session,"pathways",choices = pathway_list(),selected = preset$pathways,server = TRUE)
     
-    # Alte Berechnungsergebnisse löschen
+    #Delete old cache
     distance_cache$key <- NULL
     distance_cache$patient <- NULL
     distance_cache$gene <- NULL
@@ -946,6 +879,75 @@ server <- function(input, output, session) {
           system.time({
             heatmap_store(final_plot)
           })
+          
+          # Delte old analysis
+          old_plot_pdfs <- list.files(
+            path = produced_pdfs,
+            pattern = "^(01_patient_dendrogram|02_gene_dendrogram|03_heatmap)\\.pdf$",
+            full.names = TRUE
+          )
+          
+          if (length(old_plot_pdfs) > 0) {
+            unlink(old_plot_pdfs)
+          }
+          
+          
+          patient_dendro_pdf_plot <- plot_dendro_ggplot(
+            dendro_data = dendro_data_pat,
+            title = paste(
+              "Patient Dendrogram:",
+              dataset_name()
+            ),
+            names_vector = patient_names_vec,
+            palette_name = clust_config$palette,
+            show_legend = TRUE,
+            show_x_axis = TRUE,
+            show_y_axis = TRUE
+          )
+          
+          # Gen-Dendrogramm als ggplot erzeugen
+          gene_dendro_pdf_plot <- plot_dendro_ggplot(
+            dendro_data = dendro_data_genes,
+            title = paste(
+              "Gene Dendrogram:",
+              dataset_name()
+            ),
+            names_vector = gene_names_vec,
+            palette_name = NULL,
+            show_legend = FALSE,
+            show_x_axis = TRUE,
+            show_y_axis = TRUE
+          )
+          
+          
+          save_dendro_pdf(plot = patient_dendro_pdf_plot,dateiname = "01_patient_dendrogram.pdf",pfad = produced_pdfs)
+          
+          
+          save_dendro_pdf(plot = gene_dendro_pdf_plot,dateiname = "02_gene_dendrogram.pdf",pfad = produced_pdfs)
+          
+          
+          heatmap_pdf(df_normalized = df_normalized,patient_order = order_pat,gene_order = order_genes,
+            
+            gene_names = as.character(
+              unlist(
+                gene_names_vec,
+                use.names = FALSE
+              )
+            ),
+            
+            file = file.path(
+              produced_pdfs,
+              "03_heatmap.pdf"
+            ),
+            pages = 1,
+            width = 40,
+            height = 55,
+            show_x_axis = TRUE
+          )
+          
+          
+          
+          
           patient_store(patient_dendro)
           gene_store(gene_dendro)
           
@@ -1069,11 +1071,7 @@ server <- function(input, output, session) {
           detail = "Patienten-Dendrogramm wird erstellt"
         )
         
-        patient_dendro <- plot_dendro_plotly(
-          dendro_data = bundle$dendro_data_pat,
-          side = "top",
-          names_vector = bundle$patient_names,
-          palette_name = clust_config$palette,
+        patient_dendro <- plot_dendro_plotly(dendro_data = bundle$dendro_data_pat,side = "top",names_vector = bundle$patient_names,palette_name = clust_config$palette,
           show_legend = TRUE,
           show_x_axis = TRUE,
           show_y_axis = TRUE
@@ -1087,11 +1085,7 @@ server <- function(input, output, session) {
           detail = "Gen-Dendrogramm wird erstellt"
         )
         
-        gene_dendro <- plot_dendro_plotly(
-          dendro_data = bundle$dendro_data_genes,
-          side = "top",
-          names_vector = bundle$gene_names,
-          palette_name = NULL,
+        gene_dendro <- plot_dendro_plotly(dendro_data = bundle$dendro_data_genes,side = "top",names_vector = bundle$gene_names,palette_name = NULL,
           show_legend = FALSE,
           show_x_axis = TRUE,
           show_y_axis = TRUE
@@ -1105,16 +1099,7 @@ server <- function(input, output, session) {
           detail = "Heatmap wird aktualisiert"
         )
         
-        final_plot <- grafikpanel(
-          gene_dendro_data = bundle$dendro_data_genes,
-          patient_dendro_data = bundle$dendro_data_pat,
-          gene_order = bundle$order_genes,
-          patient_order = bundle$order_pat,
-          data_matrix = bundle$df_normalized,
-          metaDaten_gefiltert = bundle$meta_data,
-          gene_names = bundle$gene_names,
-          patient_names = bundle$patient_names,
-          palette_name = clust_config$palette
+        final_plot <- grafikpanel(gene_dendro_data = bundle$dendro_data_genes,patient_dendro_data = bundle$dendro_data_pat,gene_order = bundle$order_genes,patient_order = bundle$order_pat,data_matrix = bundle$df_normalized,metaDaten_gefiltert = bundle$meta_data,gene_names = bundle$gene_names,patient_names = bundle$patient_names,palette_name = clust_config$palette
         ) %>%
           layout(title = paste("Grafikpanel: ", dataset_name()),
                  title = list(x=0.5, font = list(size=20)))
@@ -1507,7 +1492,7 @@ server <- function(input, output, session) {
  
   observeEvent(input$confirm_button, {
     
-    # Prüfen, ob mindestens ein Pathway ausgewählt wurde
+    
     if (
       is.null(input$pathways) ||
       length(input$pathways) == 0
@@ -1527,32 +1512,28 @@ server <- function(input, output, session) {
       return()
     }
     
-    # Prüfen, ob ein Datensatz vorhanden ist
+    
     req(daten())
     
-    # Pathway-Abdeckung berechnen
+    
     coverage <- analyze_pathways_coverage(
       chosen_pathways = input$pathways,
       dataset_cleaned = daten(),
       con = con
     )
     
-    # Ergebnis für die Tabelle speichern
+    #
     coverage_result(coverage$matrix_unused)
     
-    # Wenn die Meldung deaktiviert wurde,
-    # direkt zur Parameterseite wechseln
+   
     if (skip_pathways()) {
-      updateTabItems(
-        session,
-        "tabs",
-        selected = "parameter"
+      updateTabItems(session,"tabs",selected = "parameter"
       )
       
       return()
     }
     
-    # Coverage-Warnung anzeigen
+   
     showModal(
       modalDialog(
         title = "Warnung!",
@@ -1561,18 +1542,13 @@ server <- function(input, output, session) {
         
         "Möchten Sie mit den angegebenen Pathways fortfahren?",
         
-        checkboxInput(
-          inputId = "dont_showBox",
-          label = "Diese Meldung nicht mehr zeigen",
-          value = FALSE
+        checkboxInput(inputId = "dont_showBox",label = "Diese Meldung nicht mehr zeigen",value = FALSE
         ),
         
         footer = tagList(
           modalButton("Andere Pathways auswählen"),
           
-          actionButton(
-            inputId = "continue_analysis",
-            label = "Ja"
+          actionButton(inputId = "continue_analysis",label = "Ja"
           )
         )
       )
