@@ -1380,9 +1380,7 @@ server <- function(input, output, session) {
       msg <- "Falsche eingabe: bitte ein Zahl größer als 0 eingeben"
     } else if (val > 10000) {
       msg <- "Maximale eingabe Zahl ist 10000"
-    } else if (val %% 1 != 0) {
-      msg <- "Falsche eingabe: bitte ein Integer eingeben"
-    }
+    } 
     shinyFeedback::feedbackDanger("param_paramtab", !is.null(msg), msg)
     
   })
@@ -1406,9 +1404,7 @@ server <- function(input, output, session) {
       msg <- "Falsche eingabe: bitte ein Zahl größer als 0 eingeben"
     } else if (val > 10000) {
       msg <- "Maximale eingabe Zahl ist 10000"
-    } else if (val %% 1 != 0) {
-      msg <- "Falsche eingabe: bitte ein Integer eingeben"
-    }
+    } 
     shinyFeedback::feedbackDanger("param_heatmap", !is.null(msg), msg)
   })
   
@@ -1469,8 +1465,7 @@ server <- function(input, output, session) {
     !is.null(p) &&
       !is.na(p) &&
       p > 0 &&
-      p <= 10000 &&
-      p == as.integer(p)
+      p <= 10000
   })
   
   observe({
