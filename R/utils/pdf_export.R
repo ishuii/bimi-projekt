@@ -36,7 +36,7 @@ pdf_value <- function(produced_pdfs) {
   info <- file.info(files)
   
   # Älteste PDF zuerst, neueste zuletzt
-  files[order(info$mtime)]
+  files[order(basename(files))]
 }
 
 
@@ -63,9 +63,7 @@ pdf_content <- function(
     add = TRUE
   )
   
-  # ---------------------------------------------------------------------------
-  # SEITE 1: PARAMETER
-  # ---------------------------------------------------------------------------
+ #Site 1
   
   new_page("Analyse-Parameter")
   
@@ -189,19 +187,25 @@ pdf_content <- function(
   
   dev.off()
   
-  external_pdf <- watched_pdf()
+  external_pdfs <- watched_pdf()
   
   pdf_files <- report_pdf
   
   if (
-    !is.null(external_pdf) &&
-    length(external_pdf) > 0 &&
-    file.exists(external_pdf)
+    !is.null(external_pdfs) &&
+    length(external_pdfs) > 0
   ) {
-    pdf_files <- c(
-      report_pdf,
-      external_pdf
-    )
+    
+    valid_external_pdfs <- external_pdfs[
+      file.exists(external_pdfs)
+    ]
+    
+    if (length(valid_external_pdfs) > 0) {
+      pdf_files <- c(
+        report_pdf,
+        valid_external_pdfs
+      )
+    }
   }
   
   qpdf::pdf_combine(
