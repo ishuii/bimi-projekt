@@ -13,7 +13,6 @@ library(RSQLite)
 library(DBI)
 library(plotly)
 library(RColorBrewer)
-library(shinycssloaders)
 library(viridisLite)
 library(patchwork)
 library(colorspace)
@@ -35,5 +34,6 @@ source("R/utils/pdf_export.R")
 source("app/ui.R")
 source("app/server.R")
 shinyApp(ui = ui, server = server)
+
 
 
