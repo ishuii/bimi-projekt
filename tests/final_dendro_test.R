@@ -28,6 +28,7 @@ source("R/visualization/graphics_panel.R")
 source("R/visualization/saving_functions.R")
 
 
+
 # ============================================================
 # DATABASE AND DATASET
 # ============================================================
@@ -77,10 +78,10 @@ class_labels <- if (!is.na(label_row)) as.character(result$meta_data[label_row, 
 # ============================================================
 
 dist_mat_pat <- dist_cpp(t(df_normalized), "euclidean")
-cluster_pat  <- hierarchical_clustering(dist_mat_pat, "single")
+cluster_pat  <- hierarchical_clustering(dist_mat_pat, "average")
 
 dist_mat_genes <- dist_cpp(df_normalized, "euclidean")
-cluster_genes  <- hierarchical_clustering(dist_mat_genes, "single")
+cluster_genes  <- hierarchical_clustering(dist_mat_genes, "average")
 
 
 # ============================================================
@@ -179,6 +180,14 @@ print(final_plotly_den)
 # ============================================================
 # GRAPHICS PANEL
 # ============================================================
+
+
+wunsch_palette <- "viridis" 
+
+#"viridis" = viridis::viridis(100),
+#"RdYlBu"  = brewer.pal(11,"RdYlBu"),
+#"RdBu"    = brewer.pal(11,"RdBu"),
+#"PRGn"    = brewer.pal(11,"PRGn"),
 
 mein_panel <- grafikpanel(
   gene_dendro_data     = dendro_data_genes, 

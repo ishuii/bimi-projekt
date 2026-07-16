@@ -1,5 +1,11 @@
 \begin{thebibliography}{1}
 
+\bibitem{Eddelbuettel2026}
+Dirk Eddelbuettel, Romain Fran\c{c}ois, {JJ} Allaire, Kevin Ushey, Qiang Kou,
+  Nathan Russell, I\~{n}aki Ucar, Doug Bates, and John Chambers.
+\newblock {\em {Rcpp: Seamless R and C++ Integration}}, 2026.
+\newblock R package version 1.1.2.
+
 \bibitem{Everitt2011}
 Brian~S. Everitt, Sabine Landau, Morven Leese, and Daniel Stahl.
 \newblock {\em Cluster Analysis}.

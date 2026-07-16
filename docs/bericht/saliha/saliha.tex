@@ -70,9 +70,83 @@
 \section{Visualisierung}
 \label{visualisierung}
 
+Für die Visualisierung wurden eine Heatmap und zwei Dendrogramme erstellt. Dabei zeigt ein Dendrogramm die Patienten und das andere die Gene. Der Arzt kann sich am Ende die einzelnen Dendrogramme sowie ein Grafikpanel, welches aus der Zusammensetzung der einzelnen Komponenten besteht, anschauen.
+
 \subsection{Heatmap}
 \label{heatmap}
 
+\subsection{Theoretische Grundlagen}
+
+Eine Heatmap dient der grafischen Darstellung numerischer Daten in Form einer Matrix, wobei jeder Messwert durch eine Farbe repräsentiert wird. In der Genexpressionsanalyse werden dabei typischerweise die Zeilen durch Gene und die Spalten durch Patienten beziehungsweise Proben dargestellt. Die Expressionshöhe wird über eine Farbskala codiert, wodurch Unterschiede und ähnliche Expressionsmuster visuell erkennbar werden \cite{Gu2016}.
+
+Durch die Kombination mit einer hierarchischen Clusteranalyse können Gene und Patienten entsprechend ihrer Ähnlichkeit angeordnet werden. Dadurch entstehen zusammenhängende Bereiche mit ähnlichen Expressionsprofilen, wodurch biologische Muster oder mögliche Untergruppen leichter identifiziert werden können \cite{Gu2016}. 
+
+Bei der Implementierung müssen die Expressionswerte als numerische Matrix vorliegen und die Reihenfolge der Gene sowie Patienten aus der Clusteranalyse übernommen werden. Zusätzlich ist eine geeignete Farbpalette erforderlich, welche Unterschiede unverzerrt darstellt und gleichzeitig eine barrierefreie Interpretation ermöglicht. Auch bei großen Datensätzen muss die Übersichtlichkeit sowie eine interaktive Untersuchung einzelner Datenpunkte gewährleistet werden.
+
+\subsection{Abhängigkeiten}
+
+Die Heatmap stellt einen Bestandteil des Grafikpanels dar und war daher von mehreren zuvor entwickelten Programmkomponenten abhängig. Voraussetzung für die Erstellung war ein vorbereiteter und normalisierter Datensatz sowie die Ergebnisse der Clusteranalyse.
+
+Die berechneten Distanzmatrizen, Cluster und Baumstrukturen liefern die Reihenfolge der Gene und Patienten, welche direkt die Anordnung der Zeilen und Spalten innerhalb der Heatmap bestimmen. Zusätzlich mussten die während der Datenintegration erzeugten Metadaten korrekt zugeordnet werden, damit diese später in der interaktiven Darstellung angezeigt werden konnten.
+
+Da die Heatmap erst nach Fertigstellung dieser Komponenten vollständig getestet werden konnte, erfolgte die abschließende Optimierung erst nach der Implementierung der Clusteranalyse, Reihenfolgebestimmung und Farbpaletten.
+
+\subsection{Heatmap Erstellung}
+
+Die Funktion \texttt{generate\_heatmap} erzeugt die Heatmap auf Grundlage des vorbereiteten Expressionsdatensatzes. Zunächst werden Gene und Patienten entsprechend der Ergebnisse der Clusteranalyse sortiert, wodurch die Darstellung der ermittelten Gruppierungen entspricht.
+
+Anschließend wird die Expressionsmatrix mithilfe von \texttt{melt} in das für \texttt{ggplot2} benötigte Long-Format überführt. Die Gennamen werden durch \texttt{make.unique} eindeutig gemacht und die Reihenfolge für die Darstellung angepasst.
+
+Für die Visualisierung können verschiedene Farbpaletten ausgewählt werden. Die eigentliche Heatmap wird anschließend mit \texttt{ggplot2} erzeugt, wobei jeder Expressionswert durch ein farbiges Rechteck dargestellt wird. Zusätzlich wird eine Farbskala zur Interpretation der Expressionswerte eingebunden und die Achsendarstellung für größere Datensätze angepasst.
+
+\subsection{Einbau der Meta Daten}
+
+Die Funktion \texttt{extract\_metadata\_names} bereitet die Metadaten für die interaktive Darstellung auf. Hierzu werden alle mit \texttt{Meta\_} gekennzeichneten Einträge erkannt und das Präfix entfernt. Dadurch können auch zukünftig hinzugefügte Metadaten automatisch verarbeitet werden, ohne dass eine erneute Anpassung notwendig ist.
+
+\subsection{Anordnung der Felddaten}
+
+Die Funktion \texttt{create\_heatmap\_field\_data} erweitert die Expressionsdaten um die zugehörigen Metadaten. Hierzu werden die Metadaten den entsprechenden Patienten zugeordnet und als zusätzliche Spalten ergänzt. Dadurch entsteht die Grundlage für die Anzeige zusätzlicher Informationen innerhalb der interaktiven Plotly-Heatmap.
+
+\subsection{PDF Speicherung}
+
+Die Funktion \texttt{heatmap\_pdf} ermöglicht den Export der Heatmap als PDF-Datei. Bei großen Datensätzen werden die Patienten automatisch auf mehrere Seiten verteilt, wodurch die Übersichtlichkeit und Lesbarkeit der Darstellung erhalten bleibt.
+
+\subsection{Konvertierung in Plotly}
+
+Die Funktion \texttt{generate\_heatmap\_plotly} wandelt die zuvor erstellte \texttt{ggplot2}-Heatmap in eine interaktive Plotly-Darstellung um. Dabei werden Genname, Patientenbezeichnung und Expressionswert als Tooltip übernommen. Zusätzlich werden Zoom- und Verschiebefunktionen aktiviert, wodurch auch große Datensätze interaktiv untersucht werden können.
+
+\subsection{Grafikpanel}
+
+Die Heatmap wird gemeinsam mit den beiden Dendrogrammen dargestellt, da erst die Kombination aus Farbvisualisierung und Clusterstruktur eine aussagekräftige Interpretation der Genexpressionsdaten ermöglicht. Die Dendrogramme zeigen die Ähnlichkeiten zwischen Genen und Patienten, während die Heatmap deren Expressionswerte visualisiert.
+Für die Umsetzung wurden zunächst zwei Ansätze untersucht. Die Kombination über \texttt{patchwork} konnte nicht verwendet werden, da die GUI auf \texttt{plotly}-Elementen basiert und diese nicht direkt mit \texttt{patchwork}-Objekten kombinierbar sind.
+
+Anschließend wurde die Erstellung über \texttt{plotly} Subplots getestet. Zwar konnten die einzelnen Darstellungen kombiniert werden, jedoch erfolgte das Zoomen jeweils nur für eine einzelne Grafik. Dadurch war keine synchrone Anpassung aller Komponenten möglich.
+
+
+\subsubsection{Schwierigkeiten}
+Eine wesentliche Herausforderung stellte die allgemeine Zusammensetzung der einzelnen Visualisierungskomponenten zu einem gemeinsamen Grafikpanel dar. Dabei zeigte sich, dass die anfänglich gewählte Verwendung von \texttt{ggplot2} aufgrund der Nutzung von \texttt{plotly} in der GUI zu Einschränkungen führte. Zusätzlich war \texttt{patchwork} nicht mit \texttt{plotly}-Elementen kombinierbar. Durch fehlende Abstimmung zwischen den einzelnen Entwicklungsteams wurde diese Problematik erst spät erkannt.
+
+Weitere Schwierigkeiten entstanden durch unerwartete technische Fehler, deren Ursachen zunächst nicht eindeutig identifiziert werden konnten. Dadurch konnten einzelne Deadlines nicht eingehalten werden, was zu zeitlichen Verschiebungen im weiteren Projektverlauf führte. Außerdem wurden kurz vorm Ende Fehler gefunden, diese kurzfristigen Änderungen haben zur großer Verwirrung geführt. 
+
+
+\begin{table}[h]
+	\begin{tabular}{l|l|l}
+		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
+		\hline
+		Recherche                     & Saliha    & 2 Stunden       \\
+		Besprechungen                 & Saliha    & 19.5 Stunden    \\
+		Bericht schreiben             & Saliha    & 3 Stunden  		\\
+		Team Besprechungen            & Saliha    & 8 Stunden 		\\
+		Heatmap Erstellung            & Saliha    & 3,5 Stunden       \\
+		Einbau der Meta Daten     	  & Saliha    & 1 Stunden       \\ 
+        Anordnung der Felddaten       & Saliha    & 1 Stunden       \\
+        PDF Speicherung               & Saliha    & 1 Stunden       \\
+        Konvertierung in Plotly       & Saliha    & 2,5 Stunden       \\
+		Grafikpanel Versionen         & Saliha    & 4 Stunden       \\ 
+		Testen                        & Saliha    & 15 Stunden      \\ 
+
+	\end{tabular}
+\end{table}
 \subsection{Dendrogramm}
 \label{dendrogramm}
 
