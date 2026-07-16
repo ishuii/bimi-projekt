@@ -124,7 +124,7 @@ Im Projekt wurde eine gemeinsame Funktion für die Berechnung der Distanzmatrix 
 		\midrule
 		D2  & Manhattan-Distanz   & $ d_{ij} =  \sum_{k=1}^{p} |x_{ik} - x_{jk}| $ \\
 		\midrule
-		D3  & Minkowski-Distanz   & $ d_{ij} = \left( \sum_{k=1}^{p} |x_{ik} - x_{jk}|^2 \right)^{1/r} $ \\
+		D3  & Minkowski-Distanz   & $ d_{ij} = \left( \sum_{k=1}^{p} |x_{ik} - x_{jk}|^r \right)^{1/r} \text{ mit } r \ge 1 $ \\
 		\midrule
 		D4  & Canberra-Distanz    & $ d_{ij} = \begin{cases}
 													0 & \text{wenn }x_{ik} = x_{jk} = 0\\
