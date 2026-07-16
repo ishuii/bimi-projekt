@@ -80,7 +80,7 @@ Die Entwicklung der Anwendung erfolgte im Rahmen einer Gruppenarbeit. Dabei übe
 		Distanzfunktionen und Linkage-Verfahren & Wiktoria \\
 		Dendrogramme & Dominik \\
 		Heatmap & Saliha \\
-		graphische Oberfläche und Layout-Design & Adrika \\
+		Graphische Oberfläche und Layout-Design & Adrika \\
 		Serverlogik & Andreas \\
 		Farbgebung und biologisch-medizinische Grundlagen & Johanna
 	\end{tabular}
@@ -270,7 +270,7 @@ Die folgende Tabelle zeigt, welche Aufgaben von wem übernommen wurden und wie g
 		Recherche                     & Rosina    & 5,5 Stunden        \\
 		Bericht schreiben             & Rosina    & 10 Stunden        \\
 		Besprechungen                 & Rosina    & 19,5 Stunden        \\
-		Complete-Linkage              & Rosina    & 30 Minuten        \\ 
+		Complete-Linkage              & Rosina    & 0,5 Stunden        \\ 
 		Average-Linkage               & Rosina    & 1 Stunde         \\ 
 		Recherche zu Distanzfunktinen 						& Wiktoria  & 3 Stunden \\
 		Programmieren der Distanzfunktionen      			& Wiktoria  & 7 Stunden \\ 
@@ -308,7 +308,7 @@ Vor der Normalisierung wird der Datensatz auf seine Eignung für die weitere Ver
 
 Als Erstes wird überprüft, ob der übergebene Datensatz leer ist oder keine Zeilen beziehungsweise Spalten enthält. Darüber hinaus wird kontrolliert, ob mindestens zwei Zeilen vorhanden sind, da eine Clusteranalyse mehrere Beobachtungen voraussetzt.
 Anschließend erfolgt eine Plausibilitätsprüfung der Werte. Falls der Datensatz nicht bereits als normalisiert gekennzeichnet wurde, wird überprüft, ob Werte kleiner als $-1$ enthalten sind. Solche Werte können darauf hinweisen, dass die Daten bereits transformiert oder skaliert wurden und eine erneute Normalisierung ungeeignet wäre. In diesem Fall wird die Verarbeitung mit einer entsprechenden Fehlermeldung abgebrochen.
-Für die weitere Verarbeitung wird der Datensatz anschließend in eine Matrix umgewandelt. Anschließend wird der ganze Inhalt zu numerischen Werten konvertiert. Dies stellt sicher, dass berechenbare Zahlen in der Matrix vorhanden sind. Nicht-numerische Werte, wie Buchstaben, werden dadurch zu fehlenden Einträgen (\texttt{NA}) gewandelt. So können sie in der darauffolgenden NA-Behandlung mit entfernt werden.
+Für die weitere Verarbeitung wird der Datensatz anschließend in eine Matrix umgewandelt. Anschließend wird der ganze Inhalt zu numerischen Werten konvertiert. Dies stellt sicher, dass berechenbare Zahlen in der Matrix vorhanden sind. Nicht-numerische Werte, wie Buchstaben, werden dadurch zu fehlenden Einträgen (\texttt{NA}) umgewandelt. So können sie in der darauffolgenden NA-Behandlung mit entfernt werden.
 Der nächste Bestandteil der Datenvorbereitung ist die Behandlung fehlender Werte. Enthält eine Zeile fehlende Einträge, wird zunächst überprüft, ob mindestens ein gültiger numerischer Wert vorhanden ist. Ist dies der Fall, werden die fehlenden Werte, sofern welche in der Zeile vorhanden sind, durch den Mittelwert der numerischen Werte derselben Zeile ersetzt. Auf diese Weise bleiben möglichst viele Informationen erhalten und die NA-Werte werden ersetzt. Enthält eine Zeile ausschließlich fehlende Werte, wird die Verarbeitung abgebrochen, da keine Mittelwertberechnung möglich ist.
 Abschließend wird der Datensatz auf unendliche Werte (\texttt{Inf} beziehungsweise \texttt{-Inf}) überprüft. Da solche Werte bei den nachfolgenden Berechnungen zu Fehlern führen würden, wird die Verarbeitung in diesem Fall ebenfalls beendet. Nach Abschluss aller Prüfungen liegt ein vollständiger numerischer Datensatz vor, der für die anschließende Normalisierung und Clusteranalyse verwendet werden kann.
 
@@ -751,7 +751,7 @@ Anschließend wurde die Erstellung über \texttt{plotly} Subplots getestet. Zwar
 \paragraph{Schwierigkeiten}
 Eine wesentliche Herausforderung stellte die allgemeine Zusammensetzung der einzelnen Visualisierungskomponenten zu einem gemeinsamen Grafikpanel dar. Dabei zeigte sich, dass die anfänglich gewählte Verwendung von \texttt{ggplot2} aufgrund der Nutzung von \texttt{plotly} in der GUI zu Einschränkungen führte. Zusätzlich war \texttt{patchwork} nicht mit \texttt{plotly}-Elementen kombinierbar. Durch fehlende Abstimmung zwischen den einzelnen Entwicklungsteams wurde diese Problematik erst spät erkannt.
 
-Weitere Schwierigkeiten entstanden durch unerwartete technische Fehler, deren Ursachen zunächst nicht eindeutig identifiziert werden konnten. Dadurch konnten einzelne Deadlines nicht eingehalten werden, was zu zeitlichen Verschiebungen im weiteren Projektverlauf führte. Außerdem wurden kurz vorm Ende Fehler gefunden, diese kurzfristigen Änderungen haben zur großer Verwirrung geführt. 
+Weitere Schwierigkeiten zeigten sich in den vereinbarten Deadlines. Da diese nicht eingehalten worden sind kam es zu zeitlichen Verschiebungen im weiteren Projektverlauf. Außerdem wurden kurz vorm Ende Fehler gefunden, diese kurzfristigen Änderungen haben zur großer Verwirrung geführt. 
 
 
 \begin{table}[h]
@@ -868,7 +868,7 @@ Zusätzlich gibt es bei den UI-Elementen von Shiny mehrere \textbf{Control Widge
 	\begin{minipage}[t]{0.2\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{runButton.png}
-		\captionof{figure}{Beispiel der Action Button}
+		\captionof{figure}{Beispiel des Action Buttons}
 		\label{fig:runButton}
 	\end{minipage}
 	
@@ -936,7 +936,7 @@ Die größte Herausforderung kam am meisten von den Anpassungen an alle Backend-
 \subsection{Serverlogik}
 \label{serverlogik}
 
-\begin{table}[]
+\begin{table}[H]
 	\centering
 	\begin{tabular}{l|l|l}
 		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
@@ -1024,7 +1024,7 @@ Da es aber durchaus vorkommen kann, dass die Anzahl der zu kennzeichnenden Label
 	\label{fig:default-colors}
 \end{figure}
 
-\subsubsection{Schwierigkeiten}
+\subsubsection{Herausforderungen}
 Gut unterscheidbare Farbpaletten zu finden, die alle Anforderungen, vor allem die der Verzerrungsfreiheit erfüllen, aber auch die \texttt{default\_colors} gut unterscheidbar auszuwählen, war nicht immer leicht. Die größten fachlichen Schwierigkeiten in diesem Projekt hat mir allerdings die farbliche Darstellung des Dendrogramms bereitet. Da die Linien dort sehr dünn auf weißem Hintergrund dargestellt werden, waren helle Farben aus den ausgewählten Farbpaletten häufig nicht gut erkennbar. Deshalb mussten die Abstufungen für das Dendrogramm entsprechend angepasst werden. Dieses Problem wurde leider auch erst vergleichsweise spät im Projektverlauf sichtbar, da die konzipierte Farbgebung erst spät ins Dendrogramm eingebaut wurde. Mit dem letztendlich erzielten Ergebnis bin ich zwar zufrieden, denke aber, dass sich eine noch feinere Abstimmung hätte erarbeiten lassen, wenn die getroffenen Absprachen von Beginn an konsequenter und fristgerecht eingehalten worden wären.
 
 
@@ -1044,6 +1044,7 @@ Gut unterscheidbare Farbpaletten zu finden, die alle Anforderungen, vor allem di
 		Kommunikation zwischen den Teams   & Johanna   & 4 Stunden      \\ 
 		Meetings mit Adrika                & Johanna   & 3 Stunden    \\ 
 		Absprachen mit Visualisierungsteam                & Johanna   & 6 Stunden    \\ 
+		Bericht Korrekturlesen               & Johanna   & 2 Stunden    \\ 
 		Gruppenmeetings                & Johanna   & 19,5 Stunden    \\ 
 	\end{tabular}
 \end{table}
