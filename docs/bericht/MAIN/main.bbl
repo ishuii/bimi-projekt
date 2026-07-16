@@ -80,6 +80,12 @@ Peter Horak, Christoph Heining, Sabrina Kreutzfeldt, Barbara Hutter, Annika
 \newblock Clinical outcomes of molecular tumor boards: a systematic review.
 \newblock {\em JCO Precision Oncology}, 5:e21000495, 2021.
 
+\bibitem{Ivchenko2026}
+Iryna Ivchenko and Oleh Ivchenko.
+\newblock Hierarchical clustering taxonomy: From dendrograms to modern
+  extensions.
+\newblock Intellectual Data Analysis Series, 2026.
+
 \bibitem{Kanehisa2023}
 Minoru Kanehisa, Yoko Sato, and Masayuki Kawashima.
 \newblock Kegg for taxonomy-based analysis of pathways and genomes.
@@ -107,6 +113,11 @@ G.~N. Lance and W.~T. Williams.
 \newblock {A general theory of classificatory sorting strategies: {I.}
   Hierarchical systems}.
 \newblock {\em The Computer Journal}, 9(4):373--380, 1967.
+
+\bibitem{LSE2026}
+{Learn Statistics Easily}.
+\newblock Dendrogramm, 2026.
+\newblock STATISTIK EINFACH LERNEN.
 
 \bibitem{LeeYoung2013}
 Tong~Ihn Lee and Richard~A. Young.
@@ -136,6 +147,11 @@ Julia Perera-Bel, Benjamin Hutter, Priya Balasubramanian, and et~al.
   clinical decision-making.
 \newblock {\em BMC Medical Informatics and Decision Making}, 18(1):72, 2018.
 
+\bibitem{RCT2026}
+{R Core Team}.
+\newblock {\em R: A Language and Environment for Statistical Computing}.
+\newblock R Foundation for Statistical Computing, Vienna, Austria, 2026.
+
 \bibitem{Schmidt}
 Stefan Schmidt.
 \newblock Normalized median absolute deviation.
@@ -149,6 +165,12 @@ Margaret~A. Shipp, Kenneth~N. Ross, Pablo Tamayo, Andrew~P. Weng, Jeffrey~L.
 \newblock Diffuse large b-cell lymphoma outcome prediction by gene-expression
   profiling and supervised machine learning.
 \newblock {\em Nature Medicine}, 8(1):68--74, 2002.
+
+\bibitem{Sievert2020}
+Carson Sievert.
+\newblock {\em Interactive Web-Based Data Visualization with R, plotly, and
+  shiny}.
+\newblock Chapman and Hall/CRC, 2020.
 
 \bibitem{Tamborero2020}
 David Tamborero, Rodrigo Dienstmann, Mohamed Rachid, and et~al.
@@ -178,5 +200,10 @@ Bert Vogelstein, Nickolas Papadopoulos, Victor~E. Velculescu, Shibin Zhou,
 Zhong Wang, Mark Gerstein, and Michael Snyder.
 \newblock Rna-seq: a revolutionary tool for transcriptomics.
 \newblock {\em Nature Reviews Genetics}, 10(1):57--63, 2009.
+
+\bibitem{Wickham2016}
+Hadley Wickham.
+\newblock {\em ggplot2: Elegant Graphics for Data Analysis}.
+\newblock Springer-Verlag New York, 2016.
 
 \end{thebibliography}

@@ -15,6 +15,34 @@
 \usepackage{booktabs}
 \usepackage{float}
 
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{parskip}
+\usepackage{listings}
+\usepackage{csquotes}
+\newcommand{\code}[1]{\texttt{#1}}
+\definecolor{codebg}{gray}{0.97}
+\definecolor{codeframe}{gray}{0.80}
+
+\lstdefinestyle{rconsole}{
+	basicstyle       = \ttfamily\small,
+	backgroundcolor  = \color{codebg},
+	frame            = single,
+	rulecolor        = \color{codeframe},
+	framesep         = 5pt,
+	xleftmargin      = 5pt,
+	xrightmargin     = 5pt,
+	columns          = fullflexible,
+	keepspaces       = true,
+	showstringspaces = false,
+	breaklines       = false,
+	captionpos       = b,
+	aboveskip        = 10pt,
+	belowskip        = 10pt
+}
+\lstset{style=rconsole}
 
 \DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
 
@@ -31,9 +59,33 @@
 \newpage
 \pagestyle{fancy}
 \fancyhead{}
-\fancyhead[L]{Alle}
+\fancyhead[L]{Wiktoria}
 \section{Einleitung}
 \label{einleitung}
+
+Die Analyse von Genexpressionsdaten spielt eine zentrale Rolle in der Bioinformatik und Molekularbiologie. Durch die Untersuchung von Expressionsmustern lassen sich Zusammenhänge zwischen Genen identifizieren, biologische Prozesse besser verstehen und potenzielle Biomarker für Krankheiten erkennen. Da Genexpressionsdatensätze häufig eine große Anzahl an Genen umfassen, sind geeignete Verfahren zu ihrer Analyse und Visualisierung erforderlich, um aussagekräftige Erkenntnisse aus den Daten zu gewinnen.
+
+Im Rahmen dieses Projekts wurde eine Softwareanwendung entwickelt, die den Import von Genexpressionsdaten ermöglicht und diese mithilfe einer hierarchischen Clusteranalyse auswertet. Ziel der Anwendung ist es, ähnliche Gene beziehungsweise Patienten anhand ihrer Expressionsprofile zu gruppieren und die Ergebnisse übersichtlich darzustellen. Die Visualisierung erfolgt in einem interaktiven Dashboard, das sowohl die Dendrogramme als auch eine Heatmap umfasst. Während die Dendrogramme die hierarchischen Beziehungen zwischen den Clustern veranschaulichen, bietet die Heatmap einen intuitiven Überblick über die Expressionswerte und deren Muster.
+
+Die Entwicklung der Anwendung erfolgte im Rahmen einer Gruppenarbeit. Dabei übernahmen die einzelnen Teammitglieder unterschiedliche Aufgabenbereiche. Die folgende Tabelle zeigt die Aufgabenbereiche sowie die jeweils dafür zuständigen Personen.
+
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{l|l}
+		Aufgabenbereich & Zuständig \\ 
+		\hline
+		Pathways und Einlesen der Daten & Alisa \\
+		Datenvorbereitung und Normalisierung & Rosina \\
+		Distanzfunktionen und Linkage-Verfahren & Wiktoria \\
+		Dendrogramme & Dominik \\
+		Heatmap & Saliha \\
+		graphische Oberfläche und Layout-Design & Adrika \\
+		Serverlogik & Andreas \\
+		Farbgebung und biologisch-medizinische Grundlagen & Johanna
+	\end{tabular}
+\end{table}
+
+Eine genauere Erläuterung der Aufgabenbereiche erfolgt in den folgenden Kapiteln. Die vorliegende Projektarbeit beschreibt sowohl die theoretischen Grundlagen als auch die technische Umsetzung der entwickelten Anwendung.
 
 \newpage
 \pagestyle{fancy}
@@ -47,13 +99,13 @@
 
 \subsubsection{Genexpression und -regulation}
 
-Die im Folgenden analysierten Genexpressionsdaten beschreiben die Aktivität eines Gens und damit, wann und in welcher Intensität ein Gen abgelesen wird. Dies entscheidet über den Phänotyp einer Zelle, denn auch wenn die Zellen eines Organismus dieselbe genetische Information in Form von DNA enthalten, erfüllen sie doch sehr unterschiedliche Funktionen. Die Genexpression folgt dabei dem Zentralen Dogma der Molekularbiologie, bei der Transkription wird die in der DNA kodierte Information in RNA und anschließend mittels der Translation in Proteine überführt \cite{LeeYoung2013}.
+Die im Folgenden analysierten Genexpressionsdaten beschreiben die Aktivität eines Gens und damit, wann und in welcher Intensität ein Gen abgelesen wird. Dies entscheidet über den Phänotyp einer Zelle, denn auch wenn die Zellen eines Organismus dieselbe genetische Information in Form von DNA enthalten, erfüllen sie doch sehr unterschiedliche Funktionen. Die Genexpression folgt dabei dem Zentralen Dogma der Molekularbiologie: bei der Transkription wird die in der DNA kodierte Information in RNA und anschließend mittels der Translation in Proteine überführt \cite{LeeYoung2013}.
 
 Dieser Prozess der Genexpression unterliegt einer zellinternen Genregulation. Dabei binden Transkriptionsfaktoren an regulatorische DNA-Abschnitte wie Promotoren und Enhancer und rekrutieren darüber die RNA-Polymerase, welche das Ablesen des jeweiligen Genabschnitts startet. Je nach gebundenem Transkriptionsfaktor wird die Transkription gehemmt oder aktiviert, es kommt also entweder zum Ablesen oder nicht. Transkriptionsfaktoren sind dabei selbst Proteine, die als Genprodukte anderer Gene entstehen. Je nach Zelltyp, Entwicklungsstadium und äußeren Signalen sind verschiedene Transkriptionsfaktoren vorhanden und aktiv. Diese kaskadierenden Genregulationsnetzwerke erklären, warum trotz identischer DNA in jeder Zelle andere Gene ausgelesen werden \cite{LeeYoung2013}.
 
 Die Feinjustierung der Genexpression umfasst mehrere nachgelagerte Ebenen. Post-transkriptionell wird beispielsweise durch microRNAs oder alternatives Spleißen reguliert, diese Prozesse entscheiden welche und wie viel mRNA für die Translation zur Verfügung steht. Translational wird die Proteinbiosyntheserate kontrolliert, welche bestimmt, wie viele funktionale Proteine aus einer gegebenen mRNA-Menge tatsächlich entstehen. In der post-translationalen Ebene findet schließlich die Proteinmodifikation (z.B. Phosphorylierung, Ubiquitinierung) statt. Eine Abnormalität in einer dieser Kontrollebenen kann zur Fehlregulation der Genexpression und infolgedessen zu Krankheitsbildern führen \cite{LeeYoung2013}.
 
-Die Datenerhebung der möglicherweise dafür verantwortlichen RNA-Mengen erfolgt nach heutigem Stand der Technik meist über das High-Throughput-Verfahren des Next-Generation-Sequencing (RNA-Seq). In Ausnahmefällen werden noch ältere Microarray-Technologien verwendet, diese haben allerdings eine geringere Sensitivität und einen eingeschränkteren dynamischen Messbereich als RNA-Seq \cite{Wang2009}. Der bioinformatische Workflow führt dabei von der RNA-Isolation über das Alignment an ein Referenzgenom bis hin zur Generierung einer rohen Count-Matrix \cite{Kukurba2015}. Diese Matrix bildet das Ergebnis der Sequenzierung ab, sie enthält für jedes Gen (Zeilen) und jede untersuchte Probe oder jeden Patienten (Spalten) die Anzahl der Reads. Ein solches tabellarische Format erwartet auch der CSV-Upload des, in diesem Projekt entwickelten Dashboards (siehe Kap.~\ref{gui}).
+Die Datenerhebung der möglicherweise dafür verantwortlichen RNA-Mengen erfolgt nach heutigem Stand der Technik meist über das High-Throughput-Verfahren des Next-Generation-Sequencing (RNA-Seq). In Ausnahmefällen werden noch ältere Microarray-Technologien verwendet, diese haben allerdings eine geringere Sensitivität und einen eingeschränkteren dynamischen Messbereich als RNA-Seq \cite{Wang2009}. Der bioinformatische Workflow führt dabei von der RNA-Isolation über das Alignment an ein Referenzgenom bis hin zur Generierung einer rohen Count-Matrix \cite{Kukurba2015}. Diese Matrix bildet das Ergebnis der Sequenzierung ab, sie enthält für jedes Gen (Zeilen) und jede untersuchte Probe oder jeden Patienten (Spalten) die Anzahl der Reads. Ein solches tabellarische Format erwartet auch der CSV-Upload des in diesem Projekt entwickelten Dashboards (siehe Kap.~\ref{gui}).
 
 Bei diesen Rohdaten kommt es jedoch unweigerlich zu systematischen Verzerrungen, bedingt durch variierende Genlängen und stark schwankende Sequenziertiefen zwischen den einzelnen Probenläufen. Die Sequenziertiefe bezeichnet dabei die Gesamtzahl der in einem Lauf erzeugten Reads für eine Probe und kann zwischen den Proben stark variieren. Ein direkter Vergleich zweier Proben unterschiedlicher Sequenziertiefen würde also fälschlicherweise einen Unterschied in der Genaktivität suggerieren, obwohl dieser lediglich an der Datenmenge liegt. Für eine valide biologische Vergleichbarkeit müssen die Datensätze daher zwingend mathematisch normalisiert werden, bevor sie miteinander verglichen werden können (siehe Kap.~\ref{normalisierung}) \cite{Oshlack2010}.
 
@@ -88,6 +140,11 @@ Das Dashboard fungiert hierbei als interaktives Clinical Decision Support System
 
 Das Ziel des interdisziplinären Gremiums besteht dementsprechend darin, die genomischen und transkriptomischen Profile der Patienten mithilfe des CDSS gemeinschaftlich zu evaluieren und mit den daraus generierten Informationen eine individuelle Therapieempfehlung auszuarbeiten. Denn wichtige und weitreichende Therapieentscheidungen können nicht von einem einzelnen Arzt isoliert verantwortet werden \cite{Mosele2020}. Studien belegen, dass diese Art der computergestützten Therapiewahl die Behandlungsergebnisse maßgeblich verbessern kann \cite{Horak2021}. Durch die Anpassungsmöglichkeiten, wie die Auswahl spezifischer biologischer Pathways, die Modifikation der Normalisierungsverfahren, die Wahl des Cluster-Algorithmus (z.\,B. Single, Average und Complete Linkage) und der farblichen Darstellung kann das Dashboard zum zentralen Visualisierungsmedium in der Konferenz werden. Das ermöglicht den Ärzten, Hypothesen direkt während der Sitzung gemeinsam zu prüfen, molekulare Muster im Kollektiv zu interpretieren und so die bestmögliche personalisierte Therapieempfehlung für die Patienten auszuarbeiten \cite{PereraBel2018}.
 
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Rosina}
+
 \subsubsection{Informatische Grundlagen}
 \label{info-grundlagen}
 Was ist eine explorative Datenanalyse?
@@ -95,10 +152,6 @@ Was ist eine explorative Datenanalyse?
 Was ist Clustering?
 
 
-\section{Arbeitseinteilung (oder sowas)}
-\label{arbeitseinteilung}
-% TODO: wer hat was gemacht und warum?
-% Datenfluss (von Johanna) einfügen? (oder zumindest beschreiben?)
 
 % ----------------------------------------------------------------------------------------------
 \newpage
@@ -203,6 +256,7 @@ Der Bereich der Clusteranalyse unterteilt sich in mehrere Unteraufgaben. Zunäch
 Die folgende Tabelle zeigt, welche Aufgaben von wem übernommen wurden und wie groß der Arbeitsaufwand war.
 
 \begin{table}[h!]
+	\centering
 	\begin{tabular}{l|l|l}
 		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
 		\hline
@@ -510,6 +564,130 @@ Für die Visualisierung wurden eine Heatmap und zwei Dendrogramme erstellt. Dabe
 \subsection{Dendrogramm}
 \label{dendrogramm}
 
+Ein Dendrogramm stellt hierarchische Verwandtschafts- oder Ähnlichkeitsstrukturen grafisch dar – etwa in der Datenanalyse oder der Phylogenetik. Es macht Zusammenhänge sichtbar, die sich aus einer reinen Distanz- oder Ähnlichkeitsmatrix kaum ablesen lassen: Auf einen Blick wird erkennbar, welche Objekte früh zu Clustern verschmelzen, welche isoliert bleiben und wie sich diese Gruppen auf höheren Ebenen weiter zusammenfassen lassen. Damit fungiert das Dendrogramm als wichtiges Bindeglied zwischen komplexen mathematischen Daten und der menschlichen Wahrnehmung. Strukturell folgt es dabei einer streng hierarchischen Baumstruktur:
+
+\begin{itemize}
+	\item \textbf{Der Wurzelknoten (Root):} Er repräsentiert die Gesamtheit aller analysierten Daten als ein einziges, allumfassendes Cluster auf der höchsten Hierarchieebene.
+	\item \textbf{Interne Knoten (Nodes):} Diese Stellen symbolisieren die Fusionspunkte, an denen kleinere Cluster oder einzelne Datenpunkte basierend auf ihrer Ähnlichkeit zusammengeführt werden.
+	\item \textbf{Die Blätter (Leaves/Endknoten):} Sie bilden die Endpunkte der Baumstruktur und stehen für die einzelnen Untersuchungsobjekte.
+	\item \textbf{Die Äste (Zweige):} Sie dienen als Verbindungslinien zwischen den verschiedenen Knoten. Die entscheidende Rolle spielt hierbei die Höhe eines Knotens beziehungsweise die Länge des jeweiligen Astes: Sie ist proportional zur Unähnlichkeit der verbundenen Elemente. Je höher ein Knoten im Diagramm liegt, desto größer ist die Distanz und desto unähnlicher sind die darunter liegenden Cluster.
+	\cite{Ivchenko2026, LSE2026}
+\end{itemize} 
+
+\subsubsection{Das Dendrogramm im Projektkontext}
+
+Im vorliegenden Dashboard wird diese Struktur auf einen Genexpressionsdatensatz angewendet, dessen Matrix in den Zeilen Gene und in den Spalten Patienten führt. Da sich die Matrix in beide Richtungen lesen lässt, wird die Clusterung zweimal durchgeführt: Das Gen-Dendrogramm zeigt ähnliche Expressionsmuster über alle Patienten hinweg, das Patienten-Dendrogramm ähnliche Gesamtprofile zwischen Patienten. Beide sind im Dashboard um eine gemeinsame Heatmap angeordnet – Patienten-Dendrogramm oberhalb, Gen-Dendrogramm links –, wobei die Blattreihenfolge jeweils die Zeilen- beziehungsweise Spaltenanordnung der Heatmap festlegt.
+
+\subsubsection{Die Eingabe: Das Cluster-Objekt}
+
+Als Eingabe für das Dendrogramm liefert das Cluster-Team ein Cluster-Objekt, das an die Struktur von \code{hclust} angelehnt ist.\cite{RCT2026} Kernstück ist die Merge-Matrix, die den Ablauf der Clusterung protokolliert: Bei $n$ Objekten hält sie in $n-1$ Zeilen fest, welche beiden Einheiten je Schritt verschmolzen wurden. Das Vorzeichen kodiert die Art: negativ für ein ursprüngliches Blatt (Betrag = Index), positiv für einen bereits gebildeten Teilbaum (Zeilennummer des früheren Merge-Schritts). Der Baum lässt sich so vollständig aus der Tabelle ableiten, mit der Wurzel in der letzten Zeile.
+
+Der Vektor \code{matched\_at} ergänzt zu jedem Schritt die Distanz der Verschmelzung und verleiht dem Dendrogramm damit seine Höhe: Der interne Knoten des $n$-ten Merge-Schritts wird auf der Höhe \code{matched\_at[n]} gezeichnet.
+
+\begin{lstlisting}
+		> print(cluster_pat$merge[1:4, ])
+	[,1] [,2]
+	[1,]  -60  -63
+	[2,]  -21  -68
+	[3,]  -61  -66
+	[4,]    2  -69
+	
+	> print(cluster_pat$matched_at[1:4])
+	[1] 0.8383706 0.9801695 1.0009455 1.0106337
+\end{lstlisting}
+
+Die ersten drei Zeilen verschmelzen jeweils zwei ursprüngliche Objekte -- Schritt 1 etwa die Patienten 60 und 63 auf Höhe 0.838. Zeile 4 zeigt den gemischten Fall: Die positive 2 verweist auf den Teilbaum aus Schritt 2, der hier mit Patient 69 zusammengeführt wird. Die wachsenden Höhen folgen daraus, dass jeder Schritt das jeweils nächstgelegene Paar zusammenführt.
+
+\subsection{Architektur der Implementierung}
+
+Die Implementierung folgt einer klaren Architektur mit konsequenter Trennung von Berechnung und Darstellung: Eine Datenschicht ermittelt, was gezeichnet werden muss, eine Farbschicht entscheidet über die Einfärbung, und austauschbare Renderer setzen das Ergebnis in die jeweilige Grafikbibliothek um.
+
+\subsubsection{Die Datenschicht}
+
+Die Datenschicht führt in vier Schritten vom Cluster-Objekt zur zeichenfertigen Geometrie:
+
+\begin{itemize}
+	\item \code{build\_tree()} -- baut aus der Merge-Matrix einen verschachtelten Binärbaum. Nur Blätter tragen eine \code{id}, interne Knoten führen \code{id = NULL}; dieses eine Merkmal unterscheidet beide in allen späteren Traversierungen.
+	\item \code{get\_order\_vector()} -- liest daraus per Tiefensuche die Blattreihenfolge von links nach rechts aus und liefert einen Vektor aus Integer-IDs. Da dieselbe Reihenfolge auch die Achsenanordnung der Heatmap festlegt, arbeiten beide Darstellungen zwingend auf derselben Grundlage -- nur so steht jeder Ast über der zugehörigen Zeile beziehungsweise Spalte.
+	\item \code{calculate\_coords()} -- bestimmt rekursiv die Position jedes Knotens: Blätter auf $y = 0$ mit einem $x$ aus dem Order-Vektor, interne Knoten auf ihrer Verschmelzungshöhe mit einem $x$ als Mittelwert der Kindpositionen.
+	\item \code{draw\_segments()} -- sammelt daraus die Liniensegmente und die Blatt-Metadaten aus ID, Position und Klasse ein. Pro internem Knoten entstehen vier Segmente statt drei: je Kind eine Hälfte des Verbindungsbalkens samt Vertikale in dessen Klassenfarbe, wodurch ein Ast so weit farbig bleibt, wie die Klassen der Teilbäume übereinstimmen.
+\end{itemize}
+
+Die Ergebnisse werden in \code{generate\_dendro\_data()} als Objekt aus \code{draw\_result} und \code{max\_height} gesammelt, ohne jeden Bezug zu einer Grafikbibliothek. Genau auf dieser Renderer-Unabhängigkeit beruht die Austauschbarkeit der nachgelagerten Schichten.
+
+\subsubsection{Die Farbschicht und die Renderer}
+
+Die Funktion \code{get\_color()} bildet die Klassenlabels auf Hex-Werte ab, wobei \code{Default} stets schwarz erhält; reicht die Palette nicht aus oder ist unbekannt, greift eine Ersatzpalette, und ohne Palette oder Klassenlabels wird durchgehend schwarz gezeichnet.
+
+Für die finale Visualisierung sind zwei verschiedene Plot-Funktionen implementiert: 
+\code{plot\_dendro\_ggplot()} erzeugt die statische Variante für den PDF-Bericht, 
+indem sie ein ggplot-Objekt layer für layer aufbaut \cite{Wickham2016}.
+
+\code{plot\_dendro\_plotly()} hingegen erzeugt die interaktive Variante für das Dashboard; 
+sie baut die Segmente als native Linien-Traces auf und setzt die um 90 Grad gedrehten 
+Beschriftungen als Annotationen \cite{Sievert2020}.
+
+Beide Funktionen nehmen dasselbe Datenobjekt entgegen und setzen auf dieselbe Farblogik, 
+wodurch Bericht und Oberfläche zwangsläufig auf identischer Blattreihenfolge und Struktur 
+arbeiten. Über den Parameter \code{names\_vector} werden die Integer-IDs erst an dieser 
+Stelle zu Klarnamen aufgelöst.
+
+Das Grafikpanel lag ursprünglich im Aufgabenbereich meiner Teampartnerin; nachdem mehrere Versuche gescheitert waren, Dendrogramm und Heatmap zusammenzuführen, übernahm ich diese Aufgabe aus Zeitgründen. \code{grafikpanel()} bezieht die Heatmap aus der Wrapper-Funktion meiner Teampartnerin und zeichnet die Dendrogramme auf Grundlage von \code{generate\_dendro\_data()} und \code{get\_color()} unmittelbar neu. Die Anordnung entsteht über manuell gesetzte Achsen-Domains innerhalb eines einzigen \code{plot\_ly()}-Objekts, wobei gekoppelte Achsen dafür sorgen, dass Zoom und Verschiebung synchron auf Heatmap und zugehörigem Dendrogramm wirken.
+
+\subsection{Herausforderungen und Entscheidungen}
+
+\subsubsection{Flexibilität statt Spezialfälle}
+
+Das Dendrogramm wird zweimal mit unterschiedlicher Semantik aufgerufen -- für Gene und für Patienten. Statt eines internen \code{type}-Parameters wurde bewusst entschieden, Namensvektor und Klassenlabels von außen zu übergeben. Das hält die Zeichenfunktion frei von Sonderfällen und erlaubt beliebige weitere Anwendungen, verlagert aber die Verantwortung für korrekte Eingaben an den Aufrufer.
+
+\subsubsection{Entscheidungen in der Datenschicht}
+
+Für die Blattreihenfolge fiel die Wahl auf eine In-Order-Traversierung, die zusammengehörige Blätter benachbart hält, ohne dass sich Äste kreuzen.
+
+Naheliegend wäre auch gewesen, die Namen direkt im Baum mitzuführen. Stattdessen speichern Baum und Order-Vektor ausschließlich Integer-IDs, da Integer-Vergleiche über tausende Blätter billiger sind als String-Vergleiche; die Auflösung zu Klarnamen erfolgt erst in der Zeichenschicht.
+
+Auch bei Koordinaten und Segmenten spielte Effizienz eine Rolle: \code{calculate\_coords()} liefert in einem Durchlauf den vollständigen Koordinatenbaum inklusive Kindpositionen, sodass \code{draw\_segments()} diese direkt auslesen kann. Zudem sammelt \code{draw\_segments()} die Segmente zunächst in Listen und führt sie erst am Ende in einem einzigen \code{rbind()} zusammen, da ein Data Frame in R sonst bei jedem Anfügen neu kopiert würde und der Aufwand quadratisch mit der Knotenzahl anstiege.
+
+\subsubsection{Darstellung von großen Datensätzen}
+
+Mit wachsender Blattzahl überlappen Achsenbeschriftungen, und Äste laufen bei fester Strichstärke ineinander -- Letzteres beeinträchtigt vor allem den PDF-Export. Die ggplot-Variante fängt dies über drei dynamisch berechnete Größen ab: Schriftgröße und Linienstärke richten sich nach der Elementanzahl, die untere Marge nach der Länge des längsten Namens. Da es sich um Vektorgrafik handelt, bleibt der Export auch bei kleiner Schrift beliebig heranzoombar. Die Plotly-Variante übernimmt dieselbe Anpassung und ergänzt sie um Zoom sowie punktgenauen Hover mit Name und Klasse.
+
+\subsubsection{Der ursprüngliche Ansatz und der Bruch}
+
+Die Umsetzung war zu Projektstart bewusst auf ggplot ausgerichtet: Dendrogramme sollten als SVG exportiert und vom GUI-Team direkt eingebunden werden, das kombinierte Panel über \code{patchwork} entstehen -- beides ohne Codeänderung an den Kernfunktionen.
+
+Beide Pläne wurden hinfällig, als das GUI-Team gegen Projektende auf Plotly umstellte. \code{ggplotly()}, auf das fertige \code{patchwork}-Panel angewendet, konvertierte die Darstellung fehlerhaft: Die gedrehten Beschriftungen des Dendrogramms überlebten nicht, und die Farbzuordnung stimmte nicht mehr. Als Reaktion entstanden zunächst Nachbearbeitungs-Wrapper, für das eigenständige Dendrogramm erwies sich aber ein nativer Plotly-Renderer als sauberere Lösung.
+
+Auch der Versuch, die fertigen Plotly-Objekte per \code{subplot()} zu einem Panel zusammenzuführen, blieb erfolglos (Lücken, falsche Beschriftungen). Die finale Lösung baute die Dendrogramme im Panel stattdessen nativ neu auf, wobei sich die klare Schichtentrennung erneut als hilfreich erwies.
+
+\subsection{Fazit}
+
+Die Umstellung auf Plotly kurz vor Projektende hinterließ sichtbare Spuren in der Architektur. So werden Namen beispielsweise an drei statt an einer zentralen Stelle aufgelöst, weil Renderer und Panel schrittweise nachträglich ergänzt wurden statt von Beginn an auf ein gemeinsames Konzept ausgelegt zu sein. Für die Dendrogramm-Berechnung selbst hätte sich zudem Memorisierung angeboten, um wiederholte Traversierungen bei großen Bäumen durch Zwischenspeichern bereits berechneter Koordinaten zu vermeiden. Auch das Grafikpanel ist eher eine pragmatische Lösung als das strukturelle Optimum. Es dupliziert unter anderem Färbe- und Hover-Logik, die im eigenständigen Plotly-Renderer bereits existiert, und zentrale Layout-Werte wie Achsendomänen sind fest codiert statt dynamisch aus der Datengröße abgeleitet. Mit mehr Zeit wäre ein gemeinsamer, parametrisierter Unterbau für Renderer und Panel sinnvoll gewesen.
+
+\subsection{Arbeitsaufwand}
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{l|l|l}
+		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
+		\hline
+		Recherche                     & Dominik    & 3 Stunden       \\
+		Besprechungen                 & Dominik    & 19,5 Stunden    \\
+		Bericht schreiben             & Dominik    & 4 Stunden  		\\
+		Team Besprechungen            & Dominik    & 8 Stunden 		\\
+		Datenstruktur aufsetzen           & Dominik    & 5 Stunden       \\
+		Implementierung der Plot - Funktion für das Dendrogramm     	  & Dominik    & 3 Stunden       \\ 
+		Einpflegen der Farblogik       & Dominik    & 1 Stunden       \\
+		PDF Speicherung               & Dominik    & 1 Stunden       \\
+		Implementierung einer neuen Plot - Funktion in Plotly        & Dominik    & 2,5 Stunden       \\
+		Neuausrichtung auf Plotly          & Dominik    & 15 Stunden       \\ 
+		Testen                        & Dominik    & 7 Stunden      \\ 
+	\end{tabular}
+\end{table}
+
+
+
+
 \newpage
 \pagestyle{fancy}
 \fancyhead{}
@@ -573,11 +751,12 @@ Weitere Schwierigkeiten entstanden durch unerwartete technische Fehler, deren Ur
 
 
 \begin{table}[h]
+	\centering
 	\begin{tabular}{l|l|l}
 		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
 		\hline
 		Recherche                     & Saliha    & 2 Stunden       \\
-		Besprechungen                 & Saliha    & 19.5 Stunden    \\
+		Besprechungen                 & Saliha    & 19,5 Stunden    \\
 		Bericht schreiben             & Saliha    & 3 Stunden  		\\
 		Team Besprechungen            & Saliha    & 8 Stunden 		\\
 		Heatmap Erstellung            & Saliha    & 3,5 Stunden       \\
@@ -597,14 +776,47 @@ Weitere Schwierigkeiten entstanden durch unerwartete technische Fehler, deren Ur
 \newpage
 \pagestyle{fancy}
 \fancyhead{}
-\fancyhead[L]{Adrika \& Andreas}
+\fancyhead[L]{Adrika}
 \section{GUI}
 \label{gui}
+
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Andreas}
 
 \subsection{Serverlogik}
 \label{serverlogik}
 
-% etc...
+\begin{table}[]
+	\centering
+	\begin{tabular}{l|l|l}
+		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
+		\hline
+		Vorbereitung des Datensatzes  & Andreas   & 10 Stunden     \\
+		Preset-Funktion               & Andreas   & 5 Stunden      \\ 
+		Cache                         & Andreas   & 7 Stunden      \\ 
+		PDF-Export			          & Andreas   & 10 Stunden     \\
+		Besprechungen 				  & Andreas   & 20 Stunden     \\
+	\end{tabular}
+\end{table}
+
+\subsubsection{Verarbeitung des Datensatzes}
+\label{Verarbeitung des Datensatzes}
+Da nicht davon ausgegangen werden konnte, dass alle hochgeladenen Datensätze vollständig und ohne Fehler hochgeladen werden, wurde die Dateneingabe um eine automatische NA-Prüfung erweitert mit der fehlende Daten erkannt werden und die verhindert, dass fehlerhafte Werte in die Clusteranalyse übergeben werden mit denen sie nicht umgehen kann. Nach dem Upload wird berechnet, wie viele NA-Werte vorhanden sind und in welchen Zeilen und Spalten sie auftreten. Zeilen und Spalten, die vollständig aus fehlenden Werten bestehen, werden automatisch entfernt. Bei Zeilen oder Spalten mit mindestens 50 Prozent fehlenden Werten wird dagegen eine Entscheidung des Nutzers verlangt. Dabei können die betroffenen Zeilen oder Spalten entfernt oder beibehalten werden. Verbleibende NA-Werte werden anschließend durch Zeilenmittelwerte ersetzt. Die Informationen über die entfernte Zeilen, entfernte Spalten und ersetzte Werte werden in der GUI angezeigt. Die Implementierung dieser Funktionalität war eher schwierig, weil sich die Anforderungen während der Entwicklung mehrfach änderten bzw. man festgestellt hat das bestimmte Sachen nicht bedacht wurden oder auch schlecht kommuniziert wurde. Zu Beginn wurde die Möglichkeit der manuellen Behandlung jedes Wertes eingebaut, die in der Theorie sinnvoll erschien, später zeigte sich jedoch, dass die Lösung die Anwendung hauptsächlich komplizierter machten, ohne einen deutlichen Mehrwert zu bieten. Teilweise wurde viel Zeit in Ideen investiert, die später wieder vereinfacht oder vollständig entfernt wurden. Das automatische Entfernen einer Zeile mit vielen fehlenden Werten ist beispielsweise einfach umzusetzen, kann jedoch zum Verlust relevanter Gene führen. Daher wurde für kritische Fälle, oberhalb der 50 Prozent, eine Nutzerentscheidung eingeführt.
+
+\subsubsection{Preset-Funktion}
+\label{Preset-Funktion}
+Die Preset-Funktion wurde implementiert, um Einstellungen dauerhaft speichern und später einfacher wiederverwenden zu können. Ohne diese Funktion müssten die verschiedenen Parameter wie Clusterverfahren, die Normalisierung, die Distanzmethode, die Farbpalette, verschiedene numerische Parameter und die ausgewählten Pathways bei jeder Sitzung erneut eingestellt werden. Dies wäre besonders bei größeren Konfigurationen sehr zeitaufwendig und fehleranfällig. Die Einstellungen werden zunächst in einer Liste zusammengefasst und mithilfe des Pakets \texttt{jsonlite} als JSON-Datei gespeichert. Beim Laden wird die Datei wieder in eine Liste umgewandelt. JSON wurde gewählt, da das Format leicht gespeichert, eingelesen werden kann. Ein Preset enthält nur die Einstellungen der Analyse. Die größte Schwierigkeit bestand nicht im Speichern der JSON-Datei, sondern beim Laden des Presets. Es gibt viele Eingaben die konditional sind wie Minkowski mit dem P-Wert oder die Parameter alpha, beta und gamma ausschließlich für das  Linkage-Verfahren benötigt werdender dann hinzugefügt werden mussten. Einige Einstellungen sind außerdem mehrfach in der Benutzeroberfläche vorhanden, beispielsweise auf der Parameterseite und zusätzlich in der Sidebar. Beim Laden eines Presets mussten deshalb nicht nur der Zustand der "Parameter wählen" Seite geupdatet werden sonder auch die zugehörigen Eingabefelder beim "Visualisierung" Reiter upgedatet werden, sonst hätte die GUI andere Werte anzeigt als für die Berechnung verwendet worden wären. Die Pathways stellten einen weiteren Sonderfall dar, da die verfügbaren Werte zunächst aus der Datenbank geladen werden müssen.
+
+\subsubsection{Cache}
+\label{Cache}
+Die Berechnung der Distanzmatrizen ist insbesondere bei größeren Datensätzen rechen- und zeitintensiv. Da sowohl eine Distanzmatrix für die Patienten als auch eine Distanzmatrix für die Gene benötigt wird, kann dieser Schritt einen großen Teil der Laufzeit ausmachen. Der Cache wurde deshalb implementiert, um bereits berechnete Matrizen wiederzuverwenden, wenn sich weder die Daten noch die entscheidenden Einstellungen geändert haben. Der Cache speichert die beiden Distanzmatrizen sowie einen Schlüssel, der die aktuelle Berechnungseinstellungen beinhaltet. Dieser Schlüssel berücksichtigt unter anderem die Datenmatrix, die Normalisierung, die Distanzmethode, die Pathway-Auswahl und wenn ausgewählt, den Minkowski-Parameter. Vor einer neuen Berechnung wird geprüft, ob der aktuelle Schlüssel mit dem gespeicherten Schlüssel übereinstimmt. Ist dies der Fall, können die vorhandenen Matrizen verwendet werden. Andernfalls werden sie neu berechnet und anschließend im Cache gespeichert. Die Schwierigkeit bestand hier darin zu entscheiden wann der Cache geleert werden muss und wann dieser noch gültig ist. Wird dies falsch entschieden können alte Distanzmatrizen mit neuen Daten oder Einstellungen kombiniert werden und dadurch ein fehlerhafter Report entsteht. Außerdem müssen hier wieder alle Parameter die in der GUI geändert werden können aufgenommen werden, da es hier wieder zwei Möglichkeiten gibt, die Parameter wählen-Seite und die Heatmap-Seite. Daher musste für jede Einstellung unterschieden werden, ob sie die Berechnung oder lediglich die Visualisierung beeinflusst oder die grundlegende Berechnung. Eine Änderung der Farbpalette benötigt beispielsweise keine neue Distanzmatrix. Eine andere Normalisierung, Distanzmethode oder Pathway-Auswahl verändert diese, auch der Datensatz selbst muss geprüft werden.
+
+\subsubsection{PDF-Export}
+\label{PDF-Export}
+
+Der PDF-Export wurde implementiert, um die Clusterergebnisse außerhalb der Anwendung anschauen und weitergeben zu können. Der PDF-Report enthält die verwendeten Parameter sowie das Patienten-Dendrogramm, das Gen-Dendrogramm und die Heatmap. Zu Beginn wurde versucht, den Bericht vollständig mit dem Paket \texttt{tinytex} zu erzeugen. Dieses funktionierte leider nicht und nach mehrmaligen versuch gab es immer einen Fehler aus. Anstatt die Ursache weiter zu suchen, wurde nach einer eigenen Lösung gesucht. Dabei werden die Parameterseite und die einzelnen Visualisierungen getrennt als PDF-Dateien erzeugt. Danach werden die Dateien sortiert und mit dem Paket \texttt{qpdf} zu einem gemeinsamen Bericht zusammengefügt. Dieser Ansatz war wesentlich aufwendiger als ursprünglich geplant, da die Parameterseite mit dem Base-R-Grafiksystem manuell gestaltet werden musste. Gleichzeitig mussten unterschiedliche Seitengrößen berücksichtigt werden. Besonders die Heatmap stellte bei großen Datensätzen mit mehreren hundert langen Gennamen ein Problem dar. Dafür wurden sowohl mehrseitige Darstellungen als auch eine einzelne große PDF-Seite getestet, auch die Reihenfolge musste stimmen bei der  Zusammenkunft. Auch die Übertragung der Farbpalette und der korrekten Gennamen erforderte weitere Anpassungen. Rückblickend wäre es vermutlich einfacher gewesen, das Paket \texttt{tinytex} zum Laufen zu bringen und dessen Fehler zu beheben.
 
 \newpage
 \pagestyle{fancy}
@@ -669,6 +881,7 @@ Gut unterscheidbare Farbpaletten zu finden, die alle Anforderungen, vor allem di
 
 
 \begin{table}[H]
+	\centering
 	\begin{tabular}{l|l|l}
 		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
 		\hline
