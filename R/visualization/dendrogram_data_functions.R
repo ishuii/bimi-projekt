@@ -1,19 +1,22 @@
 
 #####===========================================================================
-# This script contains the core functions for rendering the dendrogram data.
+# This script contains functions to prepare the coordinates, segments, and 
+# export options needed for rendering the dendrogram.
 #
-# - calculate_coords()     : calculates x/y coordinates for each node in the tree
-# - draw_segments()        : traverses the tree and collects all line segments and leaf metadata
-# - generate_dendro_data() : runs the full data pipeline and prepares the final data package
+# - calculate_coords()     : recursively calculates x and y coordinates for each node
+# - draw_segments()        : builds dendrogram lines and collects leaf metadata
+# - generate_dendro_data() : runs the full pipeline to assemble the plotting data
+# - save_dendro_pdf()      : exports the final plot to PDF with dynamic height scaling
 #####===========================================================================
-
 
 #####===========================================================================
 #                         CALCULATE_COORDS
 #
-# Figures out where each node should sit on the plot.
-# Leaves always sit at y=0, internal nodes sit at their merge height.
-# The x position of an internal node is the midpoint between its children.
+# Recursively traverses the tree to determine the spatial coordinates (x, y) 
+# for every node. Leaves are placed on the baseline (y = 0) sequenced by 
+# their order, while internal nodes sit at their respective merge heights.
+# The x-coordinate of an internal node is calculated as the center point (mean) 
+# of its two direct children's x-coordinates.
 #####===========================================================================
 
 calculate_coords <- function(tree, order, height) {
@@ -21,27 +24,38 @@ calculate_coords <- function(tree, order, height) {
   # no tree => nothing to calculate
   if (is.null(tree)) return(NULL)
   
-  ## leaf node => no children, so x comes directly from its position in the order vector
+  ##### LEAF NODE ################################################################
+  
+  # if an ID is present => leaf
   if (!is.null(tree$id)) {
-    
     return(list(
-      x = which(tree$id == order),
-      y = 0
+      
+      # x-position is its index in the leaf order
+      x     = which(tree$id == order),
+      
+      # leaves always sit at y = 0
+      y     = 0,
+      left  = NULL,
+      right = NULL
     ))
   }
   
-  ## internal node — x is the midpoint between children, y is where this merge happened
-  left_coord  <- calculate_coords(tree$left,  order, height)
-  right_coord <- calculate_coords(tree$right, order, height)
+  ##### INTERNAL NODE ############################################################
   
-  # returning midpoint as x and merge height as y for this internal node
+  # recursively calculate coordinates for both subtrees
+  left_full  <- calculate_coords(tree$left,  order, height)
+  right_full <- calculate_coords(tree$right, order, height)
+  
+  # parent node sits at the horizontal center of its children and at its merge height
   return(list(
-    x = mean(c(left_coord$x, right_coord$x)),
-    y = tree$height
+    x     = mean(c(left_full$x, right_full$x)),
+    y     = tree$height,
+    left  = left_full,
+    right = right_full
   ))
 }
 
-####===========================================================================
+#####===========================================================================
 #                         DRAW_SEGMENTS
 #
 # Traverses the entire tree recursively and collects two things:
@@ -58,57 +72,86 @@ calculate_coords <- function(tree, order, height) {
 
 draw_segments <- function(node_coords, tree, order, height, class_labels) {
   
-  ##### LEAF NODE ##############################################################
-  
-  if (is.null(tree$left) && is.null(tree$right)) {
+  # the recursion itself only needs to build up a plain
+  # list of pieces => building a internal helper function, to collect from tree 
+  # the actual data.frame assembly is deferred
+  # and done just once, after the whole tree has been walked
+  collect <- function(node_coords, tree) {
     
-    # no children => this is a leaf, looking up its class for coloring
-    # falling back to "Default" if the class is missing or NA
-    classlabel <- if (!is.null(class_labels)) as.character(class_labels[tree$id]) else "Default"
-    leaf_class <- if (is.na(classlabel) || length(classlabel) == 0) "Default" else classlabel
+    ##### LEAF NODE ##############################################################
     
+    if (is.null(tree$left) && is.null(tree$right)) {
+      
+      # children = NULL => this is a leaf, looking up its class for coloring
+      # falling back to "Default" if the class is missing or NA
+      classlabel <- if (!is.null(class_labels)) as.character(class_labels[tree$id]) else "Default"
+      leaf_class <- if (is.na(classlabel) || length(classlabel) == 0) "Default" else classlabel
+      
+      # return leaf coordinates and its class
+      # keep results as lists for now instead of merging right away.
+      # the actual data.frame only gets built once, at the end
+      return(list(
+        segments      = list(),
+        labels        = list(data.frame(id = tree$id, x = node_coords$x, y = 0, class = leaf_class)),
+        current_class = leaf_class
+      ))
+    }
+    
+    ##### INTERNAL NODE ##########################################################
+    
+    # not a leaf => extracting child coordinates to draw the connector lines
+    left_coords  <- node_coords$left
+    right_coords <- node_coords$right
+    
+    # recursing into both subtrees to collect their segments and labels
+    left_result  <- collect(left_coords,  tree$left)
+    right_result <- collect(right_coords, tree$right)
+    
+    # both sides got the same class => color the branch, otherwise fall back to Default
+    parent_class <- if (left_result$current_class == right_result$current_class) {
+      left_result$current_class
+    } else {
+      "Default"
+    }
+    
+    ##### CALCULATE SEGMENTS #####################################################
+    
+    # splitting horizontal bar into two halves, each colored by its child
+    # adding vertical drops down to each child
+    mid_x <- node_coords$x
+    
+    segments_df <- data.frame(
+      
+      # storing all 4 lines for this node in one data.frame: two rows for the
+      # horizontal bar (split into a left and right half so each half can carry
+      # its own child's color), and two rows for the vertical drops down to
+      # each child
+      x0    = c(mid_x,                      left_coords$x,       mid_x,                       right_coords$x),
+      y0    = c(node_coords$y,              node_coords$y,       node_coords$y,               node_coords$y),
+      x1    = c(left_coords$x,              left_coords$x,       right_coords$x,              right_coords$x),
+      y1    = c(node_coords$y,              left_coords$y,       node_coords$y,               right_coords$y),
+      class = c(left_result$current_class,  left_result$current_class,
+                right_result$current_class, right_result$current_class)
+    )
+    
+    # merging segments and labels from both subtrees and passing the parent class upward
     return(list(
-      segments      = NULL,
-      labels        = data.frame(id = tree$id, x = node_coords$x, y = 0, class = leaf_class),
-      current_class = leaf_class
+      segments      = c(list(segments_df), left_result$segments, right_result$segments),
+      labels        = c(left_result$labels, right_result$labels),
+      current_class = parent_class
     ))
   }
   
-  ##### INTERNAL NODE ##########################################################
+  ##### ASSEMBLE RESULTS #######################################################
   
-  # not a leaf => calculating child coordinates to draw the connector lines
-  left_coords  <- calculate_coords(tree$left,  order, height)
-  right_coords <- calculate_coords(tree$right, order, height)
+  # run recursion starting from the root node
+  result <- collect(node_coords, tree)
   
-  # recursing into both subtrees to collect their segments and labels
-  left_result  <- draw_segments(left_coords,  tree$left,  order, height, class_labels)
-  right_result <- draw_segments(right_coords, tree$right, order, height, class_labels)
-  
-  # both sides got the same class => color the branch, otherwise fall back to Default
-  parent_class <- if (left_result$current_class == right_result$current_class) {
-    left_result$current_class
-  } else {
-    "Default"
-  }
-  
-  # splitting horizontal bar into two halves, each colored by its child
-  # adding vertical drops down to each child
-  mid_x <- node_coords$x
-  
-  segments_df <- data.frame(
-    x0    = c(mid_x,                      left_coords$x,       mid_x,                       right_coords$x),
-    y0    = c(node_coords$y,              node_coords$y,       node_coords$y,               node_coords$y),
-    x1    = c(left_coords$x,              left_coords$x,       right_coords$x,              right_coords$x),
-    y1    = c(node_coords$y,              left_coords$y,       node_coords$y,               right_coords$y),
-    class = c(left_result$current_class,  left_result$current_class,
-              right_result$current_class, right_result$current_class)
-  )
-  
-  # merging segments and labels from both subtrees and passing the parent class upward
+  # bind all individual lists into single data.frames once 
   return(list(
-    segments      = rbind(segments_df, left_result$segments, right_result$segments),
-    labels        = rbind(left_result$labels, right_result$labels),
-    current_class = parent_class
+    segments      = do.call(rbind, result$segments),
+    labels        = do.call(rbind, result$labels),
+    current_class = result$current_class
   ))
 }
 
@@ -120,10 +163,17 @@ draw_segments <- function(node_coords, tree, order, height, class_labels) {
 # Returns a packaged list containing all structural and aesthetic components
 # required by the final rendering engines (ggplot/plotly).
 #####===========================================================================
+
 generate_dendro_data <- function(cluster_result, tree_result, order_vector, class_labels = NULL) {
+  
+  ##### PREPARE PARAMETERS #######################################################
+  
+  # extracting height from cluster_result$matched_at
   cluster_height <- cluster_result$matched_at
   
-  # 2. calculating root coordinates and collecting all branch segments
+  ##### PROCESS PIPELINE #########################################################
+  
+  # collecting all branch segments and leaf metadata recursively
   coords         <- calculate_coords(tree_result, order_vector, cluster_height)
   draw_result    <- draw_segments(
     node_coords  = coords,
@@ -133,43 +183,63 @@ generate_dendro_data <- function(cluster_result, tree_result, order_vector, clas
     class_labels = class_labels
   )
   
-  # returning pre-calculated structure and mapping table for the plotting functions
+  ##### RETURN PACKAGE ###########################################################
+  
+  # returning pre-calculated structure and max height for axis scaling
   return(list(
     draw_result  = draw_result,
     max_height   = max(cluster_height)
   ))
 }
 
+#####===========================================================================
+#                         SAVE_DENDRO_PDF
+#
+# Exports the generated ggplot dendrogram to a PDF file. Automatically
+# ensures the correct file extension and dynamically calculates the PDF height
+# based on the longest leaf label in the plot to prevent text clipping or
+# excessive blank space.
+#####===========================================================================
+
 save_dendro_pdf <- function(plot, dateiname, pfad) {
   
-  # Append .pdf extension if missing
+  ##### FILE PREPARATION #########################################################
+  
+  # append .pdf extension if it is missing from the filename
   if (!grepl("\\.pdf$", dateiname, ignore.case = TRUE)) {
     dateiname <- paste0(dateiname, ".pdf")
   }
   
-  # Find the text layer inside the ggplot object safely
+  ##### CALCULATE DYNAMIC HEIGHT #################################################
+  
+  # safely find the text layer inside the ggplot object
   text_layer_idx <- which(sapply(plot$layers, function(l) inherits(l$geom, "GeomText")))
   
   if (length(text_layer_idx) > 0) {
-    # Extract the labels directly from the layer's local data
+    
+    # extract the labels directly from the layer's local data to find the longest name
     labels_vec <- plot$layers[[text_layer_idx[1]]]$data$label
     max_char_len <- max(nchar(as.character(labels_vec)), na.rm = TRUE)
+    
+    # fallback value if no text layer is found
   } else {
-    max_char_len <- 10 # Fallback
+    max_char_len <- 10 
   }
   
-  # DYNAMIC PDF HEIGHT:
-  # Starts at 5 inches for short labels, scales up to 11 inches for very long names
+  # calculate height: start at 4.5 inches, scale up by label length, clamp between 5 and 11
   dynamic_height <- 4.5 + (max_char_len * 0.12)
   dynamic_height <- pmin(pmax(dynamic_height, 5), 11) 
   
+  # combine path and filename to create the final destination path
   zielpfad <- file.path(pfad, dateiname)
   
-  # Save the plot with the perfectly calculated height
+  ##### SAVE PLOT ################################################################
+  
+  # save the plot with the perfectly calculated dynamic height and a fixed wide format
   ggsave(
     filename  = zielpfad,
     plot      = plot,
-    width     = 22,             # Wide format for beautiful trees
+    width     = 22,            
     height    = dynamic_height,
     units     = "in",
     device    = "pdf",

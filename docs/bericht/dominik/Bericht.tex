@@ -64,7 +64,7 @@
 	Als Eingabe für das Dendrogramm liefert das Cluster-Team ein Cluster-Objekt, das an die Struktur von \code{hclust} angelehnt ist.\cite{r_hclust} Kernstück ist die Merge-Matrix, die den Ablauf der Clusterung protokolliert: Bei $n$ Objekten hält sie in $n-1$ Zeilen fest, welche beiden Einheiten je Schritt verschmolzen wurden. Das Vorzeichen kodiert die Art: negativ für ein ursprüngliches Blatt (Betrag = Index), positiv für einen bereits gebildeten Teilbaum (Zeilennummer des früheren Merge-Schritts). Der Baum lässt sich so vollständig aus der Tabelle ableiten, mit der Wurzel in der letzten Zeile.
 	
 	Der Vektor \code{matched\_at} ergänzt zu jedem Schritt die Distanz der Verschmelzung und verleiht dem Dendrogramm damit seine Höhe: Der interne Knoten des $n$-ten Merge-Schritts wird auf der Höhe \code{matched\_at[n]} gezeichnet.
-	
+	\clearpage
 	\begin{lstlisting}
 		> print(cluster_pat$merge[1:4, ])
 		[,1] [,2]

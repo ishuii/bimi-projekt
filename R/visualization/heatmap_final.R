@@ -30,9 +30,16 @@ generate_heatmap <- function(data_matrix,
     gene_names[gene_order]
   )
   
+  # === PFLICHT-FIX =============================================================
+  # Vorher: levels = rev(display_gene_names). Das drehte die y-Achse der Heatmap
+  # gegenueber der Baum-/order_gene-Reihenfolge um, wodurch Dendrogramm-Aeste und
+  # Heatmap-Zeilen NICHT mehr an derselben Position lagen (bestaetigt via
+  # Zeilen-Abgleich-Check). Ohne rev() zeichnet die Heatmap jetzt exakt in
+  # gene_order-Reihenfolge, wie der Baum sie liefert.
+  # ==============================================================================
   df_plot$Gene <- factor(
     display_gene_names,
-    levels = rev(display_gene_names)
+    levels = display_gene_names
   )
   
   df_plot$Patient <- factor(
@@ -60,6 +67,15 @@ generate_heatmap <- function(data_matrix,
     
   }
   
+  raw_range <- range(df_plot$Expression, na.rm = TRUE)
+  
+  if (!is.null(palette) && palette %in% c("RdYlBu", "RdBu", "PRGn") && raw_range[1] < 0 && raw_range[2] > 0) {
+    max_abs   <- max(abs(raw_range))
+    raw_range <- c(-max_abs-3, max_abs)
+  }
+  
+  
+  
   # Heatmap
   p <- ggplot(
     df_plot,
@@ -75,7 +91,7 @@ generate_heatmap <- function(data_matrix,
     scale_fill_gradientn(
       colours = heat_colors,
       name = "Expression",
-      limits = range(df_plot$Expression, na.rm = TRUE)
+      limits = raw_range
     ) +
     
     scale_y_discrete(position = "right") +
@@ -243,6 +259,37 @@ generate_heatmap_plotly <- function(
   )
   
   built <- plotly_build(heatmap_plotly)
+  
+  # === PFLICHT-FIX 1: falsche Hover-/Colorbar-Werte =============================
+  # ggplotly() reskaliert die z-Werte des Heatmap-Traces intern auf [0,1]
+  # (bestaetigt via range(z_trace$z) == c(0,1), zmin/zmax == NULL). Hover und
+  # Colorbar-Beschriftung wuerden sich sonst auf diese falschen Werte stuetzen
+  # statt auf die echten normalisierten Expressionswerte. Deshalb hier die
+  # echten Werte direkt aus data_matrix ziehen, komplett am
+  # ggplotly()-Konvertierungsschritt vorbei. Zentral hier im Wrapper, damit
+  # sowohl der Standalone-Aufruf als auch grafikpanel() automatisch korrekte
+  # Werte bekommen.
+  #
+  # (Die FARBEN selbst / colorscale muessen hier nicht angefasst werden --
+  # die optionale Quantil-Positionierung entsteht bereits in generate_heatmap()
+  # und wird von ggplotly() automatisch mit uebernommen.)
+  #
+  # === PFLICHT-FIX 2: Reihenfolge =============================================
+  # generate_heatmap() dreht die y-Achse nicht mehr um (siehe PFLICHT-FIX in
+  # generate_heatmap() selbst), daher hier KEINE eigene Umkehrung mehr
+  # vornehmen -- sorted_matrix wird direkt in gene_order-Reihenfolge uebernommen.
+  # ==============================================================================
+  total_genes   <- length(gene_order)
+  sorted_matrix <- data_matrix[gene_order, patient_order]
+  real_z        <- sorted_matrix
+  
+  for (i in seq_along(built$x$data)) {
+    if (!identical(built$x$data[[i]]$type, "heatmap")) next
+    
+    built$x$data[[i]]$z    <- real_z
+    built$x$data[[i]]$zmin <- min(real_z, na.rm = TRUE)
+    built$x$data[[i]]$zmax <- max(real_z, na.rm = TRUE)
+  }
   
   built$x$layout$xaxis$fixedrange <- FALSE
   built$x$layout$yaxis$fixedrange <- FALSE

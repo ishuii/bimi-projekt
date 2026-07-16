@@ -56,15 +56,13 @@ result <- run_data_integration(
   con             = con
 )
 
-dbDisconnect(con)
-
 
 # ============================================================
 # PREPARE AND NORMALIZE
 # ============================================================
 
 df_prepared   <- prepare_data(result$filtered_dataset)
-df_normalized <- normalization(df_prepared, 3)
+df_normalized <- normalization(df_prepared, 4)
 
 
 # ============================================================
@@ -85,11 +83,11 @@ class_labels <- if (!is.na(label_row)) as.character(result$meta_data[label_row, 
 
 # patients transposed so columns (patients) are clustered
 dist_mat_pat <- dist_cpp(t(df_normalized), "euclidean")
-cluster_pat  <- hierarchical_clustering(dist_mat_pat, "complete")
+cluster_pat  <- hierarchical_clustering(dist_mat_pat, "single")
 
 # genes
 dist_mat_genes <- dist_cpp(df_normalized, "euclidean")
-cluster_genes  <- hierarchical_clustering(dist_mat_genes, "complete")
+cluster_genes  <- hierarchical_clustering(dist_mat_genes, "single")
 
 
 # ============================================================
@@ -104,6 +102,13 @@ order_patienten <- get_order_vector(baum_patienten)
 # genes
 baum_gene  <- build_tree(cluster_genes)
 order_gene <- get_order_vector(baum_gene)
+
+
+
+
+
+
+dbDisconnect(con)
 
 # ============================================================
 # DENDROGRAMS (DATEN-GENERIERUNG: Rein mathematisch strukturell)
@@ -124,6 +129,11 @@ dendro_data_genes <- generate_dendro_data(
   order_vector   = order_gene,
   class_labels   = NULL
 )
+# ============================================================
+# FIX: RECHENSCHRITT ÜBERSPRINGEN & DIREKT SORTIERT PLOTTEN
+# ============================================================
+
+library(viridis)
 
 
 # ============================================================
@@ -152,6 +162,11 @@ final_plot_den <- plot_dendro_ggplot(
 
 print(final_plot_pat)
 print(final_plot_den)
+
+heatmap_plot   <- generate_heatmap(data_matrix = df_normalized, gene_order = order_gene,
+                                   patient_order = order_patienten, gene_names = gene_names,
+                                   palette = "PRGn", show_x_axis = TRUE)
+print(heatmap_plot)
 
 
 # ============================================================
@@ -202,7 +217,7 @@ mein_panel <- grafikpanel(
   metaDaten_gefiltert  = result$meta_data,  
   gene_names           = gene_names,        # Für die Achsenbeschriftung rechts
   patient_names        = patient_names,     # Für die Achsenbeschriftung unten
-  palette_name         = "PRGn"    # Steuert Heatmap & Patientenzweige synchron
+  palette_name         = "viridis"    # Steuert Heatmap & Patientenzweige synchron
 )
 
 # Plot im Viewer anzeigen
@@ -229,3 +244,4 @@ save_dendro_pdf(
   dateiname = "gene_clustering_large", 
   pfad      = mein_pfad
 )
+
