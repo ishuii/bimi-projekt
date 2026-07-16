@@ -1,5 +1,12 @@
 \begin{thebibliography}{10}
 
+\bibitem{CGARN2013}
+{Cancer Genome Atlas Research Network}, John~N. Weinstein, Eric~A. Collisson,
+  Gordon~B. Mills, Kenna~R. Shaw, Bradley~A. Ozenberger, Kyle Ellrott, Ilya
+  Shmulevich, Chris Sander, and Joshua~M. Stuart.
+\newblock The {Cancer Genome Atlas Pan-Cancer} analysis project.
+\newblock {\em Nature Genetics}, 45(10):1113--1120, 2013.
+
 \bibitem{Conesa2016}
 Ana Conesa, Pedro Madrigal, Sonia Tarazona, David Gomez-Cabrero, Alejandra
   Cervera, Andrew McPherson, Micha{\l}~W. Szcze{\'{s}}niak, Daniel~J. Gaffney,
@@ -11,6 +18,24 @@ Ana Conesa, Pedro Madrigal, Sonia Tarazona, David Gomez-Cabrero, Alejandra
 Fabio Crameri, Grace~E. Shephard, and Philip~J. Heron.
 \newblock The misuse of colour in science communication.
 \newblock {\em Nature Communications}, 11:5444, 2020.
+
+\bibitem{Deng2025}
+F.~Deng, C.~H. Feng, N.~Gao, and L.~Zhang.
+\newblock Normalization and selecting non-differentially expressed genes
+  improve machine learning modelling of cross-platform transcriptomic data.
+\newblock {\em Transactions on Artificial Intelligence}, 1(1):5, 2025.
+
+\bibitem{Dubois2022}
+Etienne Dubois, Antonio~Núñez Galindo, Loïc Dayon, and Ornella Cominetti.
+\newblock Assessing normalization methods in mass spectrometry-based proteome
+  profiling of clinical samples.
+\newblock {\em Biosystems}, 215-216:104661, 2022.
+
+\bibitem{Durbin2002}
+Blythe~P. Durbin, Johanna~S. Hardin, Douglas~M. Hawkins, and David~M. Rocke.
+\newblock A variance-stabilizing transformation for gene-expression microarray
+  data.
+\newblock {\em Bioinformatics}, 18(Suppl. 1):105--110, 2002.
 
 \bibitem{Eddelbuettel2026}
 Dirk Eddelbuettel, Romain Fran\c{c}ois, {JJ} Allaire, Kevin Ushey, Qiang Kou,
@@ -29,13 +54,19 @@ Simon Garnier, Noam Ross, Robert Rudis, Antônio~P. Camargo, Marco Sciaini, and
 \newblock viridis(lite) -- colorblind-friendly color maps for r, 2024.
 \newblock R package.
 
-\bibitem{golub1999}
+\bibitem{Golub1999}
 Todd~R. Golub, Donna~K. Slonim, Pablo Tamayo, Christine Huard, Michelle
   Gaasenbeek, Jill~P. Mesirov, Hilary Coller, Mignon~L. Loh, James~R. Downing,
   Michael~A. Caligiuri, Clara~D. Bloomfield, and Eric~S. Lander.
 \newblock Molecular classification of cancer: class discovery and class
   prediction by gene expression monitoring.
 \newblock {\em Science}, 286(5439):531--537, 1999.
+
+\bibitem{Gu2016}
+Zuguang Gu, Roland Eils, and Matthias Schlesner.
+\newblock Complex heatmaps reveal patterns and correlations in multidimensional
+  genomic data.
+\newblock {\em Bioinformatics}, 32(18):2847--2849, 2016.
 
 \bibitem{HarrowerBrewer2003}
 Mark Harrower and Cynthia~A. Brewer.
@@ -53,6 +84,12 @@ Peter Horak, Christoph Heining, Sabrina Kreutzfeldt, Barbara Hutter, Annika
 Minoru Kanehisa, Yoko Sato, and Masayuki Kawashima.
 \newblock Kegg for taxonomy-based analysis of pathways and genomes.
 \newblock {\em Nucleic Acids Research}, 51(D1):D587--D592, 2023.
+
+\bibitem{Kappal2019}
+Sunil Kappal.
+\newblock {Data Normalization Using Median and Median Absolute Deviation (MMAD)
+  based Z-Score for Robust Predictions vs. Min-Max Normalization}.
+\newblock {\em Great Britain Journal Press}, 2019.
 
 \bibitem{Khatri2012}
 Purvesh Khatri, Marina Sirota, and Atul~J. Butte.
@@ -99,7 +136,11 @@ Julia Perera-Bel, Benjamin Hutter, Priya Balasubramanian, and et~al.
   clinical decision-making.
 \newblock {\em BMC Medical Informatics and Decision Making}, 18(1):72, 2018.
 
-\bibitem{shipp2002}
+\bibitem{Schmidt}
+Stefan Schmidt.
+\newblock Normalized median absolute deviation.
+
+\bibitem{Shipp2002}
 Margaret~A. Shipp, Kenneth~N. Ross, Pablo Tamayo, Andrew~P. Weng, Jeffrey~L.
   Kutok, Renato C.~T. Aguiar, Michelle Gaasenbeek, Michael Angelo, Michael
   Reich, Geraldine~S. Pinkus, Tapan~S. Ray, Michael~A. Koval, Kim~W. Last,
@@ -119,6 +160,13 @@ David Tamborero, Rodrigo Dienstmann, Mohamed Rachid, and et~al.
 Edward~R. Tufte.
 \newblock {\em The Visual Display of Quantitative Information}.
 \newblock Graphics Press, Cheshire, CT, 1983.
+
+\bibitem{Berg2006}
+Robert~A. van~den Berg, Huub C.~J. Hoefsloot, Johan~A. Westerhuis, Age~K.
+  Smilde, and Mari{\"e}t~J. van~der Werf.
+\newblock {Centering, Scaling, and Transformations: Improving the Biological
+  Information Content of Metabolomics Data}.
+\newblock {\em BMC Genomics}, 7:142, 2006.
 
 \bibitem{Vogelstein2013}
 Bert Vogelstein, Nickolas Papadopoulos, Victor~E. Velculescu, Shibin Zhou,

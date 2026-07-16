@@ -5,46 +5,47 @@ Reallocating 'name_of_file' (item size: 1) to 6 items.
 The style file: plain.bst
 Reallocating 'name_of_file' (item size: 1) to 13 items.
 Database file #1: bibliography.bib
-Warning--I didn't find a database entry for "TCGA_PanCancer_2013"
-You've used 22 entries,
+Warning--entry type for "Schmidt" isn't style-file defined
+--line 609 of file bibliography.bib
+You've used 30 entries,
             2118 wiz_defined-function locations,
-            661 strings with 8714 characters,
-and the built_in function-call counts, 8964 in all, are:
-= -- 822
-> -- 630
+            713 strings with 10384 characters,
+and the built_in function-call counts, 11809 in all, are:
+= -- 1085
+> -- 812
 < -- 0
-+ -- 251
-- -- 226
-* -- 789
-:= -- 1571
-add.period$ -- 66
-call.type$ -- 22
-change.case$ -- 176
++ -- 325
+- -- 290
+* -- 1020
+:= -- 2069
+add.period$ -- 89
+call.type$ -- 30
+change.case$ -- 232
 chr.to.int$ -- 0
-cite$ -- 22
-duplicate$ -- 238
-empty$ -- 560
-format.name$ -- 226
-if$ -- 1743
+cite$ -- 30
+duplicate$ -- 321
+empty$ -- 752
+format.name$ -- 290
+if$ -- 2302
 int.to.chr$ -- 0
-int.to.str$ -- 22
-missing$ -- 22
-newline$ -- 113
-num.names$ -- 44
-pop$ -- 152
+int.to.str$ -- 30
+missing$ -- 29
+newline$ -- 152
+num.names$ -- 60
+pop$ -- 200
 preamble$ -- 1
-purify$ -- 156
+purify$ -- 204
 quote$ -- 0
-skip$ -- 157
+skip$ -- 216
 stack$ -- 0
-substring$ -- 508
-swap$ -- 23
+substring$ -- 667
+swap$ -- 31
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 84
+type$ -- 116
 warning$ -- 0
-while$ -- 73
-width$ -- 24
-write$ -- 243
+while$ -- 98
+width$ -- 32
+write$ -- 326
 (There was 1 warning)

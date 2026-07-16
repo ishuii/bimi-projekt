@@ -73,12 +73,12 @@ Was ist Clustering?
 
 Nach der Filterung der Genexpressionsdaten müssen sie für die anschließende Clusteranalyse vorbereitet werden. Rohdaten können fehlende Werte, unterschiedliche Wertebereiche oder andere Eigenschaften aufweisen, die die Qualität der Clusterbildung negativ beeinflussen. Eine sorgfältige Vorverarbeitung stellt daher sicher, dass die Daten in einer geeigneten Form für die Distanzberechnung und die Clusteranalyse vorliegen.
 
-Die Vorverarbeitung besteht aus zwei Schritten. Zunächst werden die Daten auf Vollständigkeit und Gültigkeit überprüft sowie fehlende Werte behandelt. Anschließend erfolgt optional eine Normalisierung der Daten. Je nach gewählter Methode werden die Expressionswerte transformiert und skaliert, um Unterschiede in den Wertebereichen zwischen den Genen zu reduzieren und die Vergleichbarkeit der Expressionsprofile zu verbessern. Dadurch wird eine zuverlässigere Grundlage für die nachfolgenden Clustering-Verfahren geschaffen.
+Die Vorverarbeitung besteht aus zwei Schritten. Zunächst werden die Daten auf Vollständigkeit und Gültigkeit überprüft sowie fehlende Werte behandelt. Anschließend erfolgt optional eine Normalisierung der Daten. Je nach gewählter Methode werden die Expressionswerte transformiert und skaliert um Unterschiede in den Wertebereichen zwischen den Genen zu reduzieren und die Vergleichbarkeit der Expressionsprofile zu verbessern. Dadurch wird eine zuverlässigere Grundlage für die nachfolgenden Clustering-Verfahren geschaffen.
 
 \subsection{Datenvorbereitung}
 \label{datenvorbereitung}
 
-Vor der eigentlichen Normalisierung wird der Datensatz auf seine Eignung für die weitere Verarbeitung überprüft. Dies geschieht in der Funktion \texttt{prepare\_data}, welches auffindbar im Github-Projekt unter \texttt{R/clustering/prepare\_data.R} ist. Ziel dieser Funktion ist es, fehlerhafte oder unvollständige Eingabedaten frühzeitig zu erkennen und eine konsistente Datenstruktur für die anschließende Clusteranalyse sicherzustellen.
+Vor der Normalisierung wird der Datensatz auf seine Eignung für die weitere Verarbeitung überprüft. Dies geschieht in der Funktion \texttt{prepare\_data}, welches auffindbar im Github-Projekt unter \texttt{R/clustering/prepare\_data.R} ist. Ziel dieser Funktion ist es, fehlerhafte oder unvollständige Eingabedaten frühzeitig zu erkennen und eine konsistente Datenstruktur für die anschließende Clusteranalyse sicherzustellen.
 
 Als Erstes wird überprüft, ob der übergebene Datensatz leer ist oder keine Zeilen beziehungsweise Spalten enthält. Darüber hinaus wird kontrolliert, ob mindestens zwei Zeilen vorhanden sind, da eine Clusteranalyse mehrere Beobachtungen voraussetzt.
 Anschließend erfolgt eine Plausibilitätsprüfung der Werte. Falls der Datensatz nicht bereits als normalisiert gekennzeichnet wurde, wird überprüft, ob Werte kleiner als $-1$ enthalten sind. Solche Werte können darauf hinweisen, dass die Daten bereits transformiert oder skaliert wurden und eine erneute Normalisierung ungeeignet wäre. In diesem Fall wird die Verarbeitung mit einer entsprechenden Fehlermeldung abgebrochen.
@@ -86,7 +86,7 @@ Für die weitere Verarbeitung wird der Datensatz anschließend in eine Matrix um
 Der nächste Bestandteil der Datenvorbereitung ist die Behandlung fehlender Werte. Enthält eine Zeile fehlende Einträge, wird zunächst überprüft, ob mindestens ein gültiger numerischer Wert vorhanden ist. Ist dies der Fall, werden die fehlenden Werte, sofern welche in der Zeile vorhanden sind, durch den Mittelwert der numerischen Werte derselben Zeile ersetzt. Auf diese Weise bleiben möglichst viele Informationen erhalten und die NA-Werte werden ersetzt. Enthält eine Zeile ausschließlich fehlende Werte, wird die Verarbeitung abgebrochen, da keine Mittelwertberechnung möglich ist.
 Abschließend wird der Datensatz auf unendliche Werte (\texttt{Inf} beziehungsweise \texttt{-Inf}) überprüft. Da solche Werte bei den nachfolgenden Berechnungen zu Fehlern führen würden, wird die Verarbeitung in diesem Fall ebenfalls beendet. Nach Abschluss aller Prüfungen liegt ein vollständiger numerischer Datensatz vor, der für die anschließende Normalisierung und Clusteranalyse verwendet werden kann.
 
-Während der Entwicklung dieser Funktion traten keine größeren Schwierigkeiten auf. Der Entwicklungsaufwand betrug etwa sechs Stunden, während die anschließende Testphase ungefähr vier Stunden in Anspruch nahm. Eine Besonderheit beim Testen der Funktion bestand darin, dass für bestimmte Fehlerfälle eigene, kleine Testdatensätze erstellt werden mussten. Dadurch konnten spezifische Fehler gezielt reproduziert und überprüft werden, da nicht alle möglichen Fehlerzustände regelmäßig in realen Datensätzen auftreten. Insbesondere die Behandlung von fehlenden Werten (NA-Werten) erforderte eine ausführliche Abstimmung. Hierzu wurde eine längere Zeitspanne einer Besprechung in Anspruch genommen, um festzulegen, unter welchen Bedingungen eine Fehlerbehandlung erfolgen soll und welche Vorgehensweise für die verschiedenen Fälle angemessen ist.
+Während der Entwicklung dieser Funktion traten keine größeren Schwierigkeiten auf. Der Entwicklungsaufwand betrug etwa sechs Stunden, während die anschließende Testphase ungefähr vier Stunden in Anspruch nahm. Eine Besonderheit beim Testen der Funktion bestand darin, dass für bestimmte Fehlerfälle eigene, kleine Testdatensätze erstellt werden mussten. Dadurch konnten spezifische Fehler gezielt produziert und überprüft werden, da nicht alle möglichen Fehlerzustände regelmäßig in realen Datensätzen auftreten. Insbesondere die Behandlung von fehlenden Werten (NA-Werten) erforderte eine ausführliche Abstimmung. Hierzu wurde eine längere Zeitspanne einer Besprechung in Anspruch genommen, um festzulegen, unter welchen Bedingungen eine Fehlerbehandlung erfolgen soll und welche Vorgehensweise für die verschiedenen Fälle angemessen ist.
 
 \subsection{Normalisierung}
 \label{normalisierung}
@@ -110,13 +110,13 @@ Bei dieser Methode werden die Daten unverändert weitergegeben. Sie eignet sich 
 \label{Nur Logarithmierung}
 
 In dieser Variante wird ausschließlich die Logarithmierung durchgeführt.
-Dies geschieht indem auf alle Expressionswerte eine Logarithmierung zur Basis 2 angewendet, dies hilft den Dynamikbereich als auch die Schiefe der Verteilung zu reduzieren und führt so zu einer stärkeren Symmetrie, sowie nähert die Daten an eine Normalverteilung an. Dadurch erfüllen die Daten die Annahmen statistischer Analysen besser. Um Probleme mit Null- oder sehr kleinen Werten zu vermeiden, wird vor der Anwendung des Logarithmus üblicherweise eine kleine Konstante (z. B. 1) zu jedem Wert addiert \cite{Deng2025}. Dies wurde in dieser Funktion auch durchgeführt mit einer Addierung von 1.
+Dies geschieht indem auf alle Expressionswerte nur eine Logarithmierung zur Basis 2 angewendet. Sie hilft den Dynamikbereich als auch die Schiefe der Verteilung zu reduzieren und führt so zu einer stärkeren Symmetrie, sowie nähert die Daten an eine Normalverteilung an. Dadurch erfüllen die Daten die Annahmen statistischer Analysen besser. Um Probleme mit Null- oder sehr kleinen Werten zu vermeiden, wird vor der Anwendung des Logarithmus üblicherweise eine kleine Konstante zu jedem Wert addiert \cite{Deng2025}. Dies wurde in dieser Funktion auch durchgeführt mit einer Addierung von 1. Die Formel des Logarithmus ist wie folgt:
 
 \[
 x_1'=\log_2(x_1+1)
 \]
 
-Dadurch werden große Expressionswerte abgeschwächt, während die absoluten Unterschiede zwischen den Genen weitgehend erhalten bleiben. In dieser Methode erfolgt keine zusätzliche Skalierung der Daten. Die reine Log-Transformation ist sinnvoll, wenn der Nutzer die Wertekompression benötigt, aber die ursprüngliche Struktur der Daten möglichst unverändert beibehalten möchte. Alle darauffolgenden Logarithmen werden genau wie hier beschrieben durchgeführt.
+Durch das Logarithmieren werden große Expressionswerte abgeschwächt, während die absoluten Unterschiede zwischen den Genen weitgehend erhalten bleiben \cite{Durbin2002VST}. In dieser Methode erfolgt keine zusätzliche Skalierung der Daten. Die reine Log-Transformation ist sinnvoll, wenn der Nutzer die Wertekompression benötigt, aber die ursprüngliche Struktur der Daten möglichst unverändert beibehalten möchte. Alle darauffolgenden Logarithmen werden genau wie hier beschrieben durchgeführt.
 
 %--------------------------------------------------
 
@@ -126,13 +126,13 @@ Dadurch werden große Expressionswerte abgeschwächt, während die absoluten Unt
 \paragraph{Variante mit Logarithmierung}
 
 Diese Methode startet mit dem logarithmieren der Daten wie in \ref{Nur Logarithmierung} beschrieben.
-Anschließend erfolgt für jede Genzeile eine Z-Score-Normalisierung. Die Z-Score-Transformation ist eine weit verbreitete Normalisierungsmethode, bei der Merkmale (Gene) so skaliert werden, dass sie einen Mittelwert von 0 und eine Standardabweichung von 1 aufweisen. Für jedes Gen wird zunächst der Mittelwert ($\mu$) und die Standardabweichung ($\sigma$) über alle Proben hinweg berechnet\cite{Deng2025}. Anschließend wird jeder Wert ($x$) mithilfe der folgenden Formel standardisiert:
+Anschließend erfolgt für jede Genzeile eine Z-Score-Normalisierung. Die Z-Score-Transformation ist eine weit verbreitete Normalisierungsmethode, bei der Merkmale (Gene) so skaliert werden, dass sie einen Mittelwert von 0 und eine Standardabweichung von 1 aufweisen. Für jedes Gen wird zunächst der Mittelwert ($\mu$) und die Standardabweichung ($\sigma$) über alle Proben hinweg berechnet\cite{Deng2025}. Jeder Wert ($x$) mithilfe der folgenden Formel standardisiert:
 
 \[
 z_i=\frac{x_1'-\mu}{\sigma}
 \]
 
-Diese Transformation ermöglicht es, unterschiedliche Merkmale auf eine vergleichbare Skala zu bringen\cite{Deng2025}. Im eigentlichen R Code wird diese Formel mit der\texttt{scale}-Funktion durchgeführt. Da die Funktion spaltenweise arbeitet, wird der Datensatz zunächst transponiert, verarbeitet und abschließend erneut transponiert, um die ursprüngliche Ausrichtung wiederherzustellen.
+Diese Transformation ermöglicht es, unterschiedliche Merkmale auf eine vergleichbare Skala zu bringen\cite{Deng2025}. Der Nachteil ist, dass sie sensibel gegenüber Ausreißer ist, was zum Teil durch den Logarithmus unterbinden werden kann. Im eigentlichen R Code wird diese Formel mit der \texttt{scale}-Funktion durchgeführt. Da die Funktion spaltenweise arbeitet, wird der Datensatz zunächst transponiert, verarbeitet und abschließend erneut transponiert, um die ursprüngliche Ausrichtung wiederherzustellen.
 
 \paragraph{Variante ohne Logarithmierung}
 
@@ -152,20 +152,20 @@ Auch in dieser Methode wird zunächst die Logarithmierung durchgeführt (siehe \
 x_i''=\frac{x_i'-\mathrm{Median}(x')}{\max(x')-\min(x')+\varepsilon}
 \]
 
-Sie ist entstanden aus der Kombination der Median-Zentrierung und dem Range-Skalierung.
+Sie ist entstanden aus der Kombination der Median-Zentrierung und der Range-Skalierung.
 Die Formel der Median-Zentrierung ist nach \cite{DUBOIS2022104661}: 
 
 \[
 x_i''={x_i'-\mathrm{Median}(x')}
 \] 
 
-Während beim Range-Skalierung die zentrierten Werte durch die Spannweite, also die Differenz zwischen dem Maximum und Minimum einer Genzeile, dividiert werden. Dadurch werden Unterschiede in den Wertebereichen der Gene reduziert, sodass alle Gene unabhängig von ihrer ursprünglichen Variabilität einen vergleichbaren Einfluss auf die nachfolgende Analyse besitzen. Da die Spannweite den biologischen Variationsbereich der Daten repräsentiert, orientiert sich die Skalierung an diesem biologischen Wertebereich \cite{medianCentering}. Dargestellt wird es durch diese Formel nach \cite{medianCentering}:
+Bei der Range-Skalierung werden die zentrierten Werte durch die Spannweite, also die Differenz zwischen dem Maximum und Minimum einer Genzeile, dividiert. Dadurch werden Unterschiede in den Wertebereichen der Gene reduziert, sodass alle Gene unabhängig von ihrer ursprünglichen Variabilität einen vergleichbaren Einfluss auf die nachfolgende Analyse besitzen. Da die Spannweite den biologischen Variationsbereich der Daten repräsentiert, orientiert sich die Skalierung an diesem biologischen Wertebereich \cite{medianCentering}. Dargestellt wird es durch diese Formel nach \cite{medianCentering}:
 
 \[
 x_{ij}^{*}=\frac{x_{ij}-\bar{x}_{i}}{x_{i,\max}-x_{i,\min}}
 \] 
 
-Das $\varepsilon$ in der vollständigen Formel ist definiert mit $\varepsilon = 1e^{-8}$ und ist eine kleine Konstante, die die Teilung durch Null verhindert.
+Das $\varepsilon$ in der vollständigen Formel wird definiert mit $\varepsilon = 1e^{-8}$ und ist eine kleine Konstante, die die Teilung durch Null verhindert.
 Ein Nachteil der Range-Skalierung besteht jedoch darin, dass die Spannweite ausschließlich auf den beiden Extremwerten basiert und daher empfindlich gegenüber Ausreißern ist\cite{medianCentering}. Allerdings wird dieser Schwäche zum Teil durch die Median-Zentrierung entgegengewirkt. 
 
 \paragraph{Variante ohne Logarithmierung}
@@ -191,8 +191,8 @@ Dabei bezeichnet
 \mathrm{MAD}(x)=\mathrm{Median}\left(\left|x-\mathrm{Median}(x)\right|\right)
 \]
 
-die Median Absolute Deviation und $\varepsilon= 1e-8$ eine kleine Konstante, die eine Division durch Null verhindert.
-Anstelle der Standardabweichung wird die mediane absolute Abweichung als Maß für die Variabilität verwendet. Diese Kennzahl ist definiert als der Median der absoluten Abweichungen vom Median der Stichprobe \cite{MADSchmidt}.
+die Median Absolute Deviation. $\varepsilon= 1e-8$ ist erneut eine kleine Konstante, die eine Division durch Null verhindert.
+Anstelle der Standardabweichung wird die Median Absolute Deviation (MAD) als robustes Maß für die Variabilität verwendet. Sie entspricht dem Median der absoluten Abweichungen aller Beobachtungen vom Stichprobenmedian \cite{MADSchmidt}.
 
 Im Vergleich zur Standardabweichung ist MAD deutlich robuster gegenüber Ausreißern und eignet sich daher insbesondere für Datensätze mit einzelnen extremen Expressionswerten \cite{MADKappal}.
 
@@ -209,7 +209,7 @@ Während der Testphase trat bei einem von einem weiteren Tester verwendeten Date
 
 In der Endphase des Projekts wurde außerdem festgestellt, dass das Clustering beziehungsweise die Darstellung der Cluster nicht korrekt funktionierte. Daraufhin wurde die gesamte Normalisierungsfunktion erneut überprüft und ausführlich getestet. Gleichzeitig wurde der Datensatz, der den Fehler besonders deutlich sichtbar machte, nochmals analysiert. Dabei konnte die eigentliche Fehlerursache identifiziert und behoben werden. Im Zuge dieser Überarbeitung fiel zudem die Entscheidung, den Funktionsumfang zu erweitern und zusätzlich Normalisierungsmethoden ohne vorgeschaltete Logarithmierung zu implementieren.
 
-Einen weiteren unerwartet hohen Zeitaufwand verursachte die Recherche geeigneter Normalisierungsmethoden(4.5 Stunden). Zwar wird in wissenschaftlichen Veröffentlichungen häufig angegeben, dass Verfahren wie beispielsweise die Z-Score-Normalisierung verwendet wurden, jedoch fehlen oftmals detaillierte Beschreibungen der konkreten Implementierung oder eine Begründung für die Wahl der jeweiligen Methode.
+Einen weiteren unerwartet hohen Zeitaufwand verursachte die Recherche geeigneter Normalisierungsmethoden(5.5 Stunden). Zwar wird in wissenschaftlichen Veröffentlichungen häufig angegeben, dass Verfahren wie beispielsweise die Z-Score-Normalisierung verwendet wurden, jedoch fehlen oftmals detaillierte Beschreibungen der konkreten Implementierung oder eine Begründung für die Wahl der jeweiligen Methode.
 
 
 \section{Clusteranalyse}
@@ -227,8 +227,8 @@ Der Bereich der Clusteranalyse unterteilt sich in mehrere Unteraufgaben. Zunäch
 		Datenvorbereitung             & Rosina    & 6 Stunden        \\
 		Normalisierungsfunktionen     & Rosina    & 6 Stunden           \\ 
         Testen                        & Rosina    & 14 Stunden        \\
-        Recherche                     & Rosina    & 4.5 Stunden        \\
-        Bericht schreiben             & Rosina    & 8 Stunden        \\
+        Recherche                     & Rosina    & 5.5 Stunden        \\
+        Bericht schreiben             & Rosina    & 10 Stunden        \\
         Besprechungen                 & Rosina    & 19.5 Stunden        \\
 		Complete-Linkage              & Rosina    & 30 Minuten        \\ 
 		Average-Linkage               & Rosina    & 1 Stunde         \\ 

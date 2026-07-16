@@ -35,6 +35,10 @@
 \section{Einleitung}
 \label{einleitung}
 
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Johanna}
 \section{Grundlagen}
 \label{grundlagen}
 
@@ -172,16 +176,16 @@ Es existieren zwei spezialisierte Vorverarbeitungsfunktionen, die je nach Datent
 
 \noindent Zum Testen der implementierten Funktionen wurden vier Genexpressions-Datensätze bereitgestellt. Zwei dieser Datensätze stammen aus dem TCGA-Register. 
 
-\noindent The Cancer Genome Atlas (TCGA) ist ein großes, öffentliches Forschungsprogramm, welches umfassende genomische Daten und klinische Metadaten von über 33 verschiedenen Krebsarten bereitstellt \cite{TCGA_PanCancer_2013}. 
+\noindent The Cancer Genome Atlas (TCGA) ist ein großes, öffentliches Forschungsprogramm, welches umfassende genomische Daten und klinische Metadaten von über 33 verschiedenen Krebsarten bereitstellt \cite{CGARN2013}. 
 
 \noindent Zwei der für dieses Projekt verwendeten Testdatensätze stammen aus diesem Programm: 
 \begin{itemize}
 	\item \textbf{colon\_vs\_pancreas\_meta.csv}: Datensatz, der Proben von Darm- und Bauchspeicheldrüsenkrebs vergleicht.
 	\item \textbf{TCGA\_kidney\_unnormalized\_meta.csv}: Datensatz, der die drei Nierenkrebs-Unterarten: papilläres, chromophobes und klarzelliges Nierenzellkarzinom enthält.
 \end{itemize}
-\noindent Ein weiterer zur Verfügung gestellter Datensatz ist der Golub-Datensatz: \textbf{GOLUB\_microarray.csv}. Dieser enthält Genexpressionsdaten, die genutzt wurden, um Patienten mit zwei verschiedenen Arten von Blutkrebs zu klassifizieren: der akuten myeloischen Leukämie und der akuten lymphatischen Leukämie \cite{golub1999}. 
+\noindent Ein weiterer zur Verfügung gestellter Datensatz ist der Golub-Datensatz: \textbf{GOLUB\_microarray.csv}. Dieser enthält Genexpressionsdaten, die genutzt wurden, um Patienten mit zwei verschiedenen Arten von Blutkrebs zu klassifizieren: der akuten myeloischen Leukämie und der akuten lymphatischen Leukämie \cite{Golub1999}. 
 
-\noindent Der letzte zur Verfügung gestellte Datensatz ist der SHIPP-Datensatz: \textbf{SHIPP\_microarray.csv}. Dieser enthält zwei Formen von Non-Hodgkin-Lymphomen: das diffuse großzellige B-Zell-Lymphom und das follikuläre Lymphom \cite{shipp2002}.
+\noindent Der letzte zur Verfügung gestellte Datensatz ist der SHIPP-Datensatz: \textbf{SHIPP\_microarray.csv}. Dieser enthält zwei Formen von Non-Hodgkin-Lymphomen: das diffuse großzellige B-Zell-Lymphom und das follikuläre Lymphom \cite{Shipp2002}.
 
 \noindent Die Datensätze wurden nach einem einheitlichen Schema aufbereitet und für alle Teammitglieder bereitgestellt: Während die erste Spalte immer die numerischen Entrez IDs oder Gennamen enthält, repräsentieren die darauffolgenden Spalten die einzelnen Patientenproben. Zur Erweiterung der Metadaten wurden für alle Datensätze zufällige Werte für Alter und Geschlecht generiert. Um die Metadaten sauber von den eigentlichen Genexpressionsdaten zu trennen, wurden diese einheitlich mit dem Präfix \texttt{Meta\_} versehen.
 
@@ -189,10 +193,173 @@ Es existieren zwei spezialisierte Vorverarbeitungsfunktionen, die je nach Datent
 \newpage
 \pagestyle{fancy}
 \fancyhead{}
-\fancyhead[L]{Rosina \& Wiki}
-\section{Normalisierung}
+\fancyhead[L]{Rosina und Wiktoria}
+\section{Clusterverfahren}
+
+\subsection{Arbeitsverteilung}
+\label{cluster-arbeitsverteilung}
+Der Bereich der Clusteranalyse unterteilt sich in mehrere Unteraufgaben. Zunächst wurden die Daten auf die Weiterverarbeitung vorbereitet mit Hilfe einer Preprocessing-Funktion. Der Datensatz wurde daraufhin normalisiert, wobei unterschiedliche Normalisierungsfunktionen zur Auswahl standen. Aus dem normalisierten Datensatz wurde eine Distanzmatrix berechnet und anschließend ein Linkage-Verfahren angewendet. Dementsprechend mussten neben der Preprocessing-Funktion auch die Normalisierungs-, Distanz- und Linkage-Funktionen implementiert werden. 
+
+Die folgende Tabelle zeigt, welche Aufgaben von wem übernommen wurden und wie groß der Arbeitsaufwand war.
+
+\begin{table}[h!]
+	\begin{tabular}{l|l|l}
+		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
+		\hline
+		Datenvorbereitung             & Rosina    & 6 Stunden        \\
+		Normalisierungsfunktionen     & Rosina    & 6 Stunden           \\ 
+		Testen                        & Rosina    & 14 Stunden        \\
+		Recherche                     & Rosina    & 5,5 Stunden        \\
+		Bericht schreiben             & Rosina    & 10 Stunden        \\
+		Besprechungen                 & Rosina    & 19,5 Stunden        \\
+		Complete-Linkage              & Rosina    & 30 Minuten        \\ 
+		Average-Linkage               & Rosina    & 1 Stunde         \\ 
+		Recherche zu Distanzfunktinen 						& Wiktoria  & 3 Stunden \\
+		Programmieren der Distanzfunktionen      			& Wiktoria  & 7 Stunden \\ 
+		Recherche zu Linkagefunktionen 						& Wiktoria  & 4 Stunden \\
+		Linkagefunktionen nach Lance-Williams   			& Wiktoria  & 12 Stunden   \\
+		Testen (inkl. GUI- und Visualisierungsfunktionen)   & Wiktoria  & 25 Stunden  \\ 
+		Besprechungen 				 						& Wiktoria  & 19,5 Stunden  \\
+		Protokollvor- und Nachbereitung 					& Wiktoria  & 3 Stunden \\
+		Berichterstellung (eigenes Kapitel)					& Wiktoria  & 10 Stunden \\
+		Bericht zusammenfügen und Korrektur                 & Wiktoria  & 3 Stunden \\
+		Folien zusammenfügen und Korrektur 					& Wiktoria  & 1 Stunde \\
+		Repository-Pflege 									& Wiktoria  & 3 Stunden \\
+		Erstellen einer Library 							& Wiktoria  & NOCH OFFEN \\
+	\end{tabular}
+\end{table}
+
+\subsection{Allgemeines Vorgehen}
+\label{allgemein-clusterung}
+
+Nach der Filterung der Genexpressionsdaten müssen sie für die anschließende Clusteranalyse vorbereitet werden. Rohdaten können fehlende Werte, unterschiedliche Wertebereiche oder andere Eigenschaften aufweisen, die die Qualität der Clusterbildung negativ beeinflussen. Eine sorgfältige Vorverarbeitung stellt daher sicher, dass die Daten in einer geeigneten Form für die Distanzberechnung und die Clusteranalyse vorliegen.
+
+Die Vorverarbeitung besteht aus zwei Schritten. Zunächst werden die Daten auf Vollständigkeit und Gültigkeit überprüft sowie fehlende Werte behandelt. Anschließend erfolgt optional eine Normalisierung der Daten. Je nach gewählter Methode werden die Expressionswerte transformiert und skaliert um Unterschiede in den Wertebereichen zwischen den Genen zu reduzieren und die Vergleichbarkeit der Expressionsprofile zu verbessern. Dadurch wird eine zuverlässigere Grundlage für die nachfolgenden Clustering-Verfahren geschaffen.
+
+Anfangs stellt jedes Element des Datensatzes (jede Beobachtung; dies bezieht sich auf die Gene, sowie auf die Patienten) ein eigenes Cluster dar. In jedem Schritt werden zwei Cluster zusammengefasst, bis schließlich alle Elemente in einem Cluster vereint sind. Das Zusammenfassen erfolgt mit einem bestimmten Linkage-Verfahren und basiert auf den Distanzen der Cluster zueinander. Zu diesem Zweck wird zunächst eine Distanzmatrix erstellt, die für alle Paare aus Elementen des Datensatzes die entsprechende Distanz enthält. Nach jedem Schritt werden die Distanzen für das neue Cluster aktualisiert. Je nach gewählten Linkage-Verfahren entstehen so unterschiedliche Aktualisierungen und damit auch unterschiedliche Cluster.
+
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Rosina}
+
+\subsection{Datenvorbereitung}
+\label{datenvorbereitung}
+
+Vor der Normalisierung wird der Datensatz auf seine Eignung für die weitere Verarbeitung überprüft. Dies geschieht in der Funktion \texttt{prepare\_data}, welches auffindbar im Github-Projekt unter \texttt{R/clustering/prepare\_data.R} ist. Ziel dieser Funktion ist es, fehlerhafte oder unvollständige Eingabedaten frühzeitig zu erkennen und eine konsistente Datenstruktur für die anschließende Clusteranalyse sicherzustellen.
+
+Als Erstes wird überprüft, ob der übergebene Datensatz leer ist oder keine Zeilen beziehungsweise Spalten enthält. Darüber hinaus wird kontrolliert, ob mindestens zwei Zeilen vorhanden sind, da eine Clusteranalyse mehrere Beobachtungen voraussetzt.
+Anschließend erfolgt eine Plausibilitätsprüfung der Werte. Falls der Datensatz nicht bereits als normalisiert gekennzeichnet wurde, wird überprüft, ob Werte kleiner als $-1$ enthalten sind. Solche Werte können darauf hinweisen, dass die Daten bereits transformiert oder skaliert wurden und eine erneute Normalisierung ungeeignet wäre. In diesem Fall wird die Verarbeitung mit einer entsprechenden Fehlermeldung abgebrochen.
+Für die weitere Verarbeitung wird der Datensatz anschließend in eine Matrix umgewandelt. Anschließend wird der ganze Inhalt zu numerischen Werten konvertiert. Dies stellt sicher, dass berechenbare Zahlen in der Matrix vorhanden sind. Nicht-numerische Werte, wie Buchstaben, werden dadurch zu fehlenden Einträgen (\texttt{NA}) gewandelt. So können sie in der darauffolgenden NA-Behandlung mit entfernt werden.
+Der nächste Bestandteil der Datenvorbereitung ist die Behandlung fehlender Werte. Enthält eine Zeile fehlende Einträge, wird zunächst überprüft, ob mindestens ein gültiger numerischer Wert vorhanden ist. Ist dies der Fall, werden die fehlenden Werte, sofern welche in der Zeile vorhanden sind, durch den Mittelwert der numerischen Werte derselben Zeile ersetzt. Auf diese Weise bleiben möglichst viele Informationen erhalten und die NA-Werte werden ersetzt. Enthält eine Zeile ausschließlich fehlende Werte, wird die Verarbeitung abgebrochen, da keine Mittelwertberechnung möglich ist.
+Abschließend wird der Datensatz auf unendliche Werte (\texttt{Inf} beziehungsweise \texttt{-Inf}) überprüft. Da solche Werte bei den nachfolgenden Berechnungen zu Fehlern führen würden, wird die Verarbeitung in diesem Fall ebenfalls beendet. Nach Abschluss aller Prüfungen liegt ein vollständiger numerischer Datensatz vor, der für die anschließende Normalisierung und Clusteranalyse verwendet werden kann.
+
+Während der Entwicklung dieser Funktion traten keine größeren Schwierigkeiten auf. Der Entwicklungsaufwand betrug etwa sechs Stunden, während die anschließende Testphase ungefähr vier Stunden in Anspruch nahm. Eine Besonderheit beim Testen der Funktion bestand darin, dass für bestimmte Fehlerfälle eigene, kleine Testdatensätze erstellt werden mussten. Dadurch konnten spezifische Fehler gezielt produziert und überprüft werden, da nicht alle möglichen Fehlerzustände regelmäßig in realen Datensätzen auftreten. Insbesondere die Behandlung von fehlenden Werten (NA-Werten) erforderte eine ausführliche Abstimmung. Hierzu wurde eine längere Zeitspanne einer Besprechung in Anspruch genommen, um festzulegen, unter welchen Bedingungen eine Fehlerbehandlung erfolgen soll und welche Vorgehensweise für die verschiedenen Fälle angemessen ist.
+
+\subsection{Normalisierung}
 \label{normalisierung}
 
+Nach der Datenvorbereitung kann der Datensatz optional normalisiert werden. 
+
+Ziel der Normalisierung ist es, den Einfluss technischer Störfaktoren und systematischer Fehler auf die Messdaten zu reduzieren, sodass möglichst ausschließlich die biologische Variabilität der Genexpression erhalten bleibt. Solche unerwünschten Variationen können beispielsweise durch Unterschiede bei der Probenvorbereitung, leichte Schwankungen der Umgebungsbedingungen, den Abbau von Probenmaterial oder technische Einflüsse der verwendeten Messinstrumente entstehen. Generell sind diese Störquellen häufig weder direkt messbar noch exakt quantifizierbar, deswegen stellt ihre Korrektur eine besondere Herausforderung dar \cite{Dubois2022}. 
+
+Eine geeignete Normalisierung trägt daher wesentlich dazu bei, die Vergleichbarkeit der Daten zu verbessern und die Grundlage für eine zuverlässige Clusteranalyse zu schaffen. Für die in diesem Projekt entwickelte Funktion \texttt{normalization} stehen acht verschiedene Normalisierungsmethoden zur Verfügung, die nach dem belieben des Users ausgewählt werden können. Sie ist auffindbar im Projekt unter dem Pfad \texttt{R/clustering/normalization\_methods.R}. 
+
+\subsubsection{Keine Normalisierung}
+\label{Keine Normalisierung}
+
+Bei dieser Methode werden die Daten unverändert weitergegeben. Sie eignet sich für Datensätze, die bereits vorverarbeitet oder mit einem externen Verfahren normalisiert wurden. Somit können auch normalisierte Datensätze visualisiert werden.
+
+\subsubsection{Nur Logarithmierung}
+\label{Nur Logarithmierung}
+
+In dieser Variante wird ausschließlich die Logarithmierung durchgeführt.
+Dies geschieht indem auf alle Expressionswerte nur eine Logarithmierung zur Basis 2 angewendet. Sie hilft den Dynamikbereich als auch die Schiefe der Verteilung zu reduzieren und führt so zu einer stärkeren Symmetrie, sowie nähert die Daten an eine Normalverteilung an. Dadurch erfüllen die Daten die Annahmen statistischer Analysen besser. Um Probleme mit Null- oder sehr kleinen Werten zu vermeiden, wird vor der Anwendung des Logarithmus üblicherweise eine kleine Konstante zu jedem Wert addiert \cite{Deng2025}. Dies wurde in dieser Funktion auch durchgeführt mit einer Addierung von 1. Die Formel des Logarithmus ist wie folgt:
+
+\[x_1'=\log_2(x_1+1)\]
+
+Durch das Logarithmieren werden große Expressionswerte abgeschwächt, während die absoluten Unterschiede zwischen den Genen weitgehend erhalten bleiben \cite{Durbin2002}. In dieser Methode erfolgt keine zusätzliche Skalierung der Daten. Die reine Log-Transformation ist sinnvoll, wenn der Nutzer die Wertekompression benötigt, aber die ursprüngliche Struktur der Daten möglichst unverändert beibehalten möchte. Alle darauffolgenden Logarithmen werden genau wie hier beschrieben durchgeführt.
+
+\subsubsection{Z-Score-Normalisierung}
+\label{Z-Score-Normalisierung}
+
+\paragraph{Variante mit Logarithmierung}
+
+Diese Methode startet mit dem logarithmieren der Daten wie in \ref{Nur Logarithmierung} beschrieben.
+Anschließend erfolgt für jede Genzeile eine Z-Score-Normalisierung. Die Z-Score-Transformation ist eine weit verbreitete Normalisierungsmethode, bei der Merkmale (Gene) so skaliert werden, dass sie einen Mittelwert von 0 und eine Standardabweichung von 1 aufweisen. Für jedes Gen wird zunächst der Mittelwert ($\mu$) und die Standardabweichung ($\sigma$) über alle Proben hinweg berechnet\cite{Deng2025}. Jeder Wert ($x$) mithilfe der folgenden Formel standardisiert:
+
+\[z_i=\frac{x_1'-\mu}{\sigma}\]
+
+Diese Transformation ermöglicht es, unterschiedliche Merkmale auf eine vergleichbare Skala zu bringen\cite{Deng2025}. Der Nachteil ist, dass sie sensibel gegenüber Ausreißer ist, was zum Teil durch den Logarithmus unterbinden werden kann. Im eigentlichen R Code wird diese Formel mit der \texttt{scale}-Funktion durchgeführt. Da die Funktion spaltenweise arbeitet, wird der Datensatz zunächst transponiert, verarbeitet und abschließend erneut transponiert, um die ursprüngliche Ausrichtung wiederherzustellen.
+
+\paragraph{Variante ohne Logarithmierung}
+
+In dieser Methode wird ausschließlich die Z-Score Normalisierung durchgeführt. Im Gegensatz zur vorherigen beschriebenen Variante erfolgt keine vorherige Logarithmierung der Expressionswerte. Dadurch werden die ursprünglichen Expressionswerte direkt standardisiert.
+
+Diese Variante eignet sich insbesondere für Datensätze, die bereits logarithmiert wurden oder bei denen bewusst auf eine zusätzliche Logarithmierung verzichtet werden soll.
+
+\subsubsection{Median-Zentrierung}
+\label{Median-Zentrierung}
+
+\paragraph{Variante mit Logarithmierung}
+Auch in dieser Methode wird zunächst die Logarithmierung durchgeführt (siehe \ref{Nur Logarithmierung}). Anschließend wird jede Genzeile um ihren Median zentriert und mithilfe ihrer Spannweite skaliert. Das Ziel der Median-Zentrierung besteht darin, die Daten auf den Median der Verteilung jeder Probe zu zentrieren. Im Allgemeinen wird die Zentrierung anhand des Medians gegenüber dem Mittelwert bevorzugt, da der Median robuster gegenüber Ausreißern ist \cite{Dubois2022}. Der vollständige Normalisierungsprozess wird mit dieser Formel durchgeführt:
+
+\[x_i''=\frac{x_i'-\mathrm{Median}(x')}{\max(x')-\min(x')+\varepsilon}\]
+
+Sie ist entstanden aus der Kombination der Median-Zentrierung und der Range-Skalierung.
+Die Formel der Median-Zentrierung ist nach \cite{Dubois2022}: 
+
+\[x_i''={x_i'-\mathrm{Median}(x')}\] 
+
+Bei der Range-Skalierung werden die zentrierten Werte durch die Spannweite, also die Differenz zwischen dem Maximum und Minimum einer Genzeile, dividiert. Dadurch werden Unterschiede in den Wertebereichen der Gene reduziert, sodass alle Gene unabhängig von ihrer ursprünglichen Variabilität einen vergleichbaren Einfluss auf die nachfolgende Analyse besitzen. Da die Spannweite den biologischen Variationsbereich der Daten repräsentiert, orientiert sich die Skalierung an diesem biologischen Wertebereich \cite{Berg2006}. Dargestellt wird es durch diese Formel nach \cite{Berg2006}:
+
+\[x_{ij}^{*}=\frac{x_{ij}-\bar{x}_{i}}{x_{i,\max}-x_{i,\min}}\] 
+
+Das $\varepsilon$ in der vollständigen Formel wird definiert mit $\varepsilon = 1e^{-8}$ und ist eine kleine Konstante, die die Teilung durch Null verhindert.
+Ein Nachteil der Range-Skalierung besteht jedoch darin, dass die Spannweite ausschließlich auf den beiden Extremwerten basiert und daher empfindlich gegenüber Ausreißern ist\cite{Berg2006}. Allerdings wird dieser Schwäche zum Teil durch die Median-Zentrierung entgegengewirkt. 
+
+\paragraph{Variante ohne Logarithmierung}
+
+In dieser Methode wird nur die oben beschriebene Median-Zentrierung durchgeführt, während das Logarithmieren ausgelassen wird. Wie schon bereits erklärt ist dies von besonderem Nutzen, wenn die Originalstruktur des Datensatzes von großer Bedeutung, oder der Datensatz schon vorbereitet worden ist.
+
+\subsubsection{MAD-Normalisierung}
+\label{MAD-Normalisierung}
+
+\paragraph{Variante mit Logarithmierung}
+
+Diese Methode verwendet ebenfalls zunächst die Logarithmierung(siehe \ref{Nur Logarithmierung}). Anschließend erfolgt eine robuste Skalierung mithilfe der Median Absolute Deviation (MAD):
+
+\[x_i''=\frac{x_i'-\mathrm{Median}(x')}{\mathrm{MAD}(x')+\varepsilon}\]
+
+Dabei bezeichnet
+
+\[\mathrm{MAD}(x)=\mathrm{Median}\left(\left|x-\mathrm{Median}(x)\right|\right)\]
+
+die Median Absolute Deviation. $\varepsilon= 1e-8$ ist erneut eine kleine Konstante, die eine Division durch Null verhindert.
+Anstelle der Standardabweichung wird die Median Absolute Deviation (MAD) als robustes Maß für die Variabilität verwendet. Sie entspricht dem Median der absoluten Abweichungen aller Beobachtungen vom Stichprobenmedian \cite{Schmidt}.
+
+Im Vergleich zur Standardabweichung ist MAD deutlich robuster gegenüber Ausreißern und eignet sich daher insbesondere für Datensätze mit einzelnen extremen Expressionswerten \cite{Kappal2019}.
+
+\paragraph{Variante ohne Logarithmierung}
+
+Diese Methode entspricht der im vorherigen Paragraph beschriebenen MAD-Normalisierung, jedoch ohne vorherige Logarithmierung. Die ursprünglichen Expressionswerte werden direkt anhand der Median Absolute Deviation (MAD) skaliert. Diese hat vor allem Nutzen, wenn Reduktion der Verteilung im Datensatz nicht nötig ist und nur der Normalisierungseffekt benötigt wird.
+
+\subsubsection{Herausforderungen bei der Implementierung}
+\label{herausforderung-rosina}
+
+Der gesamte Programmieraufwand für die Funktion \texttt{normalization} betrug etwa sechs Stunden. In dieser Zeit wurden sowohl die bestehende Struktur überarbeitet als auch neue Normalisierungsmethoden implementiert. Die eigentliche Implementierung der Funktion erfolgte vergleichsweise zügig. Deutlich zeitintensiver war hingegen das Testen, welches insgesamt etwa zehn Stunden in Anspruch nahm.
+
+Während der Testphase trat bei einem von einem weiteren Tester verwendeten Datensatz ein Fehler auf, dessen Ursache zunächst unklar war. Nach eingehender Analyse stellte sich heraus, dass der Datensatz bereits vorab normalisiert worden war. Zu diesem Zeitpunkt bot das Programm jedoch keine Möglichkeit, bereits vorbereitete Datensätze korrekt zu verarbeiten oder dem Benutzer explizit die Auswahl eines vorab normalisierten Datensatzes zu ermöglichen. Aus diesem Grund wurden entsprechende Optionen für den Benutzer ergänzt sowie zusätzliche Fehlerbehandlungen implementiert.
+
+In der Endphase des Projekts wurde außerdem festgestellt, dass das Clustering beziehungsweise die Darstellung der Cluster nicht korrekt funktionierte. Daraufhin wurde die gesamte Normalisierungsfunktion erneut überprüft und ausführlich getestet. Gleichzeitig wurde der Datensatz, der den Fehler besonders deutlich sichtbar machte, nochmals analysiert. Dabei konnte die eigentliche Fehlerursache identifiziert und behoben werden. Im Zuge dieser Überarbeitung fiel zudem die Entscheidung, den Funktionsumfang zu erweitern und zusätzlich Normalisierungsmethoden ohne vorgeschaltete Logarithmierung zu implementieren.
+
+Einen weiteren unerwartet hohen Zeitaufwand verursachte die Recherche geeigneter Normalisierungsmethoden (5,5 Stunden). Zwar wird in wissenschaftlichen Veröffentlichungen häufig angegeben, dass Verfahren wie beispielsweise die Z-Score-Normalisierung verwendet wurden, jedoch fehlen oftmals detaillierte Beschreibungen der konkreten Implementierung oder eine Begründung für die Wahl der jeweiligen Methode.
+
+% ----------------------------------------------------------------------------------------------
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Wiktoria}
 
 \subsection{Berechnung der Distanzmatrix}
 \label{distanzfunktionen}
@@ -210,7 +377,7 @@ Die Canberra-Distanz (D4) ist besonders sensitiv für kleine Veränderungen nahe
 
 Mit D5 und D6 stehen auch zwei Korrelationsmaße als Distanzfunktionen zur Verfügung. Für die Korrelation \( \phi_{ij}\) gilt \( -1 \le \phi_{ij} \le 1 \), wobei 1 die größte positive Korrelation und -1 die größte negative Korrelation darstellt. Die Korrelation kann in eine Distanz \( \delta_{ij} \) im Intervall \( [0,1] \) umgerechnet werden. Korrelationsmaße eignen sich für Daten, die auf der gleichen Skala gemessen wurden, sowie deren exakten Werte nur insofern von Interesse sind, als sie Aufschluss über das relative Profil geben. So hat z.B. die Winkeldistanz (D6) die Eigenschaft, dass nur dann eine minimale Distanz von 0 zwischen zwei Zeilen entsteht, wenn die Werte der einen Zeilen Mehrfache der Werte der anderen Zeile sind.
 
-Im Projekt wurde eine gemeinsame Funktion für die Berechnung der Distanzmatrix in C++ implementiert. Dafür wurde ein separates Repository erschaffen. Das Paket \verb*|Rcpp| \cite{Eddelbuettel2026} ermöglicht die Einbindung des C++-Codes in eine R-Umgebung. Die eigentliche Funktion heißt \verb*|dist_cpp| und bekommt drei Parameter übergeben: eine numerische Matrix \verb*|mat| (den normalisierten Datensatz), einen String \verb*|method| für das gewählte Distanzmaß, und einen Integer \verb*|p|. Letzter entspricht dem Parameter \(r\) in der Minkowski-Distanz (D3). Die Implementierung entspricht den mathematischen Formeln und ist entsprechend einfach.
+Im Projekt wurde eine gemeinsame Funktion für die Berechnung der Distanzmatrix in C++ implementiert. Dafür wurde ein separates Repository erschaffen und als Paket exportiert. Das Paket \verb*|Rcpp| \cite{Eddelbuettel2026} ermöglicht die Einbindung des C++-Codes in eine R-Umgebung. So kann die C++ Funktion in R ausgeführt werden. Hierzu muss das entsprechende Paket \verb*|distRcpp| (Version \verb*|0.0.9001|) aufgerufen werden. Die eigentliche Funktion heißt \verb*|dist_cpp| und bekommt drei Parameter übergeben: eine numerische Matrix \verb*|mat| (den normalisierten Datensatz), einen String \verb*|method| für das gewählte Distanzmaß, und einen Integer \verb*|p|. Letzterer entspricht dem Parameter \(r\) in der Minkowski-Distanz (D3). Die Implementierung in C++ folgt weithin den mathematischen Formeln und ist daher vergleichbar unkompliziert. Vor allem die Einbindung des Codes als separates Paket war jedoch zeitaufwendig und führte zunächst zu einigen Fehlern, die primär die Installation des Pakets betrafen. Als diese schließlich gelöst wurden, konnte \verb*|dist_cpp| problemlos aufgerufen werden.
 
 \begin{table}[ht]
 	\centering
@@ -330,20 +497,101 @@ Das Average-Linkage-Verfahren ist ein Beispiel für ein konservierendes Verfahre
 \label{linkage-fazit}
 Diese drei implementierten Verfahren können somit als Spezialfälle der allgemeinen Lance-Williams-Funktion verstanden werden. Die benutzerdefinierte Linkagefunktion erlaubt darüber hinaus die freie Wahl der vier Parameter und damit die Implementierung weiterer hierarchischer Linkage-Verfahren.
 
-
 % ----------------------------------------------------------------------------------------------
 \newpage
 \pagestyle{fancy}
 \fancyhead{}
-\fancyhead[L]{Saliha \& Domi}
+\fancyhead[L]{Dominik}
 \section{Visualisierung}
 \label{visualisierung}
+
+Für die Visualisierung wurden eine Heatmap und zwei Dendrogramme erstellt. Dabei zeigt ein Dendrogramm die Patienten und das andere die Gene. Der Arzt kann sich am Ende die einzelnen Dendrogramme sowie ein Grafikpanel, welches aus der Zusammensetzung der einzelnen Komponenten besteht, anschauen.
+
+\subsection{Dendrogramm}
+\label{dendrogramm}
+
+\newpage
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[L]{Saliha}
 
 \subsection{Heatmap}
 \label{heatmap}
 
-\subsection{Dendrogramm}
-\label{dendrogramm}
+\subsubsection{Theoretische Grundlagen}
+
+Eine Heatmap dient der grafischen Darstellung numerischer Daten in Form einer Matrix, wobei jeder Messwert durch eine Farbe repräsentiert wird. In der Genexpressionsanalyse werden dabei typischerweise die Zeilen durch Gene und die Spalten durch Patienten beziehungsweise Proben dargestellt. Die Expressionshöhe wird über eine Farbskala codiert, wodurch Unterschiede und ähnliche Expressionsmuster visuell erkennbar werden \cite{Gu2016}.
+
+Durch die Kombination mit einer hierarchischen Clusteranalyse können Gene und Patienten entsprechend ihrer Ähnlichkeit angeordnet werden. Dadurch entstehen zusammenhängende Bereiche mit ähnlichen Expressionsprofilen, wodurch biologische Muster oder mögliche Untergruppen leichter identifiziert werden können \cite{Gu2016}. 
+
+Bei der Implementierung müssen die Expressionswerte als numerische Matrix vorliegen und die Reihenfolge der Gene sowie Patienten aus der Clusteranalyse übernommen werden. Zusätzlich ist eine geeignete Farbpalette erforderlich, welche Unterschiede unverzerrt darstellt und gleichzeitig eine barrierefreie Interpretation ermöglicht. Auch bei großen Datensätzen muss die Übersichtlichkeit sowie eine interaktive Untersuchung einzelner Datenpunkte gewährleistet werden.
+
+\subsubsection{Abhängigkeiten}
+
+Die Heatmap stellt einen Bestandteil des Grafikpanels dar und war daher von mehreren zuvor entwickelten Programmkomponenten abhängig. Voraussetzung für die Erstellung war ein vorbereiteter und normalisierter Datensatz sowie die Ergebnisse der Clusteranalyse.
+
+Die berechneten Distanzmatrizen, Cluster und Baumstrukturen liefern die Reihenfolge der Gene und Patienten, welche direkt die Anordnung der Zeilen und Spalten innerhalb der Heatmap bestimmen. Zusätzlich mussten die während der Datenintegration erzeugten Metadaten korrekt zugeordnet werden, damit diese später in der interaktiven Darstellung angezeigt werden konnten.
+
+Da die Heatmap erst nach Fertigstellung dieser Komponenten vollständig getestet werden konnte, erfolgte die abschließende Optimierung erst nach der Implementierung der Clusteranalyse, Reihenfolgebestimmung und Farbpaletten.
+
+\subsubsection{Heatmap Erstellung}
+
+Die Funktion \texttt{generate\_heatmap} erzeugt die Heatmap auf Grundlage des vorbereiteten Expressionsdatensatzes. Zunächst werden Gene und Patienten entsprechend der Ergebnisse der Clusteranalyse sortiert, wodurch die Darstellung der ermittelten Gruppierungen entspricht.
+
+Anschließend wird die Expressionsmatrix mithilfe von \texttt{melt} in das für \texttt{ggplot2} benötigte Long-Format überführt. Die Gennamen werden durch \texttt{make.unique} eindeutig gemacht und die Reihenfolge für die Darstellung angepasst.
+
+Für die Visualisierung können verschiedene Farbpaletten ausgewählt werden. Die eigentliche Heatmap wird anschließend mit \texttt{ggplot2} erzeugt, wobei jeder Expressionswert durch ein farbiges Rechteck dargestellt wird. Zusätzlich wird eine Farbskala zur Interpretation der Expressionswerte eingebunden und die Achsendarstellung für größere Datensätze angepasst.
+
+\subsubsection{Einbau der Meta Daten}
+
+Die Funktion \texttt{extract\_metadata\_names} bereitet die Metadaten für die interaktive Darstellung auf. Hierzu werden alle mit \texttt{Meta\_} gekennzeichneten Einträge erkannt und das Präfix entfernt. Dadurch können auch zukünftig hinzugefügte Metadaten automatisch verarbeitet werden, ohne dass eine erneute Anpassung notwendig ist.
+
+\subsubsection{Anordnung der Felddaten}
+
+Die Funktion \texttt{create\_heatmap\_field\_data} erweitert die Expressionsdaten um die zugehörigen Metadaten. Hierzu werden die Metadaten den entsprechenden Patienten zugeordnet und als zusätzliche Spalten ergänzt. Dadurch entsteht die Grundlage für die Anzeige zusätzlicher Informationen innerhalb der interaktiven Plotly-Heatmap.
+
+\subsubsection{PDF Speicherung}
+
+Die Funktion \texttt{heatmap\_pdf} ermöglicht den Export der Heatmap als PDF-Datei. Bei großen Datensätzen werden die Patienten automatisch auf mehrere Seiten verteilt, wodurch die Übersichtlichkeit und Lesbarkeit der Darstellung erhalten bleibt.
+
+\subsubsection{Konvertierung in Plotly}
+
+Die Funktion \texttt{generate\_heatmap\_plotly} wandelt die zuvor erstellte \texttt{ggplot2}-Heatmap in eine interaktive Plotly-Darstellung um. Dabei werden Genname, Patientenbezeichnung und Expressionswert als Tooltip übernommen. Zusätzlich werden Zoom- und Verschiebefunktionen aktiviert, wodurch auch große Datensätze interaktiv untersucht werden können.
+
+\subsubsection{Grafikpanel}
+
+Die Heatmap wird gemeinsam mit den beiden Dendrogrammen dargestellt, da erst die Kombination aus Farbvisualisierung und Clusterstruktur eine aussagekräftige Interpretation der Genexpressionsdaten ermöglicht. Die Dendrogramme zeigen die Ähnlichkeiten zwischen Genen und Patienten, während die Heatmap deren Expressionswerte visualisiert.
+Für die Umsetzung wurden zunächst zwei Ansätze untersucht. Die Kombination über \texttt{patchwork} konnte nicht verwendet werden, da die GUI auf \texttt{plotly}-Elementen basiert und diese nicht direkt mit \texttt{patchwork}-Objekten kombinierbar sind.
+
+Anschließend wurde die Erstellung über \texttt{plotly} Subplots getestet. Zwar konnten die einzelnen Darstellungen kombiniert werden, jedoch erfolgte das Zoomen jeweils nur für eine einzelne Grafik. Dadurch war keine synchrone Anpassung aller Komponenten möglich.
+
+
+\paragraph{Schwierigkeiten}
+Eine wesentliche Herausforderung stellte die allgemeine Zusammensetzung der einzelnen Visualisierungskomponenten zu einem gemeinsamen Grafikpanel dar. Dabei zeigte sich, dass die anfänglich gewählte Verwendung von \texttt{ggplot2} aufgrund der Nutzung von \texttt{plotly} in der GUI zu Einschränkungen führte. Zusätzlich war \texttt{patchwork} nicht mit \texttt{plotly}-Elementen kombinierbar. Durch fehlende Abstimmung zwischen den einzelnen Entwicklungsteams wurde diese Problematik erst spät erkannt.
+
+Weitere Schwierigkeiten entstanden durch unerwartete technische Fehler, deren Ursachen zunächst nicht eindeutig identifiziert werden konnten. Dadurch konnten einzelne Deadlines nicht eingehalten werden, was zu zeitlichen Verschiebungen im weiteren Projektverlauf führte. Außerdem wurden kurz vorm Ende Fehler gefunden, diese kurzfristigen Änderungen haben zur großer Verwirrung geführt. 
+
+
+\begin{table}[h]
+	\begin{tabular}{l|l|l}
+		Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
+		\hline
+		Recherche                     & Saliha    & 2 Stunden       \\
+		Besprechungen                 & Saliha    & 19.5 Stunden    \\
+		Bericht schreiben             & Saliha    & 3 Stunden  		\\
+		Team Besprechungen            & Saliha    & 8 Stunden 		\\
+		Heatmap Erstellung            & Saliha    & 3,5 Stunden       \\
+		Einbau der Meta Daten     	  & Saliha    & 1 Stunden       \\ 
+		Anordnung der Felddaten       & Saliha    & 1 Stunden       \\
+		PDF Speicherung               & Saliha    & 1 Stunden       \\
+		Konvertierung in Plotly       & Saliha    & 2,5 Stunden       \\
+		Grafikpanel Versionen         & Saliha    & 4 Stunden       \\ 
+		Testen                        & Saliha    & 15 Stunden      \\ 
+		
+	\end{tabular}
+\end{table}
+
+
 
 % ----------------------------------------------------------------------------------------------
 \newpage
