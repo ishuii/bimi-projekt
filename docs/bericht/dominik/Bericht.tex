@@ -1,0 +1,171 @@
+% !TeX program = pdflatex
+% !TeX encoding = UTF-8
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{csquotes}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{parskip}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+\definecolor{codebg}{gray}{0.97}
+\definecolor{codeframe}{gray}{0.80}
+
+\lstdefinestyle{rconsole}{
+	basicstyle       = \ttfamily\small,
+	backgroundcolor  = \color{codebg},
+	frame            = single,
+	rulecolor        = \color{codeframe},
+	framesep         = 5pt,
+	xleftmargin      = 5pt,
+	xrightmargin     = 5pt,
+	columns          = fullflexible,
+	keepspaces       = true,
+	showstringspaces = false,
+	breaklines       = false,
+	captionpos       = b,
+	aboveskip        = 10pt,
+	belowskip        = 10pt
+}
+\lstset{style=rconsole}
+
+\title{Die Dendrogramm-Pipeline}
+\author{}
+\date{}
+
+\begin{document}
+	
+	\section{Das Dendrogramm}
+	
+	Ein Dendrogramm stellt hierarchische Verwandtschafts- oder Ähnlichkeitsstrukturen grafisch dar – etwa in der Datenanalyse oder der Phylogenetik. Es macht Zusammenhänge sichtbar, die sich aus einer reinen Distanz- oder Ähnlichkeitsmatrix kaum ablesen lassen: Auf einen Blick wird erkennbar, welche Objekte früh zu Clustern verschmelzen, welche isoliert bleiben und wie sich diese Gruppen auf höheren Ebenen weiter zusammenfassen lassen. Damit fungiert das Dendrogramm als wichtiges Bindeglied zwischen komplexen mathematischen Daten und der menschlichen Wahrnehmung. Strukturell folgt es dabei einer streng hierarchischen Baumstruktur:
+	
+	\begin{itemize}
+		\item \textbf{Der Wurzelknoten (Root):} Er repräsentiert die Gesamtheit aller analysierten Daten als ein einziges, allumfassendes Cluster auf der höchsten Hierarchieebene.
+		\item \textbf{Interne Knoten (Nodes):} Diese Stellen symbolisieren die Fusionspunkte, an denen kleinere Cluster oder einzelne Datenpunkte basierend auf ihrer Ähnlichkeit zusammengeführt werden.
+		\item \textbf{Die Blätter (Leaves/Endknoten):} Sie bilden die Endpunkte der Baumstruktur und stehen für die einzelnen Untersuchungsobjekte.
+		\item \textbf{Die Äste (Zweige):} Sie dienen als Verbindungslinien zwischen den verschiedenen Knoten. Die entscheidende Rolle spielt hierbei die Höhe eines Knotens beziehungsweise die Länge des jeweiligen Astes: Sie ist proportional zur Unähnlichkeit der verbundenen Elemente. Je höher ein Knoten im Diagramm liegt, desto größer ist die Distanz und desto unähnlicher sind die darunter liegenden Cluster.
+		\cite{ivchenko2026, statistik_einfach_lernen_dendrogramm}
+	\end{itemize} 
+	
+	\section{Das Dendrogramm im Projektkontext}
+	
+	Im vorliegenden Dashboard wird diese Struktur auf einen Genexpressionsdatensatz angewendet, dessen Matrix in den Zeilen Gene und in den Spalten Patienten führt. Da sich die Matrix in beide Richtungen lesen lässt, wird die Clusterung zweimal durchgeführt: Das Gen-Dendrogramm zeigt ähnliche Expressionsmuster über alle Patienten hinweg, das Patienten-Dendrogramm ähnliche Gesamtprofile zwischen Patienten. Beide sind im Dashboard um eine gemeinsame Heatmap angeordnet – Patienten-Dendrogramm oberhalb, Gen-Dendrogramm links –, wobei die Blattreihenfolge jeweils die Zeilen- beziehungsweise Spaltenanordnung der Heatmap festlegt.
+	
+	\section{Die Eingabe: Das Cluster-Objekt}
+	
+	Als Eingabe für das Dendrogramm liefert das Cluster-Team ein Cluster-Objekt, das an die Struktur von \code{hclust} angelehnt ist.\cite{r_hclust} Kernstück ist die Merge-Matrix, die den Ablauf der Clusterung protokolliert: Bei $n$ Objekten hält sie in $n-1$ Zeilen fest, welche beiden Einheiten je Schritt verschmolzen wurden. Das Vorzeichen kodiert die Art: negativ für ein ursprüngliches Blatt (Betrag = Index), positiv für einen bereits gebildeten Teilbaum (Zeilennummer des früheren Merge-Schritts). Der Baum lässt sich so vollständig aus der Tabelle ableiten, mit der Wurzel in der letzten Zeile.
+	
+	Der Vektor \code{matched\_at} ergänzt zu jedem Schritt die Distanz der Verschmelzung und verleiht dem Dendrogramm damit seine Höhe: Der interne Knoten des $n$-ten Merge-Schritts wird auf der Höhe \code{matched\_at[n]} gezeichnet.
+	
+	\begin{lstlisting}
+		> print(cluster_pat$merge[1:4, ])
+		[,1] [,2]
+		[1,]  -60  -63
+		[2,]  -21  -68
+		[3,]  -61  -66
+		[4,]    2  -69
+		
+		> print(cluster_pat$matched_at[1:4])
+		[1] 0.8383706 0.9801695 1.0009455 1.0106337
+	\end{lstlisting}
+	
+	Die ersten drei Zeilen verschmelzen jeweils zwei ursprüngliche Objekte -- Schritt 1 etwa die Patienten 60 und 63 auf Höhe 0.838. Zeile 4 zeigt den gemischten Fall: Die positive 2 verweist auf den Teilbaum aus Schritt 2, der hier mit Patient 69 zusammengeführt wird. Die wachsenden Höhen folgen daraus, dass jeder Schritt das jeweils nächstgelegene Paar zusammenführt.
+	
+	\section{Architektur der Implementierung}
+	
+	Die Implementierung folgt einer klaren Architektur mit konsequenter Trennung von Berechnung und Darstellung: Eine Datenschicht ermittelt, was gezeichnet werden muss, eine Farbschicht entscheidet über die Einfärbung, und austauschbare Renderer setzen das Ergebnis in die jeweilige Grafikbibliothek um.
+	
+	\subsection{Die Datenschicht}
+	
+	Die Datenschicht führt in vier Schritten vom Cluster-Objekt zur zeichenfertigen Geometrie:
+	
+	\begin{itemize}
+		\item \code{build\_tree()} -- baut aus der Merge-Matrix einen verschachtelten Binärbaum. Nur Blätter tragen eine \code{id}, interne Knoten führen \code{id = NULL}; dieses eine Merkmal unterscheidet beide in allen späteren Traversierungen.
+		\item \code{get\_order\_vector()} -- liest daraus per Tiefensuche die Blattreihenfolge von links nach rechts aus und liefert einen Vektor aus Integer-IDs. Da dieselbe Reihenfolge auch die Achsenanordnung der Heatmap festlegt, arbeiten beide Darstellungen zwingend auf derselben Grundlage -- nur so steht jeder Ast über der zugehörigen Zeile beziehungsweise Spalte.
+		\item \code{calculate\_coords()} -- bestimmt rekursiv die Position jedes Knotens: Blätter auf $y = 0$ mit einem $x$ aus dem Order-Vektor, interne Knoten auf ihrer Verschmelzungshöhe mit einem $x$ als Mittelwert der Kindpositionen.
+		\item \code{draw\_segments()} -- sammelt daraus die Liniensegmente und die Blatt-Metadaten aus ID, Position und Klasse ein. Pro internem Knoten entstehen vier Segmente statt drei: je Kind eine Hälfte des Verbindungsbalkens samt Vertikale in dessen Klassenfarbe, wodurch ein Ast so weit farbig bleibt, wie die Klassen der Teilbäume übereinstimmen.
+	\end{itemize}
+	
+	Die Ergebnisse werden in \code{generate\_dendro\_data()} als Objekt aus \code{draw\_result} und \code{max\_height} gesammelt, ohne jeden Bezug zu einer Grafikbibliothek. Genau auf dieser Renderer-Unabhängigkeit beruht die Austauschbarkeit der nachgelagerten Schichten.
+	
+	\subsection{Die Farbschicht und die Renderer}
+	
+	Die Funktion \code{get\_color()} bildet die Klassenlabels auf Hex-Werte ab, wobei \code{Default} stets schwarz erhält; reicht die Palette nicht aus oder ist unbekannt, greift eine Ersatzpalette, und ohne Palette oder Klassenlabels wird durchgehend schwarz gezeichnet.
+	
+	Für die finale Visualisierung sind zwei verschiedene Plot-Funktionen implementiert: 
+	\code{plot\_dendro\_ggplot()} erzeugt die statische Variante für den PDF-Bericht, 
+	indem sie ein ggplot-Objekt layer für layer aufbaut \cite{ggplot2_book}.
+	
+	\code{plot\_dendro\_plotly()} hingegen erzeugt die interaktive Variante für das Dashboard; 
+	sie baut die Segmente als native Linien-Traces auf und setzt die um 90 Grad gedrehten 
+	Beschriftungen als Annotationen \cite{plotly_book}.
+	
+	Beide Funktionen nehmen dasselbe Datenobjekt entgegen und setzen auf dieselbe Farblogik, 
+	wodurch Bericht und Oberfläche zwangsläufig auf identischer Blattreihenfolge und Struktur 
+	arbeiten. Über den Parameter \code{names\_vector} werden die Integer-IDs erst an dieser 
+	Stelle zu Klarnamen aufgelöst.
+	
+	Das Grafikpanel lag ursprünglich im Aufgabenbereich meiner Teampartnerin; nachdem mehrere Versuche gescheitert waren, Dendrogramm und Heatmap zusammenzuführen, übernahm ich diese Aufgabe aus Zeitgründen. \code{grafikpanel()} bezieht die Heatmap aus der Wrapper-Funktion meiner Teampartnerin und zeichnet die Dendrogramme auf Grundlage von \code{generate\_dendro\_data()} und \code{get\_color()} unmittelbar neu. Die Anordnung entsteht über manuell gesetzte Achsen-Domains innerhalb eines einzigen \code{plot\_ly()}-Objekts, wobei gekoppelte Achsen dafür sorgen, dass Zoom und Verschiebung synchron auf Heatmap und zugehörigem Dendrogramm wirken.
+	
+	\section{Herausforderungen und Entscheidungen}
+	
+	\subsection{Flexibilität statt Spezialfälle}
+	
+	Das Dendrogramm wird zweimal mit unterschiedlicher Semantik aufgerufen -- für Gene und für Patienten. Statt eines internen \code{type}-Parameters wurde bewusst entschieden, Namensvektor und Klassenlabels von außen zu übergeben. Das hält die Zeichenfunktion frei von Sonderfällen und erlaubt beliebige weitere Anwendungen, verlagert aber die Verantwortung für korrekte Eingaben an den Aufrufer.
+	
+	\subsection{Entscheidungen in der Datenschicht}
+	
+	Für die Blattreihenfolge fiel die Wahl auf eine In-Order-Traversierung, die zusammengehörige Blätter benachbart hält, ohne dass sich Äste kreuzen.
+	
+	Naheliegend wäre auch gewesen, die Namen direkt im Baum mitzuführen. Stattdessen speichern Baum und Order-Vektor ausschließlich Integer-IDs, da Integer-Vergleiche über tausende Blätter billiger sind als String-Vergleiche; die Auflösung zu Klarnamen erfolgt erst in der Zeichenschicht.
+	
+	Auch bei Koordinaten und Segmenten spielte Effizienz eine Rolle: \code{calculate\_coords()} liefert in einem Durchlauf den vollständigen Koordinatenbaum inklusive Kindpositionen, sodass \code{draw\_segments()} diese direkt auslesen kann. Zudem sammelt \code{draw\_segments()} die Segmente zunächst in Listen und führt sie erst am Ende in einem einzigen \code{rbind()} zusammen, da ein Data Frame in R sonst bei jedem Anfügen neu kopiert würde und der Aufwand quadratisch mit der Knotenzahl anstiege.
+	
+	\subsection{Darstellung von großen Datensätzen}
+	
+	Mit wachsender Blattzahl überlappen Achsenbeschriftungen, und Äste laufen bei fester Strichstärke ineinander -- Letzteres beeinträchtigt vor allem den PDF-Export. Die ggplot-Variante fängt dies über drei dynamisch berechnete Größen ab: Schriftgröße und Linienstärke richten sich nach der Elementanzahl, die untere Marge nach der Länge des längsten Namens. Da es sich um Vektorgrafik handelt, bleibt der Export auch bei kleiner Schrift beliebig heranzoombar. Die Plotly-Variante übernimmt dieselbe Anpassung und ergänzt sie um Zoom sowie punktgenauen Hover mit Name und Klasse.
+	
+	\subsection{Der ursprüngliche Ansatz und der Bruch}
+	
+	Die Umsetzung war zu Projektstart bewusst auf ggplot ausgerichtet: Dendrogramme sollten als SVG exportiert und vom GUI-Team direkt eingebunden werden, das kombinierte Panel über \code{patchwork} entstehen -- beides ohne Codeänderung an den Kernfunktionen.
+	
+	Beide Pläne wurden hinfällig, als das GUI-Team gegen Projektende auf Plotly umstellte. \code{ggplotly()}, auf das fertige \code{patchwork}-Panel angewendet, konvertierte die Darstellung fehlerhaft: Die gedrehten Beschriftungen des Dendrogramms überlebten nicht, und die Farbzuordnung stimmte nicht mehr. Als Reaktion entstanden zunächst Nachbearbeitungs-Wrapper, für das eigenständige Dendrogramm erwies sich aber ein nativer Plotly-Renderer als sauberere Lösung.
+	
+	Auch der Versuch, die fertigen Plotly-Objekte per \code{subplot()} zu einem Panel zusammenzuführen, blieb erfolglos (Lücken, falsche Beschriftungen). Die finale Lösung baute die Dendrogramme im Panel stattdessen nativ neu auf, wobei sich die klare Schichtentrennung erneut als hilfreich erwies.
+	
+	\section{Fazit}
+	
+	Die Umstellung auf Plotly kurz vor Projektende hinterließ sichtbare Spuren in der Architektur. So werden Namen beispielsweise an drei statt an einer zentralen Stelle aufgelöst, weil Renderer und Panel schrittweise nachträglich ergänzt wurden statt von Beginn an auf ein gemeinsames Konzept ausgelegt zu sein. Für die Dendrogramm-Berechnung selbst hätte sich zudem Memorisierung angeboten, um wiederholte Traversierungen bei großen Bäumen durch Zwischenspeichern bereits berechneter Koordinaten zu vermeiden. Auch das Grafikpanel ist eher eine pragmatische Lösung als das strukturelle Optimum. Es dupliziert unter anderem Färbe- und Hover-Logik, die im eigenständigen Plotly-Renderer bereits existiert, und zentrale Layout-Werte wie Achsendomänen sind fest codiert statt dynamisch aus der Datengröße abgeleitet. Mit mehr Zeit wäre ein gemeinsamer, parametrisierter Unterbau für Renderer und Panel sinnvoll gewesen.
+	
+	\section{Arbeitsaufwand}
+	
+	\begin{table}[h]
+		\begin{tabular}{l|l|l}
+			Aufgabe                       & Zuständig & Arbeitsaufwand \\ 
+			\hline
+			Recherche                     & Dominik    & 3 Stunden       \\
+			Besprechungen                 & Dominik    & 19.5 Stunden    \\
+			Bericht schreiben             & Dominik    & 4 Stunden  		\\
+			Team Besprechungen            & Dominik    & 8 Stunden 		\\
+			Datenstruktur aufsetzen           & Dominik    & 5 Stunden       \\
+			Implementierung der Plot - Funktion für das Dendrogramm     	  & Dominik    & 3 Stunden       \\ 
+			Einpflegen der Farblogik       & Dominik    & 1 Stunden       \\
+			PDF Speicherung               & Dominik    & 1 Stunden       \\
+			Implementierung einer neuen Plot - Funktion in Plotly        & Dominik    & 2,5 Stunden       \\
+			Neuausrichtung auf Plotly          & Dominik    & 15 Stunden       \\ 
+			Testen                        & Dominik    & 7 Stunden      \\ 
+		\end{tabular}
+	\end{table}
+	
+	\bibliographystyle{plain}
+	\bibliography{literatur}
+	
+\end{document}
