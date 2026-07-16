@@ -11,10 +11,7 @@ refresh_presets <- function(
     )
   }
   
-  preset_files <- list.files(
-    path = preset_dir,
-    pattern = "\\.json$",
-    full.names = TRUE
+  preset_files <- list.files(path = preset_dir,pattern = "\\.json$",full.names = TRUE
   )
   
   preset_names <- tools::file_path_sans_ext(
@@ -38,35 +35,20 @@ refresh_presets <- function(
 }
 
 
-write_preset_file <- function(
-    preset,
-    preset_name,
-    preset_dir = "presets"
+write_preset_file <- function(preset,preset_name,preset_dir = "presets"
 ) {
   
-  if (!dir.exists(preset_dir)) {
-    dir.create(
-      preset_dir,
-      recursive = TRUE
+  if (!dir.exists(preset_dir)) {dir.create(preset_dir,recursive = TRUE
     )
   }
   
-  safe_name <- gsub(
-    "[^A-Za-z0-9_-]",
-    "_",
-    preset_name
+  safe_name <- gsub("[^A-Za-z0-9_-]","_",preset_name
   )
   
-  preset_path <- file.path(
-    preset_dir,
-    paste0(safe_name, ".json")
+  preset_path <- file.path(preset_dir,paste0(safe_name, ".json")
   )
   
-  jsonlite::write_json(
-    x = preset,
-    path = preset_path,
-    auto_unbox = TRUE,
-    pretty = TRUE
+  jsonlite::write_json(x = preset,path = preset_path,auto_unbox = TRUE,pretty = TRUE
   )
   
   preset_path
@@ -75,8 +57,6 @@ write_preset_file <- function(
 
 read_preset_file <- function(path) {
   
-  jsonlite::read_json(
-    path = path,
-    simplifyVector = TRUE
+  jsonlite::read_json(path = path,simplifyVector = TRUE
   )
 }

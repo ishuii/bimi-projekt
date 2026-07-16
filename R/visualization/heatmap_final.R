@@ -180,6 +180,7 @@ create_heatmap_field_data <- function(data_matrix,
 heatmap_pdf <- function(df_normalized,
                         patient_order,
                         gene_order = NULL,
+                        gene_names = NULL,
                         file = "Heatmap.pdf",
                         pages = 4,
                         width = 25,
@@ -190,6 +191,36 @@ heatmap_pdf <- function(df_normalized,
   if (is.null(gene_order)) {
     gene_order <- 1:nrow(df_normalized)
   }
+  
+  
+  if (is.null(gene_names)) {
+    gene_names <- rownames(df_normalized)
+  }
+  
+  gene_names <- as.character(
+    unlist(
+      gene_names,
+      use.names = FALSE
+    )
+  )
+  
+  gene_names <- as.character(
+    unlist(
+      gene_names,
+      use.names = FALSE
+    )
+  )
+  
+  if (
+    length(gene_names) != nrow(df_normalized)
+  ) {
+    gene_names <- paste0(
+      "Gene_",
+      seq_len(nrow(df_normalized))
+    )
+  }
+  
+  
   
   # split patients into equal chunks
   n_patients <- length(patient_order)
@@ -207,6 +238,7 @@ heatmap_pdf <- function(df_normalized,
       data_matrix   = df_normalized,
       gene_order    = gene_order,
       patient_order = current_patients,
+      gene_names = gene_names,
       show_x_axis   = show_x_axis
     )
     
