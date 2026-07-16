@@ -15,7 +15,7 @@ generate_heatmap <- function(data_matrix,
                              gene_names = NULL,
                              palette = NULL,
                              show_x_axis = FALSE
-                             ) {
+) {
   
   # Sort rows and columns
   sorted_matrix <- data_matrix[gene_order, patient_order]
@@ -90,7 +90,7 @@ generate_heatmap <- function(data_matrix,
       limits = raw_range
     ) +
     
-   
+    
     scale_y_discrete(position = "right") +
     
     labs( #axis titels
@@ -335,4 +335,3 @@ generate_heatmap_plotly <- function(
   
   return(heatmap_plotly)
 }
-
