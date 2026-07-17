@@ -82,11 +82,13 @@ Die Entwicklung der Anwendung erfolgte im Rahmen einer Gruppenarbeit. Dabei übe
 		Heatmap & Saliha \\
 		Graphische Oberfläche und Layout-Design & Adrika \\
 		Serverlogik & Andreas \\
-		Farbgebung und biologisch-medizinische Grundlagen & Johanna
+		Farbgebung und biologisch-medizinische Grundlagen & Johanna \\
+		Repository- und Package-Erstellung und Verwaltung & Wiktoria \\
 	\end{tabular}
 \end{table}
 
-Eine genauere Erläuterung der Aufgabenbereiche erfolgt in den folgenden Kapiteln. Die vorliegende Projektarbeit beschreibt sowohl die theoretischen Grundlagen als auch die technische Umsetzung der entwickelten Anwendung.
+Die im Rahmen des Projekts erstellte Anwendung ist als R-Paket \verb*|bimiProjektPaket| verfügbar. Informationen zur Installation und Ausführung des Pakets befinden sich in der dazugehörigen \verb*|README|-Datei. Eine ausführliche Erklärung der wichtigsten Funktionen sowie der einzelnen Aufgabenbereiche erfolgt in den folgenden Kapiteln.
+ Die vorliegende Projektarbeit beschreibt sowohl die theoretischen Grundlagen als auch die technische Umsetzung der entwickelten Anwendung.
 
 \newpage
 \pagestyle{fancy}
@@ -155,7 +157,6 @@ Die explorative Datenanalyse stellt einen der ersten Schritte nach der Datenaufb
 Ein weiteres zentrales Verfahren ist das Clustering. Es gehört zum Bereich des unüberwachten maschinellen Lernens und dient dazu, Datenobjekte anhand ihrer Ähnlichkeit automatisch zu Gruppen, sogenannten Clustern, zusammenzufassen. Im Gegensatz zur Klassifikation liegen beim Clustering keine vorgegebenen Klassen oder Kategorien vor. Ziel ist es stattdessen, bislang unbekannte Strukturen innerhalb der Daten zu identifizieren. Dabei sollen die Elemente eines Clusters möglichst ähnliche Merkmale aufweisen, während sich verschiedene Cluster möglichst deutlich voneinander unterscheiden \cite{Rokach2005}.
 
 Im Kontext der Genexpressionsanalyse ermöglicht Clustering die Identifikation von Genen oder biologischen Proben mit ähnlichen Expressionsmustern. Die so gewonnenen Gruppen können anschließend mithilfe geeigneter Visualisierungstechniken dargestellt und interpretiert werden. Die Kombination aus explorativer Datenanalyse, Clustering und Visualisierung bildet die Grundlage für die in dieser Arbeit entwickelte Anwendung zur Analyse von Genexpressionsdatensätzen.
-
 
 % ----------------------------------------------------------------------------------------------
 \newpage
@@ -283,7 +284,7 @@ Die folgende Tabelle zeigt, welche Aufgaben von wem übernommen wurden und wie g
 		Bericht zusammenfügen und Korrektur                 & Wiktoria  & 5 Stunden \\
 		Folien zusammenfügen und Korrektur 					& Wiktoria  & 1 Stunde \\
 		Repository-Pflege 									& Wiktoria  & 3 Stunden \\
-		Erstellen einer Library 							& Wiktoria  & NOCH OFFEN \\
+		Erstellen einer Library 							& Wiktoria  & 10 Stunden \\
 	\end{tabular}
 \end{table}
 
@@ -321,7 +322,7 @@ Nach der Datenvorbereitung kann der Datensatz optional normalisiert werden.
 
 Ziel der Normalisierung ist es, den Einfluss technischer Störfaktoren und systematischer Fehler auf die Messdaten zu reduzieren, sodass möglichst ausschließlich die biologische Variabilität der Genexpression erhalten bleibt. Solche unerwünschten Variationen können beispielsweise durch Unterschiede bei der Probenvorbereitung, leichte Schwankungen der Umgebungsbedingungen, den Abbau von Probenmaterial oder technische Einflüsse der verwendeten Messinstrumente entstehen. Generell sind diese Störquellen häufig weder direkt messbar noch exakt quantifizierbar, deswegen stellt ihre Korrektur eine besondere Herausforderung dar \cite{Dubois2022}. 
 
-Eine geeignete Normalisierung trägt daher wesentlich dazu bei, die Vergleichbarkeit der Daten zu verbessern und die Grundlage für eine zuverlässige Clusteranalyse zu schaffen. Für die in diesem Projekt entwickelte Funktion \texttt{normalization} stehen acht verschiedene Normalisierungsmethoden zur Verfügung, die nach dem belieben des Users ausgewählt werden können. Sie ist auffindbar im Projekt unter dem Pfad \texttt{R/clustering/normalization\_methods.R}. 
+Eine geeignete Normalisierung trägt daher wesentlich dazu bei, die Vergleichbarkeit der Daten zu verbessern und die Grundlage für eine zuverlässige Clusteranalyse zu schaffen. Für die in diesem Projekt entwickelte Funktion \texttt{normalization} stehen acht verschiedene Normalisierungsmethoden zur Verfügung, die nach dem belieben des Users ausgewählt werden können.
 
 \subsubsection{Keine Normalisierung}
 \label{Keine Normalisierung}
@@ -435,7 +436,7 @@ Die Canberra-Distanz (D4) ist besonders sensitiv für kleine Veränderungen nahe
 
 Mit D5 und D6 stehen auch zwei Korrelationsmaße als Distanzfunktionen zur Verfügung. Für die Korrelation \( \phi_{ij}\) gilt \( -1 \le \phi_{ij} \le 1 \), wobei 1 die größte positive Korrelation und -1 die größte negative Korrelation darstellt. Die Korrelation kann in eine Distanz \( \delta_{ij} \) im Intervall \( [0,1] \) umgerechnet werden. Korrelationsmaße eignen sich für Daten, die auf der gleichen Skala gemessen wurden, sowie deren exakten Werte nur insofern von Interesse sind, als sie Aufschluss über das relative Profil geben. So hat z.B. die Winkeldistanz (D6) die Eigenschaft, dass nur dann eine minimale Distanz von 0 zwischen zwei Zeilen entsteht, wenn die Werte der einen Zeilen Mehrfache der Werte der anderen Zeile sind.
 
-Im Projekt wurde eine gemeinsame Funktion für die Berechnung der Distanzmatrix in C++ implementiert. Dafür wurde ein separates Repository erschaffen und als Paket exportiert. Das Paket \verb*|Rcpp| \cite{Eddelbuettel2026} ermöglicht die Einbindung des C++-Codes in eine R-Umgebung. So kann die C++ Funktion in R ausgeführt werden. Hierzu muss das entsprechende Paket \verb*|distRcpp| (Version \verb*|0.0.9001|) aufgerufen werden. Die eigentliche Funktion heißt \verb*|dist_cpp| und bekommt drei Parameter übergeben: eine numerische Matrix \verb*|mat| (den normalisierten Datensatz), einen String \verb*|method| für das gewählte Distanzmaß, und einen Integer \verb*|p|. Letzterer entspricht dem Parameter \(r\) in der Minkowski-Distanz (D3). Die Implementierung in C++ folgt weithin den mathematischen Formeln und ist daher vergleichbar unkompliziert. Vor allem die Einbindung des Codes als separates Paket war jedoch zeitaufwendig und führte zunächst zu einigen Fehlern, die primär die Installation des Pakets betrafen. Als diese schließlich gelöst wurden, konnte \verb*|dist_cpp| problemlos aufgerufen werden.
+Im Projekt wurde eine gemeinsame Funktion für die Berechnung der Distanzmatrix in C++ implementiert. Dafür wurde zunächst ein separates Repository erschaffen und als Paket exportiert. Beim Verlegen des gesamten Projekt in ein Paket erübrigte sich das separate Repository; der C++ Code ist nun also Teil des Pakets \verb*|bimiProjektPaket|. Das Paket \verb*|Rcpp| \cite{Eddelbuettel2026} ermöglicht die Einbindung des C++-Codes in eine R-Umgebung. So kann die C++ Funktion in R ausgeführt werden. Die eigentliche Funktion heißt \verb*|dist_cpp| und bekommt drei Parameter übergeben: eine numerische Matrix \verb*|mat| (den normalisierten Datensatz), einen String \verb*|method| für das gewählte Distanzmaß, und einen Integer \verb*|p|. Letzterer entspricht dem Parameter \(r\) in der Minkowski-Distanz (D3). Die Implementierung in C++ folgt weithin den mathematischen Formeln und ist daher vergleichbar unkompliziert. Vor allem die Einbindung des Codes als separates Paket war jedoch zeitaufwendig und führte zunächst zu einigen Fehlern, die primär die Installation des Pakets betrafen. Nach Verschieben in ein gemeinsames Paket bereitete \verb*|dist_cpp| keine Probleme mehr. 
 
 \begin{table}[ht]
 	\centering
@@ -551,9 +552,11 @@ Das Complete-Linkage-Verfahren stellt den Gegenpol zum Single-Linkage dar, da es
 
 Das Average-Linkage-Verfahren ist ein Beispiel für ein konservierendes Verfahren, das den Raum weder verkleinert noch vergrößert. Es basiert auf dem gewichteten Mittelwert, was alleine durch die Parameter $\alpha_i$ und $\alpha_j$ ausgedrückt wird, während die beiden anderen Terme wegfallen. Damit stellt es einen Kompromiss zwischen Single- und Complete-Linkage dar.
 
-\subsubsection{Fazit}
-\label{linkage-fazit}
 Diese drei implementierten Verfahren können somit als Spezialfälle der allgemeinen Lance-Williams-Funktion verstanden werden. Die benutzerdefinierte Linkagefunktion erlaubt darüber hinaus die freie Wahl der vier Parameter und damit die Implementierung weiterer hierarchischer Linkage-Verfahren.
+
+\subsubsection{Herausforderungen bei der Implementierung}
+\label{herausforderungen-wiktoria}
+Sowohl die Distanzfunktionen als auch die Linkage-Verfahren waren technisch nicht schwierig zu implementieren. Da es sich im groben um reine Mathematik handelt, war das Programmieren entsprechend simpel. Deutlich mehr Zeit nahm das Umsetzen der Skripte in ausführbare Pakete. Für die in C++ geschriebenen Distanzfunktionen wurde zunächst ein eigenes Paket erstellt, was sich im Nachhinein als unnötig kompliziert herausstellte. Da am Ende der gesamte Code in einem Paket zusammengefasst wurde, war eine solche Auslagerung nur für die Distanzfunktionen nicht notwendig. Auch das Erstellen des finalen Pakets \verb*|bimiProjektPaket| nahm viel Zeit ein. Das zentrale Problem hier war, dass erst vergleichsweise spät entschieden wurde, den Code als ein solches Paket zur Verfügung zu stellen. Gleichzeitig waren die R-Skripte ähnlich spät finalisiert. So mussten beispielsweise alle Abhängigkeiten im Nachhinein überprüft und eindeutig gekennzeichnet werden. Im besten Fall hätte dies an die einzelnen Zuständigen delegiert werden können, doch aus Zeitgründen war das nicht mehr sinnvoll. In der Zukunft sollte man deutlich früher als Gruppe die Entscheidung treffen, ob ein Paket erstellt wird. Dann kann auch die Dokumentation entsprechend früh und in einem für Pakete angemessenem Format erfolgen.
 
 % ----------------------------------------------------------------------------------------------
 \newpage
