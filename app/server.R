@@ -935,6 +935,8 @@ server <- function(input, output, session) {
               )
             ),
             
+            palette = bundle$palette,
+            
             file = file.path(
               produced_pdfs,
               "03_heatmap.pdf"
